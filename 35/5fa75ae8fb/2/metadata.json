@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "355fa75ae8fb",
+  "session_id": "5f4c5a52-28ad-4269-b214-7cce051de917",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-11T10:37:59.095912Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "docs/guides/conflict-resolution.md"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "1eacfafd-c45c-4ac0-816c-4b4b7c136c99",
+  "token_usage": {
+    "input_tokens": 86,
+    "cache_creation_tokens": 36109,
+    "cache_read_tokens": 367603,
+    "output_tokens": 836,
+    "api_call_count": 10
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-11T10:37:59.080968Z",
+    "agent_lines": 0,
+    "human_added": 0,
+    "human_modified": 96,
+    "human_removed": 304,
+    "total_committed": 96,
+    "agent_percentage": 0
+  }
+}
