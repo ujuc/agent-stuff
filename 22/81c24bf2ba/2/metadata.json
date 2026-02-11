@@ -1,0 +1,44 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "2281c24bf2ba",
+  "session_id": "2b3756eb-8c69-4980-ac0a-8d2c534931d8",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-11T15:00:15.31967Z",
+  "branch": "main",
+  "checkpoints_count": 16,
+  "files_touched": [
+    "docs/guides/conflict-resolution.md",
+    "docs/guides/context-management.md",
+    "docs/guides/guidelines.md",
+    "docs/guides/interaction-modes.md",
+    "docs/guides/monitoring.md",
+    "docs/guides/output-formats.md",
+    "docs/guides/performance-optimization.md",
+    "docs/guides/performance.md",
+    "docs/guides/philosophy.md",
+    "docs/guides/process.md",
+    "docs/guides/project-integration.md",
+    "docs/guides/quality-assurance.md",
+    "docs/guides/security.md",
+    "docs/guides/technical-standards.md",
+    "docs/guides/version-control.md",
+    "docs/system-rules.md"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 626,
+    "cache_creation_tokens": 376714,
+    "cache_read_tokens": 6403220,
+    "output_tokens": 41539,
+    "api_call_count": 74
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-11T15:00:15.255913Z",
+    "agent_lines": 6090,
+    "human_added": 0,
+    "human_modified": 900,
+    "human_removed": 30,
+    "total_committed": 6990,
+    "agent_percentage": 87.1244635193133
+  }
+}
