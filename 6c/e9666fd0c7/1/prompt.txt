@@ -1,0 +1,60 @@
+Implement the following plan:
+
+# YAML Front Matter 언어 수정 계획
+
+## Context
+
+이전 작업에서 Sonnet subagent들이 `docs/` 하위 16개 파일의 YAML front matter를 한국어로 작성했다. 원인은 `spec-design/writing-guide.md`의 언어 정책이 `common-template.md`의 기본 규칙과 충돌하기 때문이다.
+
+**충돌 원인**:
+- `common-template.md` (line 21): "모든 내용은 명시하지 않는한 영어로 작성한다" → `description`만 한국어 명시
+- `writing-guide.md` (line 20-21): "YAML front matter의 필드 값과 본문 내용 모두 한국어를 사용한다" → 모든 필드 한국어
+
+subagent들이 writing-guide.md의 "모두 한국어" 정책을 따라 `context`, `metadata.role` 등을 한국어로 작성했다.
+
+## 수정 대상
+
+### 1. spec-design/writing-guide.md (원인 수정)
+- line 20-21의 언어 정책을 common-template.md와 일관되게 수정
+- "YAML front matter의 필드 값과 본문 내용 모두 한국어를 사용한다" → YAML front matter는 common-template.md의 규칙을 따르고, 본문 내용만 한국어로 작성한다는 점을 명확히 한다
+
+### 2. docs/ 하위 16개 파일 (결과 수정)
+각 파일에서 다음 필드를 영어로 변환:
+- `context`: 한국어 → 영어
+- `metadata.role`: 한국어 → 영어
+
+유지하는 필드:
+- `name`: 영어 (이미 영어)
+- `description`: 한국어 (common-template에서 명시적으로 한국어 지정)
+- `tags`: 영어 (이미 영어)
+- `metadata.priority`, `applies-to`, `optimized-for`: 영어 (이미 영어)
+
+대상 파일:
+1. docs/system-rules.md
+2. docs/guides/philosophy.md
+3. docs/guides/process.md
+4. docs/guides/technical-standards.md
+5. docs/guides/quality-assurance.md
+6. docs/guides/security.md
+7. docs/guides/conflict-resolution.md
+8. docs/guides/context-management.md
+9. docs/guides/documentation.md
+10. docs/guides/guidelines.md
+11. docs/guides/monitoring.md
+12. docs/guides/output-formats.md
+13. docs/guides/performance-optimization.md
+14. docs/guides/performance.md
+15. docs/guides/project-integration.md
+16. docs/guides/version-control.md
+
+## 실행 방식
+
+1. `spec-design/writing-guide.md` 언어 정책 수정 (직접)
+2. 16개 파일의 `context`와 `metadata.role`을 영어로 변환 (Sonnet subagent 병렬)
+
+## 검증
+
+- 수정 후 각 파일의 YAML front matter에서 `description`만 한국어이고, 나머지 필드는 영어인지 확인
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /Users/ujuc/.claude/projects/-Users-ujuc-repos-agent-stuff/ffe99a00-e184-46ca-8ed8-894a06d98a6f.jsonl
