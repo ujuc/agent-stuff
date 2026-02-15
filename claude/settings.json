@@ -5,7 +5,11 @@
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
   "permissions": {
-    "allow": [],
+    "allow": [
+      "Bash(git commit*)",
+      "Bash(git add*)",
+      "Bash(git push*)"
+    ],
     "deny": [],
     "ask": [],
     "defaultMode": "plan",
@@ -19,7 +23,12 @@
   "language": "korean",
   "sandbox": {
     "enabled": true,
-    "autoAllowBashIfSandboxed": true
+    "autoAllowBashIfSandboxed": true,
+    "permissions": {
+      "write": {
+        "additionalAllow": ["/tmp", "/private/tmp"]
+      }
+    }
   },
   "spinnerTipsEnabled": false,
   "alwaysThinkingEnabled": true,
