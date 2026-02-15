@@ -5,11 +5,7 @@
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
   "permissions": {
-    "allow": [
-      "Bash(git commit*)",
-      "Bash(git add*)",
-      "Bash(git push*)"
-    ],
+    "allow": ["Bash(git commit*)", "Bash(git add*)", "Bash(git push*)"],
     "deny": [],
     "ask": [],
     "defaultMode": "plan",
@@ -24,13 +20,13 @@
   "sandbox": {
     "enabled": true,
     "autoAllowBashIfSandboxed": true,
+    "network": {
+      "allowUnixSockets": ["/private/tmp/com.apple.launchd.*/Listeners"]
+    },
     "permissions": {
       "write": {
         "additionalAllow": ["/tmp", "/private/tmp"]
       }
-    },
-    "network": {
-      "allowUnixSockets": ["/private/tmp/com.apple.launchd.*/Listeners"]
     }
   },
   "spinnerTipsEnabled": false,

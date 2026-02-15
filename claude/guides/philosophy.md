@@ -1,4 +1,4 @@
-# Philosophy
+# 개발 철학
 
 <meta>
 Document: philosophy.md
@@ -10,64 +10,64 @@ Last Updated: 2025-12-21
 </meta>
 
 <context>
-This document defines the core development philosophy and guiding principles. These beliefs shape how we approach problems, make decisions, and write code. They provide the "why" behind the technical standards and processes.
+이 문서는 핵심 개발 철학과 지도 원칙을 정의합니다. 이러한 신념은 문제에 접근하고, 결정을 내리고, 코드를 작성하는 방식을 형성합니다. 기술 표준과 프로세스 뒤에 있는 "이유"를 제공합니다.
 </context>
 
 <your_responsibility>
-As a developer guided by this philosophy, you must:
-- **Question complexity**: Always ask "Is there a simpler way?"
-- **Seek clarity**: Never proceed with ambiguous requirements
-- **Value maintainability**: Write code that others (including future you) can understand
-- **Practice humility**: Ask questions when uncertain, don't assume you know
-- **Choose boring**: Prefer proven, stable solutions over cutting-edge experiments
+이 철학에 따라 개발할 때 다음을 준수해야 합니다:
+- **복잡성에 의문 제기**: 항상 "더 간단한 방법이 있을까?"라고 물으세요
+- **명확성 추구**: 모호한 요구사항으로 진행하지 마세요
+- **유지보수성 중시**: 다른 사람(미래의 당신 포함)이 이해할 수 있는 코드를 작성하세요
+- **겸손 실천**: 불확실할 때 질문하고, 안다고 가정하지 마세요
+- **평범함 선택**: 최신 실험보다 검증되고 안정적인 솔루션을 선호하세요
 </your_responsibility>
 
-## The Golden Rules (CRITICAL)
+## 황금률 (중요)
 
-- **Ask when unsure** - Do not proceed when uncertain about implementation details
-- **Simplicity first** - Do not over-engineer or make things unnecessarily complex
-- **Clarity required** - Do not proceed if a request is ambiguous or incomplete
-- **Reuse over rebuild** - Prefer stable, widely adopted libraries over custom implementations
+- **불확실하면 질문** - 구현 세부사항이 불확실할 때 진행하지 마세요
+- **단순함 우선** - 과도하게 설계하거나 불필요하게 복잡하게 만들지 마세요
+- **명확성 필수** - 요청이 모호하거나 불완전하면 진행하지 마세요
+- **재사용이 재구축보다 우선** - 커스텀 구현보다 안정적이고 널리 채택된 라이브러리를 선호하세요
 
-## Core Beliefs
+## 핵심 신념
 
-- **Incremental progress over big bangs** - Small changes that compile and pass tests
-- **Learning from existing code** - Study and plan before implementing
-- **Pragmatic over dogmatic** - Adapt to project reality
-- **Clear intent over clever code** - Be boring and obvious
+- **큰 변화보다 점진적 진행** - 컴파일되고 테스트를 통과하는 작은 변경
+- **기존 코드에서 학습** - 구현하기 전에 연구하고 계획하세요
+- **교조주의보다 실용주의** - 프로젝트 현실에 적응하세요
+- **영리한 코드보다 명확한 의도** - 평범하고 명확하게 작성하세요
 
-## Simplicity Means
+## 단순함의 의미
 
 <simplicity_definition>
-Simplicity is clarity, not laziness. Follow these principles:
+단순함은 명확성이지 게으름이 아닙니다. 다음 원칙을 따르세요:
 
-**Structural simplicity:**
-- One responsibility per function/class
-- No premature abstraction - wait until it repeats three times
-- Choose boring, obvious solutions over clever tricks
+**구조적 단순함:**
+- 함수/클래스당 하나의 책임
+- 조기 추상화 금지 - 세 번 반복될 때까지 기다리세요
+- 영리한 트릭보다 평범하고 명확한 솔루션 선택
 
-**Cognitive simplicity:**
-- If it needs explanation, it's too complex
-- Code readers shouldn't have to guess
-- Explicit is better than implicit
+**인지적 단순함:**
+- 설명이 필요하면 너무 복잡한 것입니다
+- 코드를 읽는 사람이 추측할 필요가 없어야 합니다
+- 암묵적인 것보다 명시적인 것이 낫습니다
 
-**Scope simplicity:**
-- Implement only what was requested
-- Don't add extra features "while at it"
-- Don't design for anticipated future requirements
-- Use only the minimum complexity needed for the current task
+**범위 단순함:**
+- 요청된 것만 구현하세요
+- "김에" 추가 기능을 넣지 마세요
+- 예상되는 미래 요구사항을 위해 설계하지 마세요
+- 현재 작업에 필요한 최소한의 복잡성만 사용하세요
 </simplicity_definition>
 
 <claude4_note>
-Claude 4.5 may have over-engineering tendencies.
-Be wary of creating extra files, unnecessary abstractions, or unrequested flexibility.
-Always ask "Is this really necessary?" first.
-Detailed guide: [Technical Standards - Avoid Over-engineering](./technical-standards.md)
+Claude 4.5는 과도한 엔지니어링 경향이 있을 수 있습니다.
+추가 파일 생성, 불필요한 추상화, 요청되지 않은 유연성을 경계하세요.
+항상 먼저 "이게 정말 필요한가?"라고 물으세요.
+상세 가이드: [Technical Standards - Avoid Over-engineering](./technical-standards.md)
 </claude4_note>
 
-## See Also
+## 참고 문서
 
-- [**CLAUDE.md**](../CLAUDE.md) - Primary document with complete guidelines
-- [System Rules](../system-rules.md) - Critical system-wide rules
-- [Technical Standards](../technical-standards.md) - Code generation and architecture
-- [Process](../process.md) - Implementation workflow and planning
+- [**CLAUDE.md**](../CLAUDE.md) - 전체 가이드라인이 포함된 주요 문서
+- [System Rules](../system-rules.md) - 시스템 전체의 중요 규칙
+- [Technical Standards](../technical-standards.md) - 코드 생성 및 아키텍처
+- [Process](../process.md) - 구현 워크플로우 및 계획

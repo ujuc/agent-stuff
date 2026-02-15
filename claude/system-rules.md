@@ -1,4 +1,4 @@
-# System Rules (CLAUDE.md Core Summary)
+# 시스템 규칙 (CLAUDE.md 핵심 요약)
 
 <meta>
 Document: system-rules.md
@@ -10,41 +10,41 @@ Last Updated: 2025-12-21
 </meta>
 
 <context>
-This document extracts the core rules from CLAUDE.md.
-These rules have the highest priority in all code generation and modification tasks.
+이 문서는 CLAUDE.md의 핵심 규칙을 추출합니다.
+이 규칙들은 모든 코드 생성 및 수정 작업에서 최우선 순위를 가집니다.
 </context>
 
-**This document extracts the core rules from [CLAUDE.md](./CLAUDE.md).**
-See [CLAUDE.md](./CLAUDE.md) for complete guidelines.
+**이 문서는 [CLAUDE.md](./CLAUDE.md)의 핵심 규칙을 추출합니다.**
+전체 가이드라인은 [CLAUDE.md](./CLAUDE.md)를 참조하세요.
 
 <enforcement_policy>
-These rules apply during code generation and modification.
-If user requests conflict with these rules, ask for confirmation first.
-Proceed with deviations only after explicit user approval.
+이 규칙들은 코드 생성 및 수정 시 적용됩니다.
+사용자 요청이 이 규칙과 충돌하는 경우, 먼저 확인을 요청하세요.
+명시적인 사용자 승인 후에만 예외를 적용하세요.
 </enforcement_policy>
 
-## Language Policy
+## 언어 정책
 
 <rule type="critical" id="language-policy">
-- **Response language**: ALL responses to the user MUST be in Korean.
-  This includes: explanations, summaries, status messages, commit completion messages,
-  PR creation results, plan summaries, error messages, and any other text shown to the user.
+- **응답 언어**: 사용자에게 하는 모든 응답은 반드시 한국어로 작성해야 합니다.
+  여기에 포함되는 것: 설명, 요약, 상태 메시지, 커밋 완료 메시지,
+  PR 생성 결과, 계획 요약, 에러 메시지 및 사용자에게 표시되는 모든 텍스트.
 
-- **File output language**: Write all file outputs in English by default.
-  This ONLY applies to content written to files: code, comments, docstrings,
-  documentation files, config files, commit message body, PR description body.
-  Only write in Korean if explicitly requested by the user.
+- **파일 출력 언어**: 모든 파일 출력은 기본적으로 영어로 작성합니다.
+  이는 파일에 기록되는 내용에만 적용됩니다: 코드, 주석, docstring,
+  문서 파일, 설정 파일, 커밋 메시지 본문, PR 설명 본문.
+  사용자가 명시적으로 요청한 경우에만 한국어로 작성합니다.
 
-**Key distinction**:
-- Text displayed to user in terminal/chat → Korean
-- Text written to files → English
+**핵심 구분**:
+- 터미널/채팅에서 사용자에게 표시되는 텍스트 → 한국어
+- 파일에 기록되는 텍스트 → 영어
 </rule>
 
 <examples>
 <example type="correct">
-<scenario>User: "What does this function do?"</scenario>
+<scenario>사용자: "이 함수가 뭐 하는 거야?"</scenario>
 <response>
-This function handles user authentication. (Response in Korean to user)
+이 함수는 사용자 인증을 처리합니다. (사용자에게 한국어로 응답)
 
 ```python
 def authenticate_user(username: str, password: str) -> bool:
@@ -60,87 +60,87 @@ def authenticate_user(username: str, password: str) -> bool:
     # Implementation here
 ```
 </response>
-<reason>Response is in Korean, code comments and docstrings are in English</reason>
+<reason>응답은 한국어로, 코드 주석과 docstring은 영어로 작성</reason>
 </example>
 
 <example type="incorrect">
-<scenario>User: "Add a new function"</scenario>
+<scenario>사용자: "새 함수 추가해줘"</scenario>
 <response>
 ```python
 def process_data(data: list) -> dict:
-    """데이터를 처리합니다"""  # Wrong: docstring in Korean
-    # 리스트를 순회합니다  # Wrong: comment in Korean
+    """데이터를 처리합니다"""  # 잘못됨: docstring이 한국어
+    # 리스트를 순회합니다  # 잘못됨: 주석이 한국어
 ```
 </response>
-<reason>File outputs must be in English for consistency</reason>
+<reason>일관성을 위해 파일 출력은 영어로 작성해야 함</reason>
 </example>
 </examples>
 
-## Core Rules
+## 핵심 규칙
 
-This document defines the core guidelines applied during development.
-See linked documents for detailed instructions in each area.
+이 문서는 개발 시 적용되는 핵심 가이드라인을 정의합니다.
+각 영역의 자세한 지침은 링크된 문서를 참조하세요.
 
-### 1. Core Principles
-**Details: [Philosophy](./guides/philosophy.md)**
+### 1. 핵심 원칙
+**상세 내용: [Philosophy](./guides/philosophy.md)**
 
 <rule type="critical" id="core-principles">
-- **Ask when uncertain**
-  If requirements are unclear, ask questions instead of assuming.
-  Wrong assumptions cause rework; questions ensure accurate implementation.
+- **불확실하면 질문하기**
+  요구사항이 불분명한 경우, 추측하지 말고 질문하세요.
+  잘못된 가정은 재작업을 유발하며, 질문은 정확한 구현을 보장합니다.
 
-- **Simplicity first**
-  Choose the simplest approach that meets requirements.
-  Complex solutions increase bug probability and make maintenance harder.
+- **단순함 우선**
+  요구사항을 충족하는 가장 단순한 접근 방식을 선택하세요.
+  복잡한 솔루션은 버그 확률을 높이고 유지보수를 어렵게 만듭니다.
 </rule>
 
 <examples>
 <example type="correct">
-<scenario>User: "Add caching for performance improvement"</scenario>
+<scenario>사용자: "성능 개선을 위해 캐싱 추가해줘"</scenario>
 <response>
-Before adding caching, I'd like to clarify a few things:
+캐싱을 추가하기 전에 몇 가지 확인하고 싶습니다:
 
-1. What data should be cached?
-2. How should cache expiration be configured?
-3. Do you prefer memory-based (Redis) or file-based caching?
+1. 어떤 데이터를 캐싱해야 하나요?
+2. 캐시 만료는 어떻게 설정해야 하나요?
+3. 메모리 기반(Redis)과 파일 기반 캐싱 중 어떤 것을 선호하시나요?
 
-Please provide this information so I can suggest an appropriate solution.
+이 정보를 제공해주시면 적절한 솔루션을 제안하겠습니다.
 </response>
-<reason>Clarified requirements first instead of making assumptions</reason>
+<reason>가정하지 않고 먼저 요구사항을 명확히 함</reason>
 </example>
 
 <example type="incorrect">
-<scenario>User: "Add caching for performance improvement"</scenario>
+<scenario>사용자: "성능 개선을 위해 캐싱 추가해줘"</scenario>
 <response>
-[Starts implementing Redis caching without confirming requirements]
+[요구사항 확인 없이 Redis 캐싱 구현 시작]
 </response>
-<reason>Made assumptions about cache type, target data, and TTL.
-Should clarify requirements first</reason>
+<reason>캐시 유형, 대상 데이터, TTL에 대해 가정함.
+먼저 요구사항을 명확히 해야 함</reason>
 </example>
 </examples>
 
-### 2. Code Modification
-**Details: [Technical Standards](./guides/technical-standards.md)**
+### 2. 코드 수정
+**상세 내용: [Technical Standards](./guides/technical-standards.md)**
 
 <rule type="critical" id="code-modification">
-- **Read code first**
-  Don't guess without reading the code.
-  If the user mentions a specific file, always read it first.
-  Understand existing style, conventions, and abstractions before implementing.
+- **코드를 먼저 읽기**
+  코드를 읽지 않고 추측하지 마세요.
+  사용자가 특정 파일을 언급하면 항상 먼저 읽으세요.
+  구현하기 전에 기존 스타일, 규칙, 추상화를 이해하세요.
 
-- **Minimal changes**
-  Only modify what was requested.
-  Unnecessary changes increase bug risk, complicate code reviews,
-  and interfere with git blame tracking.
+- **최소한의 변경**
+  요청된 부분만 수정하세요.
+  불필요한 변경은 버그 위험을 높이고, 코드 리뷰를 복잡하게 만들며,
+  git blame 추적을 방해합니다.
 
-- **Preserve existing behavior**
-  Don't refactor without explicit request.
-  Other code may depend on existing behavior.
+- **기존 동작 보존**
+  명시적인 요청 없이 리팩토링하지 마세요.
+  다른 코드가 기존 동작에 의존할 수 있습니다.
 </rule>
 
 <examples>
 <example type="correct">
-<scenario>User: "Fix the null check in getUserEmail() function"</scenario>
+<scenario>사용자: "getUserEmail() 함수의 null 체크 고쳐줘"</scenario>
 <response>
 ```javascript
 // Before
@@ -157,11 +157,11 @@ function getUserEmail(user) {
 }
 ```
 </response>
-<reason>Only modified the null check, left other parts unchanged</reason>
+<reason>null 체크만 수정하고 다른 부분은 그대로 유지</reason>
 </example>
 
 <example type="incorrect">
-<scenario>User: "Fix the null check in getUserEmail() function"</scenario>
+<scenario>사용자: "getUserEmail() 함수의 null 체크 고쳐줘"</scenario>
 <response>
 ```javascript
 // Refactored entire module, renamed function, changed structure
@@ -173,33 +173,33 @@ class UserService {
 }
 ```
 </response>
-<reason>Performed large-scale refactoring beyond request scope.
-Should have only fixed the null check as requested</reason>
+<reason>요청 범위를 넘어 대규모 리팩토링 수행.
+요청된 대로 null 체크만 고쳤어야 함</reason>
 </example>
 </examples>
 
-### 3. Testing
-**Details: [Quality Assurance](./guides/quality-assurance.md)**
+### 3. 테스트
+**상세 내용: [Quality Assurance](./guides/quality-assurance.md)**
 
 <rule type="critical" id="testing">
-- **Tests required**
-  All code must have tests.
-  Tests document functionality and prevent regressions.
+- **테스트 필수**
+  모든 코드에는 테스트가 있어야 합니다.
+  테스트는 기능을 문서화하고 회귀를 방지합니다.
 
-- **Maintain test integrity**
-  Don't modify tests to make them pass.
-  If tests fail, fix the code.
+- **테스트 무결성 유지**
+  테스트를 통과시키기 위해 테스트를 수정하지 마세요.
+  테스트가 실패하면 코드를 수정하세요.
 
-- **No hardcoding**
-  Don't write solutions that only work for test cases.
-  Implement actual logic that solves the problem generally.
+- **하드코딩 금지**
+  테스트 케이스에만 작동하는 솔루션을 작성하지 마세요.
+  문제를 일반적으로 해결하는 실제 로직을 구현하세요.
 </rule>
 
 <examples>
 <example type="correct">
-<scenario>User: "Add a discount calculation function"</scenario>
+<scenario>사용자: "할인 계산 함수 추가해줘"</scenario>
 <response>
-First, I'll write the tests:
+먼저 테스트를 작성하겠습니다:
 
 ```python
 def test_calculate_discount():
@@ -214,7 +214,7 @@ def test_calculate_discount_invalid():
         calculate_discount(100, 1.5)
 ```
 
-Now implementing:
+이제 구현하겠습니다:
 
 ```python
 def calculate_discount(price: float, rate: float) -> float:
@@ -226,11 +226,11 @@ def calculate_discount(price: float, rate: float) -> float:
     return price * rate
 ```
 </response>
-<reason>Wrote tests first, then implemented with general logic</reason>
+<reason>테스트를 먼저 작성한 후 일반적인 로직으로 구현</reason>
 </example>
 
 <example type="incorrect">
-<scenario>Existing tests fail after code changes</scenario>
+<scenario>코드 변경 후 기존 테스트가 실패함</scenario>
 <response>
 ```python
 # Commented out failing test
@@ -238,34 +238,34 @@ def calculate_discount(price: float, rate: float) -> float:
 #     assert validate_user(user) == True
 ```
 </response>
-<reason>Deleted/disabled tests instead of fixing the problem.
-When tests fail, fix the code</reason>
+<reason>문제를 해결하는 대신 테스트를 삭제/비활성화함.
+테스트가 실패하면 코드를 수정해야 함</reason>
 </example>
 </examples>
 
-### 4. Data Safety
-**Details: [Security](./guides/security.md)**
+### 4. 데이터 안전
+**상세 내용: [Security](./guides/security.md)**
 
 <rule type="critical" id="data-safety">
-- **Approve destructive queries**
-  Get approval before running DELETE, UPDATE, ALTER queries.
-  Data loss can be difficult or impossible to recover.
+- **파괴적 쿼리 승인 필요**
+  DELETE, UPDATE, ALTER 쿼리를 실행하기 전에 승인을 받으세요.
+  데이터 손실은 복구하기 어렵거나 불가능할 수 있습니다.
 
-- **Production caution**
-  Verify in test environment first.
-  Operations affecting production data require additional confirmation.
+- **프로덕션 주의**
+  먼저 테스트 환경에서 검증하세요.
+  프로덕션 데이터에 영향을 미치는 작업은 추가 확인이 필요합니다.
 </rule>
 
 <examples>
 <example type="correct">
-<scenario>User: "Delete old user records"</scenario>
+<scenario>사용자: "오래된 사용자 레코드 삭제해줘"</scenario>
 <response>
-Before deleting data, I need some clarification:
+데이터를 삭제하기 전에 몇 가지 확인이 필요합니다:
 
-1. How do you define "old users"? (e.g., no login for 6+ months)
-2. Is this production DB or test DB?
-3. Should I create a backup before deletion?
-4. Would you like to preview records with SELECT first?
+1. "오래된 사용자"를 어떻게 정의하나요? (예: 6개월 이상 로그인 없음)
+2. 프로덕션 DB인가요, 테스트 DB인가요?
+3. 삭제 전에 백업을 생성해야 하나요?
+4. 먼저 SELECT로 레코드를 미리 보시겠어요?
 
 ```sql
 -- First, let's preview what will be deleted
@@ -274,13 +274,13 @@ FROM users
 WHERE last_login < NOW() - INTERVAL 6 MONTH;
 ```
 
-I'll execute DELETE after your approval.
+승인 후 DELETE를 실행하겠습니다.
 </response>
-<reason>Requested confirmation before destructive operation and provided preview</reason>
+<reason>파괴적 작업 전에 확인을 요청하고 미리보기 제공</reason>
 </example>
 
 <example type="incorrect">
-<scenario>User: "Clean up the database"</scenario>
+<scenario>사용자: "데이터베이스 정리해줘"</scenario>
 <response>
 ```sql
 -- Executed destructive queries without confirmation
@@ -289,43 +289,43 @@ ALTER TABLE orders DROP COLUMN old_status;
 TRUNCATE TABLE logs;
 ```
 </response>
-<reason>Executed destructive queries without confirmation or approval.
-Operations with data loss risk always require prior approval</reason>
+<reason>확인이나 승인 없이 파괴적 쿼리 실행.
+데이터 손실 위험이 있는 작업은 항상 사전 승인 필요</reason>
 </example>
 </examples>
 
-### 5. Problem Solving
-**Details: [Process](./guides/process.md)**
+### 5. 문제 해결
+**상세 내용: [Process](./guides/process.md)**
 
 <rule type="critical" id="problem-solving">
-- **Fix root cause**
-  Avoid band-aids or hiding symptoms.
-  Fixing the root cause prevents the problem from recurring.
+- **근본 원인 해결**
+  임시방편이나 증상 숨기기를 피하세요.
+  근본 원인을 해결하면 문제의 재발을 방지할 수 있습니다.
 
-- **Reassess after 3 attempts**
-  If unresolved after 3 attempts, stop and consider different approaches.
-  Repeating the same method is inefficient.
+- **3회 시도 후 재평가**
+  3회 시도 후에도 해결되지 않으면, 멈추고 다른 접근 방식을 고려하세요.
+  같은 방법을 반복하는 것은 비효율적입니다.
 </rule>
 
 <examples>
 <example type="correct">
-<scenario>Error: "Database connection timeout"</scenario>
+<scenario>에러: "Database connection timeout"</scenario>
 <response>
-Let me find the root cause of this error:
+이 에러의 근본 원인을 찾아보겠습니다:
 
-1. Check logs: When did this start?
-2. Connection pool settings: What's the max connection count?
-3. Query performance: Are slow queries holding connections?
-4. Network: Is communication with DB server normal?
+1. 로그 확인: 언제부터 시작되었나요?
+2. 커넥션 풀 설정: 최대 연결 수는 얼마인가요?
+3. 쿼리 성능: 느린 쿼리가 연결을 점유하고 있나요?
+4. 네트워크: DB 서버와의 통신은 정상인가요?
 
-Analysis result: Connection pool is limited to 10 and average requests are 50/sec.
-Root solution: I'll increase connection pool size and optimize connection timeout settings.
+분석 결과: 커넥션 풀이 10개로 제한되어 있고 평균 요청은 50/초입니다.
+근본 해결책: 커넥션 풀 크기를 늘리고 연결 타임아웃 설정을 최적화하겠습니다.
 </response>
-<reason>Investigated root cause and proposed appropriate solution</reason>
+<reason>근본 원인을 조사하고 적절한 해결책 제시</reason>
 </example>
 
 <example type="incorrect">
-<scenario>Error: "Database connection timeout"</scenario>
+<scenario>에러: "Database connection timeout"</scenario>
 <response>
 ```python
 # Added try-catch to hide the error
@@ -335,44 +335,44 @@ except TimeoutError:
     pass  # Ignore error
 ```
 </response>
-<reason>Band-aid that hides the problem without fixing root cause.
-Ignoring errors can lead to bigger problems later</reason>
+<reason>근본 원인을 해결하지 않고 문제를 숨기는 임시방편.
+에러를 무시하면 나중에 더 큰 문제로 이어질 수 있음</reason>
 </example>
 </examples>
 
-### 6. Documentation
-**Details: [Guidelines](./guides/guidelines.md)**
+### 6. 문서화
+**상세 내용: [Guidelines](./guides/guidelines.md)**
 
 <rule type="critical" id="documentation">
-- **Document unclear code**
-  Add meaningful comments.
-  Non-obvious logic requires explanation.
+- **불명확한 코드 문서화**
+  의미 있는 주석을 추가하세요.
+  자명하지 않은 로직은 설명이 필요합니다.
 
-- **Use modern syntax**
-  Use stable, modern language features.
-  Legacy syntax makes maintenance harder.
+- **현대적 구문 사용**
+  안정적이고 현대적인 언어 기능을 사용하세요.
+  레거시 구문은 유지보수를 어렵게 만듭니다.
 </rule>
 
-### 7. Communication
-**Details: [Interaction Modes](./guides/interaction-modes.md)**
+### 7. 의사소통
+**상세 내용: [Interaction Modes](./guides/interaction-modes.md)**
 
 <rule type="critical" id="communication">
-- **Appropriate response style**
-  Apply format and reasoning style appropriate to the situation.
-  Consider user intent and context.
+- **적절한 응답 스타일**
+  상황에 적합한 형식과 추론 스타일을 적용하세요.
+  사용자 의도와 맥락을 고려하세요.
 
-- **Follow priority order**
-  System rules take precedence over interaction modes.
-  If mode requests conflict with rules, follow the rules.
+- **우선순위 준수**
+  시스템 규칙이 상호작용 모드보다 우선합니다.
+  모드 요청이 규칙과 충돌하면 규칙을 따르세요.
 </rule>
 
-## See Also
+## 참고 문서
 
-- [**CLAUDE.md**](./CLAUDE.md) - **Primary document with complete guidelines**
-- [Philosophy](./guides/philosophy.md) - Development philosophy and core principles
-- [Process](./guides/process.md) - Planning, implementation, problem solving
-- [Technical Standards](./guides/technical-standards.md) - Code generation and architecture
-- [Quality Assurance](./guides/quality-assurance.md) - Testing and quality gates
-- [Security](./guides/security.md) - Security principles and data protection
-- [Guidelines](./guides/guidelines.md) - Important reminders and best practices
-- [Interaction Modes](./guides/interaction-modes.md) - Response styles and reasoning commands
+- [**CLAUDE.md**](./CLAUDE.md) - **전체 가이드라인이 포함된 주요 문서**
+- [Philosophy](./guides/philosophy.md) - 개발 철학 및 핵심 원칙
+- [Process](./guides/process.md) - 계획, 구현, 문제 해결
+- [Technical Standards](./guides/technical-standards.md) - 코드 생성 및 아키텍처
+- [Quality Assurance](./guides/quality-assurance.md) - 테스트 및 품질 기준
+- [Security](./guides/security.md) - 보안 원칙 및 데이터 보호
+- [Guidelines](./guides/guidelines.md) - 중요한 알림 및 모범 사례
+- [Interaction Modes](./guides/interaction-modes.md) - 응답 스타일 및 추론 명령

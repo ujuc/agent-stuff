@@ -1,4 +1,4 @@
-# Quality Assurance
+# 품질 보증
 
 <meta>
 Document: quality-assurance.md
@@ -10,113 +10,112 @@ Last Updated: 2025-12-21
 </meta>
 
 <context>
-This document defines quality assurance practices including code review checklists,
-test requirements, and quality gates. Quality is built into every stage of the
-development process, not added later.
+이 문서는 코드 리뷰 체크리스트, 테스트 요구사항, 품질 게이트를 포함한 품질 보증 관행을 정의합니다.
+품질은 개발 프로세스의 모든 단계에 내재되어 있으며, 나중에 추가되는 것이 아닙니다.
 </context>
 
 <your_responsibility>
-As Quality Manager, you must:
-- **Tests required** - Ensure no code is committed without tests
-- **Maintain test integrity** - Don't weaken or delete tests to make code pass
-- **Thorough review** - Check all items on the quality checklist
-- **Verify completion criteria** - Ensure all Definition of Done criteria are met
-- **Enforce standards** - Reject changes that don't pass quality gates
-- **Long-term perspective** - Consider maintainability, not just immediate functionality
+품질 관리자로서 다음을 준수해야 합니다:
+- **테스트 필수** - 테스트 없이 코드가 커밋되지 않도록 보장
+- **테스트 무결성 유지** - 코드를 통과시키기 위해 테스트를 약화시키거나 삭제하지 않기
+- **철저한 리뷰** - 품질 체크리스트의 모든 항목을 확인
+- **완료 기준 검증** - 모든 완료 정의 (Definition of Done) 기준이 충족되었는지 확인
+- **표준 시행** - 품질 게이트를 통과하지 못하는 변경을 거부
+- **장기적 관점** - 즉각적인 기능만이 아닌 유지보수성도 고려
 </your_responsibility>
 
-## Self Code Review Checklist
+## 셀프 코드 리뷰 체크리스트
 
-### Before Requesting Review
+### 리뷰 요청 전
 
-- [ ] All tests pass
-- [ ] Edge cases handled
-- [ ] Performance impact considered
-- [ ] No security vulnerabilities
-- [ ] Accessibility requirements met
-- [ ] Error messages are user-friendly
-- [ ] Documentation updated
-- [ ] No commented-out code
-- [ ] No console.log/print statements
+- [ ] 모든 테스트 통과
+- [ ] 엣지 케이스 처리됨
+- [ ] 성능 영향 고려됨
+- [ ] 보안 취약점 없음
+- [ ] 접근성 요구사항 충족
+- [ ] 오류 메시지가 사용자 친화적임
+- [ ] 문서 업데이트됨
+- [ ] 주석 처리된 코드 없음
+- [ ] console.log/print 문 없음
 
-## Decision Framework
+## 의사결정 프레임워크
 
-When multiple valid approaches exist, choose based on:
+여러 유효한 접근 방식이 있을 때, 다음 기준으로 선택하세요:
 
-1. **Testability** - Can I easily test this?
-2. **Readability** - Will someone understand this in 6 months?
-3. **Consistency** - Does this match project patterns?
-4. **Simplicity** - Is this the simplest solution that works?
-5. **Reversibility** - How hard to change later?
-6. **Performance** - Is the performance acceptable?
-7. **Security** - Are there security implications?
+1. **테스트 용이성** - 쉽게 테스트할 수 있는가?
+2. **가독성** - 6개월 후에 누군가가 이해할 수 있는가?
+3. **일관성** - 프로젝트 패턴과 일치하는가?
+4. **단순성** - 작동하는 가장 단순한 솔루션인가?
+5. **가역성** - 나중에 변경하기 얼마나 어려운가?
+6. **성능** - 성능이 수용 가능한가?
+7. **보안** - 보안에 영향이 있는가?
 
-## Test Code Rules
+## 테스트 코드 규칙
 
-- **Tests required**
-  Write tests alongside implementation code.
-  Tests document functionality and prevent regressions.
+- **테스트 필수**
+  구현 코드와 함께 테스트를 작성하세요.
+  테스트는 기능을 문서화하고 회귀를 방지합니다.
 
-- **Maintain test integrity**
-  Don't modify tests to make them pass.
-  If tests fail, fix the actual problem.
+- **테스트 무결성 유지**
+  테스트를 통과시키기 위해 테스트를 수정하지 마세요.
+  테스트가 실패하면 실제 문제를 수정하세요.
 
-- **No hardcoding**
-  Don't write solutions that only work for test cases.
-  Implement actual logic that solves the problem generally.
-  If the test is wrong, inform the user.
+- **하드코딩 금지**
+  테스트 케이스에서만 작동하는 솔루션을 작성하지 마세요.
+  문제를 일반적으로 해결하는 실제 로직을 구현하세요.
+  테스트가 잘못되었다면 사용자에게 알려주세요.
 
 <test_integrity>
-Avoid hardcoding to pass tests:
-- No conditionals that only work for test input values
-- No exception handling for specific test cases
-- No code that directly returns test results
-- Implement actual algorithms that solve the problem generally
+테스트 통과를 위한 하드코딩을 피하세요:
+- 테스트 입력 값에서만 작동하는 조건문 금지
+- 특정 테스트 케이스를 위한 예외 처리 금지
+- 테스트 결과를 직접 반환하는 코드 금지
+- 문제를 일반적으로 해결하는 실제 알고리즘을 구현
 </test_integrity>
 
-- **Approval for test changes**
-  Don't arbitrarily modify test files, data, or fixtures.
+- **테스트 변경 시 승인 필요**
+  테스트 파일, 데이터, 픽스처를 임의로 수정하지 마세요.
 
-- **Confirm API changes**
-  Don't change API names/parameters without approval.
+- **API 변경 시 확인**
+  승인 없이 API 이름/매개변수를 변경하지 마세요.
 
-- **Discuss data changes**
-  Don't migrate or modify data without user discussion.
+- **데이터 변경 시 논의**
+  사용자와 논의 없이 데이터를 마이그레이션하거나 수정하지 마세요.
 
-## Quality Gates
+## 품질 게이트
 
-### Definition of Done
+### 완료 정의 (Definition of Done)
 
-- [ ] Tests written and passing
-- [ ] Code follows project conventions
-- [ ] No linter/formatter warnings
-- [ ] Commit messages are clear
-- [ ] Implementation matches plan
-- [ ] No TODOs without issue numbers
-- [ ] Documentation updated
-- [ ] Performance acceptable
-- [ ] Security considerations addressed
+- [ ] 테스트가 작성되고 통과됨
+- [ ] 코드가 프로젝트 규칙을 따름
+- [ ] 린터/포맷터 경고 없음
+- [ ] 커밋 메시지가 명확함
+- [ ] 구현이 계획과 일치함
+- [ ] 이슈 번호 없는 TODO 없음
+- [ ] 문서 업데이트됨
+- [ ] 성능이 수용 가능함
+- [ ] 보안 고려사항 해결됨
 
-### Test Guidelines
+### 테스트 가이드라인
 
-- Test behavior, not implementation
-- One assertion per test when possible
-- Clear test names describing scenario
-- Use existing test utilities/helpers
-- Tests should be deterministic
-- Include edge cases and error scenarios
-- Aim for 80%+ code coverage
+- 구현이 아닌 동작을 테스트
+- 가능하면 테스트당 하나의 어설션
+- 시나리오를 설명하는 명확한 테스트 이름
+- 기존 테스트 유틸리티/헬퍼 사용
+- 테스트는 결정적이어야 함
+- 엣지 케이스와 오류 시나리오 포함
+- 80% 이상의 코드 커버리지 목표
 
-## Quality Metrics
+## 품질 메트릭
 
 <metrics>
-These are measurable indicators of code quality. Use these to objectively assess whether code meets standards.
+코드 품질의 측정 가능한 지표입니다. 코드가 표준을 충족하는지 객관적으로 평가하는 데 사용하세요.
 
-### Code Coverage
+### 코드 커버리지
 <metric id="code-coverage">
-**Target**: 80%+ overall, 100% for critical paths
+**목표**: 전체 80% 이상, 주요 경로 100%
 
-**Measurement**:
+**측정 방법**:
 ```bash
 # Example commands
 npm run test:coverage
@@ -124,20 +123,20 @@ pytest --cov=src --cov-report=html
 go test -cover ./...
 ```
 
-**Acceptance Criteria**:
-- ✅ Coverage doesn't decrease from current level
-- ✅ All new code has at least 80% coverage
-- ✅ Critical business logic has 100% coverage
-- ⚠️ Anything below 70% needs justification
+**수용 기준**:
+- ✅ 현재 수준에서 커버리지가 감소하지 않음
+- ✅ 모든 새 코드가 최소 80% 커버리지를 가짐
+- ✅ 핵심 비즈니스 로직이 100% 커버리지를 가짐
+- ⚠️ 70% 미만은 정당화가 필요
 
-**When to Measure**: Before every commit
+**측정 시점**: 모든 커밋 전
 </metric>
 
-### Code Quality Score
+### 코드 품질 점수
 <metric id="code-quality">
-**Target**: A grade (90-100 score) on linter/analyzer
+**목표**: 린터/분석기에서 A 등급 (90~100점)
 
-**Measurement**:
+**측정 방법**:
 ```bash
 # Example tools
 eslint --format json . > quality-report.json
@@ -145,37 +144,37 @@ pylint src/ --output-format=json
 sonarqube-scanner
 ```
 
-**Acceptance Criteria**:
-- ✅ Zero critical issues
-- ✅ Zero high-priority issues
-- ✅ < 5 medium-priority issues per 1000 lines
-- ✅ Technical debt ratio < 5%
+**수용 기준**:
+- ✅ 치명적 이슈 0건
+- ✅ 높은 우선순위 이슈 0건
+- ✅ 1000줄당 중간 우선순위 이슈 5건 미만
+- ✅ 기술 부채 비율 5% 미만
 
-**When to Measure**: Before committing, in CI/CD pipeline
+**측정 시점**: 커밋 전, CI/CD 파이프라인에서
 </metric>
 
-### Performance Benchmarks
+### 성능 벤치마크
 <metric id="performance">
-**Target**: Depends on operation type
+**목표**: 작업 유형에 따라 다름
 
-**API Endpoints**:
+**API 엔드포인트**:
 - p50 < 100ms
 - p95 < 200ms
 - p99 < 500ms
-- Error rate < 0.1%
+- 오류율 < 0.1%
 
-**Database Queries**:
-- Simple queries: < 10ms
-- Complex queries: < 100ms
-- Aggregations: < 500ms
-- No N+1 query problems
+**데이터베이스 쿼리**:
+- 단순 쿼리: < 10ms
+- 복잡한 쿼리: < 100ms
+- 집계: < 500ms
+- N+1 쿼리 문제 없음
 
-**Page Load Times**:
+**페이지 로드 시간**:
 - First Contentful Paint: < 1.5s
 - Time to Interactive: < 3.5s
 - Largest Contentful Paint: < 2.5s
 
-**Measurement**:
+**측정 방법**:
 ```bash
 # Load testing
 k6 run load-test.js
@@ -186,19 +185,19 @@ node --prof app.js
 python -m cProfile -o output.pstats script.py
 ```
 
-**Acceptance Criteria**:
-- ✅ Meets targets for operation type
-- ✅ No performance regression (>10% slower than baseline)
-- ⚠️ New features don't slow existing features
+**수용 기준**:
+- ✅ 작업 유형에 대한 목표를 충족
+- ✅ 성능 회귀 없음 (기준선 대비 10% 이상 느려지지 않음)
+- ⚠️ 새 기능이 기존 기능을 느리게 하지 않음
 
-**When to Measure**: Before releasing performance-critical changes
+**측정 시점**: 성능에 민감한 변경 사항을 릴리스하기 전
 </metric>
 
-### Security Vulnerability Scan
+### 보안 취약점 스캔
 <metric id="security-scan">
-**Target**: Zero critical/high vulnerabilities
+**목표**: 치명적/높은 수준의 취약점 0건
 
-**Measurement**:
+**측정 방법**:
 ```bash
 # Dependency scanning
 npm audit
@@ -210,20 +209,20 @@ semgrep --config=auto
 bandit -r src/
 ```
 
-**Acceptance Criteria**:
-- ✅ Zero critical vulnerabilities
-- ✅ Zero high vulnerabilities
-- ✅ < 5 medium vulnerabilities (with remediation plan)
-- ✅ All dependencies up to date (within 6 months)
+**수용 기준**:
+- ✅ 치명적 취약점 0건
+- ✅ 높은 수준의 취약점 0건
+- ✅ 중간 수준의 취약점 5건 미만 (개선 계획 포함)
+- ✅ 모든 의존성이 최신 상태 (6개월 이내)
 
-**When to Measure**: Weekly, before every deployment
+**측정 시점**: 매주, 모든 배포 전
 </metric>
 
-### Code Complexity
+### 코드 복잡도
 <metric id="complexity">
-**Target**: Cyclomatic complexity < 10 per function
+**목표**: 함수당 순환 복잡도 (Cyclomatic complexity) < 10
 
-**Measurement**:
+**측정 방법**:
 ```bash
 # Complexity analysis
 radon cc src/ -a
@@ -231,138 +230,138 @@ complexity --threshold=10 ./
 lizard -l python src/
 ```
 
-**Acceptance Criteria**:
-- ✅ No functions with complexity > 15
-- ✅ Average complexity < 5
-- ⚠️ Complexity 10-15: Add comments explaining logic
-- ❌ Complexity > 15: Refactor required
+**수용 기준**:
+- ✅ 복잡도 15를 초과하는 함수 없음
+- ✅ 평균 복잡도 5 미만
+- ⚠️ 복잡도 10~15: 로직을 설명하는 주석 추가
+- ❌ 복잡도 15 초과: 리팩토링 필요
 
-**When to Measure**: During code review
+**측정 시점**: 코드 리뷰 중
 </metric>
 
-### Documentation Coverage
+### 문서화 커버리지
 <metric id="doc-coverage">
-**Target**: 100% public APIs, 80% overall
+**목표**: 공개 API 100%, 전체 80%
 
-**Measurement**:
-- Count functions/classes with docstrings
-- Check for README, API docs, architecture docs
-- Verify examples work
+**측정 방법**:
+- docstring이 있는 함수/클래스 수 확인
+- README, API 문서, 아키텍처 문서 확인
+- 예제가 작동하는지 검증
 
-**Acceptance Criteria**:
-- ✅ All public APIs have documentation
-- ✅ All complex logic has comments
-- ✅ README includes setup, usage, examples
-- ✅ Architecture decision records (ADRs) for major choices
+**수용 기준**:
+- ✅ 모든 공개 API에 문서화가 있음
+- ✅ 모든 복잡한 로직에 주석이 있음
+- ✅ README에 설정, 사용법, 예시가 포함됨
+- ✅ 주요 선택에 대한 아키텍처 결정 기록 (ADR)이 있음
 
-**When to Measure**: During code review
+**측정 시점**: 코드 리뷰 중
 </metric>
 
-### Build & Test Time
+### 빌드 및 테스트 시간
 <metric id="build-time">
-**Target**: < 10 minutes for full build/test cycle
+**목표**: 전체 빌드/테스트 주기 10분 미만
 
-**Measurement**:
+**측정 방법**:
 ```bash
 time npm run build && npm test
 time make && make test
 ```
 
-**Acceptance Criteria**:
-- ✅ Unit tests complete in < 2 minutes
-- ✅ Integration tests complete in < 5 minutes
-- ✅ Full build in < 10 minutes
-- ⚠️ > 10 minutes: Consider parallelization or optimization
+**수용 기준**:
+- ✅ 단위 테스트가 2분 이내에 완료
+- ✅ 통합 테스트가 5분 이내에 완료
+- ✅ 전체 빌드가 10분 이내
+- ⚠️ 10분 초과: 병렬화 또는 최적화 고려
 
-**When to Measure**: After adding new tests
+**측정 시점**: 새 테스트 추가 후
 </metric>
 </metrics>
 
-## Success Criteria by Task Type
+## 작업 유형별 성공 기준
 
 <success_criteria>
-### Bug Fix
+### 버그 수정
 <criteria type="bug-fix">
-**Must Have**:
-- ✅ Bug no longer reproducible
-- ✅ Test added that catches this bug
-- ✅ No new bugs introduced (all existing tests pass)
-- ✅ Root cause documented in commit/comments
+**필수 사항**:
+- ✅ 버그가 더 이상 재현되지 않음
+- ✅ 이 버그를 잡는 테스트가 추가됨
+- ✅ 새로운 버그가 도입되지 않음 (모든 기존 테스트 통과)
+- ✅ 근본 원인이 커밋/주석에 문서화됨
 
-**Should Have**:
-- ✅ Similar bugs checked and fixed
-- ✅ Performance not degraded
-- ✅ Code coverage maintained or improved
+**권장 사항**:
+- ✅ 유사한 버그를 확인하고 수정함
+- ✅ 성능이 저하되지 않음
+- ✅ 코드 커버리지가 유지되거나 향상됨
 
-**Metrics**:
-- Test coverage: No decrease
-- Regression: 0 new test failures
-- Time to fix: < 4 hours for simple bugs
+**메트릭**:
+- 테스트 커버리지: 감소 없음
+- 회귀: 새로운 테스트 실패 0건
+- 수정 시간: 단순 버그의 경우 4시간 미만
 </criteria>
 
-### New Feature
+### 새 기능
 <criteria type="new-feature">
-**Must Have**:
-- ✅ All acceptance criteria met
-- ✅ Tests cover happy path + edge cases
-- ✅ Documentation updated (README, API docs)
-- ✅ No breaking changes (or documented/versioned)
-- ✅ Performance meets SLA
+**필수 사항**:
+- ✅ 모든 수용 기준 충족
+- ✅ 테스트가 정상 경로 + 엣지 케이스를 다룸
+- ✅ 문서 업데이트됨 (README, API 문서)
+- ✅ 호환성을 깨는 변경 없음 (또는 문서화/버전 관리됨)
+- ✅ 성능이 SLA를 충족
 
-**Should Have**:
-- ✅ Code review approved
-- ✅ Integration tests pass
-- ✅ Monitoring/logging added
-- ✅ Error handling comprehensive
+**권장 사항**:
+- ✅ 코드 리뷰 승인됨
+- ✅ 통합 테스트 통과
+- ✅ 모니터링/로깅 추가됨
+- ✅ 오류 처리가 포괄적임
 
-**Metrics**:
-- Test coverage: ≥ 80%
-- Performance: Meets targets (see metrics above)
-- Complexity: < 10 per function
-- Documentation: 100% of public APIs
+**메트릭**:
+- 테스트 커버리지: ≥ 80%
+- 성능: 목표를 충족 (위의 메트릭 참조)
+- 복잡도: 함수당 10 미만
+- 문서화: 공개 API의 100%
 </criteria>
 
-### Refactoring
+### 리팩토링
 <criteria type="refactoring">
-**Must Have**:
-- ✅ All tests still pass
-- ✅ Functionality unchanged (verified by tests)
-- ✅ Code complexity reduced or maintained
-- ✅ No new bugs introduced
+**필수 사항**:
+- ✅ 모든 테스트가 여전히 통과
+- ✅ 기능이 변경되지 않음 (테스트로 검증)
+- ✅ 코드 복잡도가 감소하거나 유지됨
+- ✅ 새로운 버그가 도입되지 않음
 
-**Should Have**:
-- ✅ Code readability improved
-- ✅ Performance maintained or improved
-- ✅ Technical debt reduced
-- ✅ Comments updated to match changes
+**권장 사항**:
+- ✅ 코드 가독성 향상됨
+- ✅ 성능이 유지되거나 향상됨
+- ✅ 기술 부채가 감소됨
+- ✅ 변경에 맞게 주석이 업데이트됨
 
-**Metrics**:
-- Test coverage: No decrease (ideally increase)
-- Complexity: Reduced by at least 20%
-- Performance: No regression (within 5%)
-- Lines of code: Reduced or same
+**메트릭**:
+- 테스트 커버리지: 감소 없음 (이상적으로는 증가)
+- 복잡도: 최소 20% 감소
+- 성능: 회귀 없음 (5% 이내)
+- 코드 줄 수: 감소 또는 동일
 </criteria>
 
-### Performance Optimization
+### 성능 최적화
 <criteria type="performance">
-**Must Have**:
-- ✅ Measurable improvement (before/after benchmarks)
-- ✅ No functionality changes
-- ✅ All tests still pass
-- ✅ No new resource bottlenecks introduced
+**필수 사항**:
+- ✅ 측정 가능한 개선 (전/후 벤치마크)
+- ✅ 기능 변경 없음
+- ✅ 모든 테스트가 여전히 통과
+- ✅ 새로운 리소스 병목이 도입되지 않음
 
-**Should Have**:
-- ✅ Profiling data showing improvement
-- ✅ Load testing results
-- ✅ Resource usage analysis (CPU/memory)
+**권장 사항**:
+- ✅ 개선을 보여주는 프로파일링 데이터
+- ✅ 부하 테스트 결과
+- ✅ 리소스 사용량 분석 (CPU/메모리)
 
-**Metrics**:
-- Performance improvement: ≥ 20% on target metric
-- Resource usage: No significant increase
-- Code complexity: Not significantly increased
-- Target achievement: 90%+ of performance goal met
+**메트릭**:
+- 성능 개선: 목표 메트릭에서 ≥ 20%
+- 리소스 사용량: 유의미한 증가 없음
+- 코드 복잡도: 유의미하게 증가하지 않음
+- 목표 달성: 성능 목표의 90% 이상 충족
 
-**Example Documentation**:
+**문서화 예시**:
 ```markdown
 ## Performance Optimization: getUserProfile
 
@@ -381,32 +380,32 @@ time make && make test
 ```
 </criteria>
 
-### Security Fix
+### 보안 수정
 <criteria type="security">
-**Must Have**:
-- ✅ Vulnerability eliminated (verified by security scan)
-- ✅ No new vulnerabilities introduced
-- ✅ Test added to prevent regression
-- ✅ Security advisory documented
+**필수 사항**:
+- ✅ 취약점이 제거됨 (보안 스캔으로 검증)
+- ✅ 새로운 취약점이 도입되지 않음
+- ✅ 회귀 방지를 위한 테스트 추가됨
+- ✅ 보안 권고 사항이 문서화됨
 
-**Should Have**:
-- ✅ Related vulnerabilities checked
-- ✅ Security team reviewed
-- ✅ Changelog/release notes updated
-- ✅ Deployment plan includes security validation
+**권장 사항**:
+- ✅ 관련 취약점을 확인함
+- ✅ 보안 팀이 리뷰함
+- ✅ 변경 로그/릴리스 노트가 업데이트됨
+- ✅ 배포 계획에 보안 검증이 포함됨
 
-**Metrics**:
-- Vulnerability count: 0 for fixed issue
-- Security scan: No new high/critical issues
-- Test coverage: Vulnerability scenario covered
-- Time to fix: < 24 hours for critical issues
+**메트릭**:
+- 취약점 수: 수정된 이슈에 대해 0건
+- 보안 스캔: 새로운 높음/치명적 이슈 없음
+- 테스트 커버리지: 취약점 시나리오가 다뤄짐
+- 수정 시간: 치명적 이슈의 경우 24시간 미만
 </criteria>
 </success_criteria>
 
-## See Also
+## 참고
 
-- [**CLAUDE.md**](../CLAUDE.md) - Primary document with complete guidelines
-- [System Rules](../system-rules.md) - Critical system-wide rules
-- [Technical Standards](../technical-standards.md) - Code quality requirements
-- [Process](../process.md) - Test-driven development workflow
-- [Guidelines](../guidelines.md) - Best practices and emergency procedures
+- [**CLAUDE.md**](../CLAUDE.md) - 전체 가이드라인이 포함된 기본 문서
+- [시스템 규칙](../system-rules.md) - 시스템 전반의 필수 규칙
+- [기술 표준](../technical-standards.md) - 코드 품질 요구사항
+- [프로세스](../process.md) - 테스트 주도 개발 워크플로우
+- [가이드라인](../guidelines.md) - 모범 사례 및 긴급 절차

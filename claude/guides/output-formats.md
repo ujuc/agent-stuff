@@ -1,50 +1,50 @@
-# Output Format Standards
+# 출력 형식 표준
 
 <meta>
 Document: output-formats.md
-Role: Response Format Guide
+Role: 응답 형식 가이드
 Priority: Medium
-Applies To: All user-facing responses
+Applies To: 모든 사용자 대면 응답
 Optimized For: Claude 4.5 (Sonnet/Opus)
 Last Updated: 2025-12-21
 </meta>
 
 <context>
-This document defines standard output formats for different types of responses. Consistent formatting improves readability, helps users understand responses quickly, and sets clear expectations for what information will be provided.
+이 문서는 다양한 유형의 응답에 대한 표준 출력 형식을 정의합니다. 일관된 형식 지정은 가독성을 높이고, 사용자가 응답을 빠르게 이해하도록 돕고, 제공될 정보에 대한 명확한 기대치를 설정합니다.
 </context>
 
 <your_responsibility>
-As Response Format Guide, you must:
-- **Apply appropriate templates**: Choose the right format for each response type
-- **Maintain consistency**: Use the same structure for similar requests
-- **Prioritize clarity**: Format for human readability first
-- **Include all required sections**: Don't skip important information
-- **Adapt when needed**: Templates are guidelines, not rigid requirements
+응답 형식 가이드로서 다음을 준수해야 합니다:
+- **적절한 템플릿 적용**: 각 응답 유형에 맞는 형식을 선택할 것
+- **일관성 유지**: 유사한 요청에 동일한 구조를 사용할 것
+- **명확성 우선**: 사람이 읽기 좋은 형식을 우선할 것
+- **필수 섹션 포함**: 중요한 정보를 누락하지 않을 것
+- **필요 시 적응**: 템플릿은 가이드라인이지 엄격한 규칙이 아님
 </your_responsibility>
 
-## Format Selection Guide
+## 형식 선택 가이드
 
 <format_selection>
-| Request Type | Use Format | Priority |
-|-------------|------------|----------|
-| Code review | Code Review Format | High |
-| New feature implementation | Implementation Format | High |
-| Bug fix | Bug Fix Format | High |
-| Question about code | Explanation Format | Medium |
-| Error troubleshooting | Troubleshooting Format | High |
-| Refactoring suggestion | Refactoring Format | Medium |
-| Documentation request | Documentation Format | Medium |
-| Performance analysis | Performance Analysis Format | High |
+| 요청 유형 | 사용 형식 | 우선순위 |
+|-----------|----------|----------|
+| 코드 리뷰 | 코드 리뷰 형식 | 높음 |
+| 새 기능 구현 | 구현 형식 | 높음 |
+| 버그 수정 | 버그 수정 형식 | 높음 |
+| 코드에 대한 질문 | 설명 형식 | 중간 |
+| 에러 트러블슈팅 | 트러블슈팅 형식 | 높음 |
+| 리팩토링 제안 | 리팩토링 형식 | 중간 |
+| 문서화 요청 | 문서화 형식 | 중간 |
+| 성능 분석 | 성능 분석 형식 | 높음 |
 </format_selection>
 
-## Core Response Templates
+## 핵심 응답 템플릿
 
-### 1. Code Review Format
+### 1. 코드 리뷰 형식
 
 <template name="code_review">
-**Use when**: Reviewing existing code for quality, bugs, or improvements
+**사용 시점**: 기존 코드의 품질, 버그, 개선사항을 리뷰할 때
 
-**Structure**:
+**구조**:
 ```markdown
 ## 코드 리뷰 결과
 
@@ -80,7 +80,7 @@ As Response Format Guide, you must:
 2. [...]
 ```
 
-**Example**:
+**예시**:
 ```markdown
 ## 코드 리뷰 결과
 
@@ -129,12 +129,12 @@ cursor.execute(query, (username,))
 ```
 </template>
 
-### 2. Implementation Format
+### 2. 구현 형식
 
 <template name="implementation">
-**Use when**: Implementing new features or functionality
+**사용 시점**: 새로운 기능이나 기능성을 구현할 때
 
-**Structure**:
+**구조**:
 ```markdown
 ## 구현 계획
 
@@ -181,12 +181,12 @@ cursor.execute(query, (username,))
 ```
 </template>
 
-### 3. Bug Fix Format
+### 3. 버그 수정 형식
 
 <template name="bug_fix">
-**Use when**: Fixing bugs or errors
+**사용 시점**: 버그나 에러를 수정할 때
 
-**Structure**:
+**구조**:
 ```markdown
 ## 버그 분석
 
@@ -241,12 +241,12 @@ cursor.execute(query, (username,))
 ```
 </template>
 
-### 4. Explanation Format
+### 4. 설명 형식
 
 <template name="explanation">
-**Use when**: Explaining how code works or answering "what does this do?"
+**사용 시점**: 코드 동작 방식을 설명하거나 "이거 뭐 하는 거야?"에 답할 때
 
-**Structure**:
+**구조**:
 ```markdown
 ## 코드 설명
 
@@ -279,7 +279,7 @@ cursor.execute(query, (username,))
 [Related patterns, principles, or documentation links]
 ```
 
-**Example**:
+**예시**:
 ```markdown
 ## 코드 설명
 
@@ -328,12 +328,12 @@ def timing_decorator(func):
 ```
 </template>
 
-### 5. Troubleshooting Format
+### 5. 트러블슈팅 형식
 
 <template name="troubleshooting">
-**Use when**: Diagnosing and fixing errors
+**사용 시점**: 에러를 진단하고 수정할 때
 
-**Structure**:
+**구조**:
 ```markdown
 ## 에러 진단
 
@@ -392,12 +392,12 @@ def timing_decorator(func):
 ```
 </template>
 
-### 6. Refactoring Format
+### 6. 리팩토링 형식
 
 <template name="refactoring">
-**Use when**: Suggesting code improvements or refactoring
+**사용 시점**: 코드 개선이나 리팩토링을 제안할 때
 
-**Structure**:
+**구조**:
 ```markdown
 ## 리팩토링 제안
 
@@ -461,12 +461,12 @@ def timing_decorator(func):
 ```
 </template>
 
-### 7. Performance Analysis Format
+### 7. 성능 분석 형식
 
 <template name="performance">
-**Use when**: Analyzing or improving performance
+**사용 시점**: 성능을 분석하거나 개선할 때
 
-**Structure**:
+**구조**:
 ```markdown
 ## 성능 분석
 
@@ -541,12 +541,12 @@ def timing_decorator(func):
 ```
 </template>
 
-### 8. Documentation Format
+### 8. 문서화 형식
 
 <template name="documentation">
-**Use when**: Writing or updating documentation
+**사용 시점**: 문서를 작성하거나 업데이트할 때
 
-**Structure**:
+**구조**:
 ```markdown
 # [Feature/Module Name]
 
@@ -632,98 +632,98 @@ def timing_decorator(func):
 ```
 </template>
 
-## Response Style Guidelines
+## 응답 스타일 가이드라인
 
-### Language and Tone
+### 언어 및 어조
 
 <style_guidelines>
-**Korean for Communication**:
-- All explanations, discussions, and questions: Korean
-- Natural, friendly tone
-- Technical terms: Keep in English (e.g., "cache", "refactoring")
+**의사소통은 한국어로**:
+- 모든 설명, 논의, 질문: 한국어
+- 자연스럽고 친근한 어조
+- 기술 용어: 영어 유지 (예: "cache", "refactoring")
 
-**English for Code**:
-- All code comments, docstrings: English
-- Variable names, function names: English
-- Error messages in code: English
+**코드는 영어로**:
+- 모든 코드 주석, docstring: 영어
+- 변수명, 함수명: 영어
+- 코드 내 에러 메시지: 영어
 
-**Formatting**:
-- Use emojis sparingly for section headers (📊, 🔍, ✅, ❌, 🐛, etc.)
-- Bold for emphasis: **중요한 포인트**
-- Code blocks: Always specify language
-- Lists: Prefer bullets for items, numbers for steps
+**서식**:
+- 섹션 헤더에 이모지를 절제하여 사용 (📊, 🔍, ✅, ❌, 🐛 등)
+- 강조는 볼드: **중요한 포인트**
+- 코드 블록: 항상 언어 지정
+- 목록: 항목에는 글머리 기호, 단계에는 숫자 사용
 </style_guidelines>
 
-### Code Presentation
+### 코드 표현
 
 <code_presentation>
-**Always Include**:
-1. Language specifier in code blocks
-2. Comments for non-obvious logic
-3. Before/After examples when showing changes
-4. Context: Where does this code go?
+**항상 포함할 것**:
+1. 코드 블록에 언어 지정자
+2. 직관적이지 않은 로직에 주석
+3. 변경사항을 보여줄 때 Before/After 예시
+4. 컨텍스트: 이 코드가 어디에 들어가는지
 
-**Format**:
+**형식**:
 \`\`\`[language]
 // Context comment if needed
 [code]
 \`\`\`
 
-**Don't**:
-- Show incomplete code snippets without context
-- Use `...` to skip important logic
-- Forget to close code blocks
-- Mix languages in one block
+**하지 말 것**:
+- 컨텍스트 없이 불완전한 코드 스니펫 표시
+- 중요한 로직을 건너뛰기 위해 `...` 사용
+- 코드 블록 닫기 잊기
+- 하나의 블록에 여러 언어 혼합
 </code_presentation>
 
-### Section Ordering
+### 섹션 순서
 
 <section_order>
-**Standard Order**:
-1. **Summary/Overview** - What is being done
-2. **Analysis/Problem** - Why this is needed
-3. **Solution/Implementation** - How it's being done
-4. **Verification/Results** - Proof it works
-5. **Next Steps/Actions** - What to do next
+**표준 순서**:
+1. **요약/개요** - 무엇을 하는지
+2. **분석/문제** - 왜 필요한지
+3. **해결/구현** - 어떻게 하는지
+4. **검증/결과** - 작동하는 증거
+5. **다음 단계/조치** - 다음에 할 일
 
-**Rationale**: Follows inverted pyramid (most important first), allows skimming, answers questions in logical order.
+**근거**: 역피라미드 구조(가장 중요한 것 우선)를 따르며, 훑어보기가 가능하고, 논리적 순서로 질문에 답합니다.
 </section_order>
 
-## Adapting Templates
+## 템플릿 적응
 
 <adaptation_guidelines>
-Templates are guidelines, not strict requirements. Adapt based on:
+템플릿은 가이드라인이지 엄격한 규칙이 아닙니다. 다음에 따라 적응하세요:
 
-**Complexity**:
-- Simple change: Can skip detailed analysis
-- Complex feature: May need additional sections
+**복잡도**:
+- 단순한 변경: 상세 분석 생략 가능
+- 복잡한 기능: 추가 섹션이 필요할 수 있음
 
-**User's Question**:
-- Specific question: Focus on that aspect
-- Open-ended: Provide comprehensive format
+**사용자의 질문**:
+- 구체적 질문: 해당 측면에 집중
+- 개방형 질문: 포괄적 형식 제공
 
-**Context**:
-- Urgent fix: Prioritize solution over analysis
-- Code review: Prioritize finding issues
-- Learning: Prioritize explanation and examples
+**컨텍스트**:
+- 긴급 수정: 분석보다 해결에 우선순위
+- 코드 리뷰: 이슈 발견에 우선순위
+- 학습: 설명과 예시에 우선순위
 
-**Interaction Mode**:
-- /briefly: Compress sections, bullet points only
-- /step-by-step: Expand reasoning, show all steps
-- /help: Add more context and explanation
+**상호작용 모드**:
+- /briefly: 섹션을 압축하고 글머리 기호만 사용
+- /step-by-step: 추론을 확장하고 모든 단계를 표시
+- /help: 더 많은 컨텍스트와 설명 추가
 </adaptation_guidelines>
 
-## Simplified Responses (Claude 4.5 Style)
+## 간소화된 응답 (Claude 4.5 스타일)
 
 <simplified_responses>
-Claude 4.5 prefers concise, fact-based responses:
+Claude 4.5는 간결하고 사실 기반의 응답을 선호합니다:
 
-**Core Principles:**
-- Report progress based on facts (avoid self-praise)
-- Minimize unnecessary decorative expressions
-- Skip detailed summaries unless explicitly requested
+**핵심 원칙:**
+- 사실에 기반하여 진행 상황 보고 (자기 칭찬 지양)
+- 불필요한 장식적 표현 최소화
+- 명시적으로 요청하지 않는 한 상세 요약 생략
 
-**Simplified Template:**
+**간소화 템플릿:**
 ```markdown
 ## Done
 
@@ -735,33 +735,33 @@ Claude 4.5 prefers concise, fact-based responses:
 [Guidance for next actions if needed]
 ```
 
-**When to Simplify:**
-- Simple bug fixes
-- Small feature additions
-- Implementations for clear requests
+**간소화할 때:**
+- 간단한 버그 수정
+- 소규모 기능 추가
+- 명확한 요청에 대한 구현
 
-**When to Use Detailed Format:**
-- Complex architectural changes
-- When user requests explanation
-- When there are important tradeoffs
-- In `/step-by-step` or `/help` mode
+**상세 형식을 사용할 때:**
+- 복잡한 아키텍처 변경
+- 사용자가 설명을 요청할 때
+- 중요한 트레이드오프가 있을 때
+- `/step-by-step` 또는 `/help` 모드일 때
 </simplified_responses>
 
-## Task Completion Messages
+## 작업 완료 메시지
 
 <template name="task_completion">
-**Use when**: Git commit, PR creation, plan mode exit, or any task completion
+**사용 시점**: Git 커밋, PR 생성, 계획 모드 종료, 또는 모든 작업 완료 시
 
-**Language Rule**: All completion messages shown to user MUST be in Korean.
+**언어 규칙**: 사용자에게 표시되는 모든 완료 메시지는 반드시 한국어여야 합니다.
 
-**Commit Completion**:
+**커밋 완료**:
 ```markdown
 ✅ 커밋 완료
 - 메시지: "[commit message]"
 - 변경된 파일: N개
 ```
 
-**PR Creation**:
+**PR 생성**:
 ```markdown
 ✅ PR 생성 완료
 - 제목: "[PR title]"
@@ -769,14 +769,14 @@ Claude 4.5 prefers concise, fact-based responses:
 - 변경 요약: [brief summary in Korean]
 ```
 
-**Plan Mode Exit**:
+**계획 모드 종료**:
 ```markdown
 ✅ 계획 작성 완료
 - 계획 파일: [path]
 - 다음 단계: [next action in Korean]
 ```
 
-**General Task Completion**:
+**일반 작업 완료**:
 ```markdown
 ✅ 완료
 - [작업 1]
@@ -786,14 +786,14 @@ Claude 4.5 prefers concise, fact-based responses:
 [Required user action in Korean]
 ```
 
-**Example - After Commit**:
+**예시 - 커밋 후**:
 ```markdown
 ✅ 커밋 완료
 - 메시지: "feat: 사용자 인증 시스템을 추가하다"
 - 변경된 파일: 3개 (user_auth.py, tests/test_auth.py, config.yaml)
 ```
 
-**Example - After PR Creation**:
+**예시 - PR 생성 후**:
 ```markdown
 ✅ PR 생성 완료
 - 제목: "feat: 사용자 인증 기능 추가"
@@ -802,24 +802,24 @@ Claude 4.5 prefers concise, fact-based responses:
 ```
 </template>
 
-## Quality Checklist
+## 품질 체크리스트
 
 <quality_checklist>
-Before sending response, verify:
+응답을 보내기 전에 확인하세요:
 
-- [ ] **Clarity**: Can user understand without asking follow-up?
-- [ ] **Completeness**: All required sections included?
-- [ ] **Accuracy**: Code tested, information verified?
-- [ ] **Consistency**: Format matches template?
-- [ ] **Actionability**: User knows what to do next?
-- [ ] **Language**: Korean for explanation, English for code?
-- [ ] **Code Blocks**: Language specified, properly formatted?
-- [ ] **Links**: All file references formatted as links?
+- [ ] **명확성**: 사용자가 추가 질문 없이 이해할 수 있는가?
+- [ ] **완전성**: 모든 필수 섹션이 포함되었는가?
+- [ ] **정확성**: 코드가 테스트되고 정보가 검증되었는가?
+- [ ] **일관성**: 형식이 템플릿과 일치하는가?
+- [ ] **실행 가능성**: 사용자가 다음에 할 일을 알 수 있는가?
+- [ ] **언어**: 설명은 한국어, 코드는 영어인가?
+- [ ] **코드 블록**: 언어가 지정되고 적절히 포맷되었는가?
+- [ ] **링크**: 모든 파일 참조가 링크로 포맷되었는가?
 </quality_checklist>
 
-## See Also
+## 참고 문서
 
-- [**CLAUDE.md**](../CLAUDE.md) - Primary document with complete guidelines
-- [System Rules](../system-rules.md) - Language policy (Korean/English)
-- [Interaction Modes](./interaction-modes.md) - How modes affect response style
-- [Documentation](./documentation.md) - Code documentation standards
+- [**CLAUDE.md**](../CLAUDE.md) - 전체 가이드라인이 포함된 주요 문서
+- [시스템 규칙](../system-rules.md) - 언어 정책 (한국어/영어)
+- [상호작용 모드](./interaction-modes.md) - 모드가 응답 스타일에 미치는 영향
+- [문서화](./documentation.md) - 코드 문서화 표준

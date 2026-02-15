@@ -1,326 +1,326 @@
-# Context Management
+# 컨텍스트 관리
 
 <meta>
 Document: context-management.md
-Role: Context Optimizer
+Role: 컨텍스트 최적화자
 Priority: Medium
-Applies To: All interactions with large codebases or lengthy conversations
+Applies To: 대규모 코드베이스 또는 긴 대화를 다루는 모든 상호작용
 Optimized For: Claude 4.5 (Sonnet/Opus)
 Last Updated: 2025-12-21
 </meta>
 
 <context>
-This document provides strategies for efficiently managing Claude's 200K token context window. Effective context management ensures that the most relevant information is available for decision-making while avoiding unnecessary token consumption.
+이 문서는 Claude의 200K 토큰 컨텍스트 윈도우를 효율적으로 관리하기 위한 전략을 제공합니다. 효과적인 컨텍스트 관리는 불필요한 토큰 소비를 피하면서 의사결정에 가장 관련성 높은 정보를 사용할 수 있도록 보장합니다.
 </context>
 
 <your_responsibility>
-As Context Optimizer, you must:
-- **Prioritize information**: Focus on what's most relevant to the current task
-- **Summarize wisely**: Know when to summarize vs provide full detail
-- **Use references**: Link to files rather than duplicating content
-- **Track context usage**: Be aware of approximate token consumption
-- **Request strategically**: Ask for additional context only when needed
+컨텍스트 최적화자로서, 당신은 반드시:
+- **정보 우선순위 지정**: 현재 작업에 가장 관련 있는 것에 집중
+- **현명한 요약**: 요약할 때와 전체 세부사항을 제공할 때를 구분
+- **참조 활용**: 내용 복제 대신 파일 링크
+- **컨텍스트 사용량 추적**: 대략적인 토큰 소비를 인식
+- **전략적 요청**: 추가 컨텍스트는 필요한 경우에만 요청
 </your_responsibility>
 
-## Context Window Overview
+## 컨텍스트 윈도우 개요
 
 <window_specs>
-**Claude 4.5 Context Window:**
-- **Total capacity**: 200,000 tokens (~600-700 pages of text)
-- **Recommended usage**: Keep under 150K for optimal performance
-- **Input vs Output**: Context includes both user messages and assistant responses
-- **Persistence**: Context is maintained throughout a conversation
+**Claude 4.5 컨텍스트 윈도우:**
+- **총 용량**: 200,000 토큰 (~600-700페이지 텍스트)
+- **권장 사용량**: 최적 성능을 위해 150K 이하 유지
+- **입력 vs 출력**: 컨텍스트에는 사용자 메시지와 어시스턴트 응답 모두 포함
+- **지속성**: 대화 전체에 걸쳐 컨텍스트 유지
 
-**Token Approximations:**
-- 1 token ≈ 4 characters (English)
-- 1 token ≈ 1-2 characters (Korean with mix of English)
-- Average function: ~100-200 tokens
-- Average class: ~300-800 tokens
-- Average file: ~500-2000 tokens
+**토큰 근사치:**
+- 1 토큰 ≈ 4자 (영어)
+- 1 토큰 ≈ 1-2자 (한국어와 영어 혼용)
+- 평균 함수: ~100-200 토큰
+- 평균 클래스: ~300-800 토큰
+- 평균 파일: ~500-2000 토큰
 </window_specs>
 
-## Hybrid Language Strategy
+## 하이브리드 언어 전략
 
-A language usage strategy to achieve both context efficiency and readability.
+컨텍스트 효율성과 가독성을 모두 달성하기 위한 언어 사용 전략입니다.
 
-### Language by Element
+### 요소별 언어
 
-| Element | Language | Reason |
-|---------|----------|--------|
-| Headings/Headers | English | Token efficiency, easy to search |
-| XML tags | English | Structural consistency |
-| Rule keywords | English | Concise, easy to scan |
-| Explanations | English | Clear understanding (default) |
-| Code/docstring | English | International compatibility |
+| 요소 | 언어 | 이유 |
+|------|------|------|
+| 제목/헤더 | 영어 | 토큰 효율성, 검색 용이 |
+| XML 태그 | 영어 | 구조적 일관성 |
+| 규칙 키워드 | 영어 | 간결하고 스캔 용이 |
+| 설명 | 영어 | 명확한 이해 (기본) |
+| 코드/독스트링 | 영어 | 국제 호환성 |
 
-### Pattern Example
+### 패턴 예시
 
 <pattern_example>
-**Before** (inefficient):
+**이전** (비효율적):
 ```markdown
 - **Ask when uncertain** - If requirements are unclear...
 ```
 
-**After** (optimized):
+**이후** (최적화):
 ```markdown
 - **Ask when uncertain**
   If requirements are unclear, ask questions instead of assuming.
 ```
 </pattern_example>
 
-### Token Efficiency
-- English: ~4 chars/token
-- Korean: ~1-2 chars/token
-- Hybrid approach saves ~15% tokens
+### 토큰 효율성
+- 영어: ~4자/토큰
+- 한국어: ~1-2자/토큰
+- 하이브리드 접근 방식으로 ~15% 토큰 절약
 
-## Information Priority Hierarchy
+## 정보 우선순위 계층
 
 <priority_levels>
-### Level 1: Critical (Always Include)
-- **System rules** and guidelines from CLAUDE.md, system-rules.md
-- **Current task** description and requirements
-- **Direct dependencies**: Code directly referenced or modified
-- **Error messages**: Full, exact error text when debugging
-- **User's explicit requests**: What was specifically asked for
+### 레벨 1: 핵심 (항상 포함)
+- **시스템 규칙** 및 CLAUDE.md, system-rules.md의 가이드라인
+- **현재 작업** 설명과 요구사항
+- **직접 의존성**: 직접 참조되거나 수정되는 코드
+- **오류 메시지**: 디버깅 시 정확한 전체 오류 텍스트
+- **사용자의 명시적 요청**: 구체적으로 요청된 내용
 
-### Level 2: Important (Include When Relevant)
-- **Related implementations**: Similar features in the codebase
-- **Test cases**: For the code being worked on
-- **Architecture context**: How the component fits in the system
-- **Recent changes**: Git history for the files being modified
-- **Documentation**: README, API docs for libraries being used
+### 레벨 2: 중요 (관련 시 포함)
+- **관련 구현체**: 코드베이스의 유사 기능
+- **테스트 케이스**: 작업 중인 코드에 대한 것
+- **아키텍처 컨텍스트**: 컴포넌트가 시스템에서 차지하는 위치
+- **최근 변경사항**: 수정 중인 파일의 Git 이력
+- **문서**: 사용 중인 라이브러리의 README, API 문서
 
-### Level 3: Supporting (Include If Space Permits)
-- **Broader codebase structure**: Overall project organization
-- **Tangential code**: Related but not directly used
-- **Historical context**: Why previous decisions were made
-- **Alternative approaches**: Other ways to solve the problem
-- **Edge cases**: Less common scenarios
+### 레벨 3: 보조 (공간이 허용하면 포함)
+- **넓은 코드베이스 구조**: 전체 프로젝트 조직
+- **부수적 코드**: 관련되지만 직접 사용되지 않는 코드
+- **역사적 맥락**: 이전 결정의 이유
+- **대안적 접근**: 문제를 해결하는 다른 방법
+- **엣지 케이스**: 덜 일반적인 시나리오
 
-### Level 4: Reference (Link, Don't Duplicate)
-- **Standard library documentation**: Link to official docs
-- **Common patterns**: Reference well-known design patterns
-- **Boilerplate code**: Standard setup/configuration
-- **Generated files**: Build artifacts, compiled code
-- **Large data files**: Sample data, test fixtures
+### 레벨 4: 참조 (링크만, 복제하지 않음)
+- **표준 라이브러리 문서**: 공식 문서 링크
+- **일반 패턴**: 잘 알려진 디자인 패턴 참조
+- **보일러플레이트 코드**: 표준 설정/구성
+- **생성 파일**: 빌드 산출물, 컴파일된 코드
+- **대용량 데이터 파일**: 샘플 데이터, 테스트 픽스처
 </priority_levels>
 
-## Strategies for Efficient Context Usage
+## 효율적인 컨텍스트 사용 전략
 
-### 1. Progressive Disclosure
+### 1. 점진적 공개
 
 <strategy name="progressive_disclosure">
-**Principle**: Start with minimal context, add more only when needed.
+**원칙**: 최소한의 컨텍스트로 시작하고, 필요한 경우에만 추가합니다.
 
-**Process**:
+**절차**:
 ```
-1. Start with summary/overview
-2. If insufficient, request specific details
-3. Add targeted information incrementally
-4. Stop when you have enough to proceed
+1. 요약/개요로 시작
+2. 불충분하면 구체적인 세부사항 요청
+3. 점진적으로 대상 정보 추가
+4. 진행하기에 충분하면 중단
 ```
 
-**Example**:
+**예시**:
 ```markdown
-**Initial**: "I need to fix the login bug"
-→ Read: test file (to understand expected behavior)
-→ Read: login function (to see implementation)
-→ IF unclear: Read related authentication helpers
-→ IF still unclear: Read authentication configuration
+**초기**: "로그인 버그를 수정해야 합니다"
+→ 읽기: 테스트 파일 (예상 동작 이해)
+→ 읽기: 로그인 함수 (구현 확인)
+→ 불명확한 경우: 관련 인증 헬퍼 읽기
+→ 여전히 불명확한 경우: 인증 설정 읽기
 
-Don't read: entire auth module, all tests, full user model
+읽지 않기: 전체 인증 모듈, 모든 테스트, 전체 사용자 모델
 ```
 
-**Benefits**:
-- Reduces unnecessary token consumption
-- Focuses attention on relevant code
-- Allows for faster iteration
+**이점**:
+- 불필요한 토큰 소비 감소
+- 관련 코드에 집중
+- 더 빠른 반복 가능
 </strategy>
 
-### 2. Strategic Summarization
+### 2. 전략적 요약
 
 <strategy name="strategic_summarization">
-**When to Summarize**:
-- ✅ Long discussions or exploration phases
-- ✅ Code review of multiple files
-- ✅ Documentation or specification reviews
-- ✅ Historical context or decision rationale
+**요약해야 할 때**:
+- ✅ 긴 논의나 탐색 단계
+- ✅ 여러 파일의 코드 리뷰
+- ✅ 문서나 명세 리뷰
+- ✅ 역사적 맥락이나 결정 근거
 
-**When to Keep Full Detail**:
-- ❌ Error messages and stack traces
-- ❌ Code being directly modified
-- ❌ Test cases for current feature
-- ❌ Critical system rules or requirements
+**전체 세부사항을 유지해야 할 때**:
+- ❌ 오류 메시지와 스택 트레이스
+- ❌ 직접 수정 중인 코드
+- ❌ 현재 기능의 테스트 케이스
+- ❌ 핵심 시스템 규칙이나 요구사항
 
-**Summarization Techniques**:
+**요약 기법**:
 
-**High-Level Summary** (for context):
+**상위 수준 요약** (맥락용):
 ```markdown
-## Authentication System Overview
-- JWT-based auth with refresh tokens
-- OAuth2 integration (Google, GitHub)
-- Role-based access control (RBAC)
-- Session management in Redis
-- Key files: auth.service.ts, jwt.strategy.ts, auth.guard.ts
+## 인증 시스템 개요
+- 리프레시 토큰을 사용하는 JWT 기반 인증
+- OAuth2 통합 (Google, GitHub)
+- 역할 기반 접근 제어 (RBAC)
+- Redis의 세션 관리
+- 주요 파일: auth.service.ts, jwt.strategy.ts, auth.guard.ts
 ```
 
-**Key Points Summary** (for decisions):
+**핵심 사항 요약** (결정용):
 ```markdown
-## Code Review Findings
-**Critical Issues** (3):
-- SQL injection in search.ts:45
-- Missing auth check in /admin routes
-- Password stored in plain text
+## 코드 리뷰 발견사항
+**핵심 이슈** (3개):
+- search.ts:45에서 SQL 인젝션
+- /admin 라우트에서 인증 확인 누락
+- 비밀번호가 평문으로 저장
 
-**Improvements** (5):
-- [Brief list of non-critical suggestions]
+**개선사항** (5개):
+- [비핵심 제안 간략 목록]
 
-Full details in [code-review-notes.md]
+전체 세부사항은 [code-review-notes.md]에서 확인
 ```
 
-**Decision Summary** (for history):
+**결정 요약** (이력용):
 ```markdown
-## Why We Chose PostgreSQL Over MongoDB
-- **Primary reason**: Complex relational queries needed
-- **Trade-offs**: More rigid schema vs flexibility
-- **Context**: E-commerce app with inventory management
-- Full discussion: [architecture-decisions.md#database-2024-03]
+## MongoDB 대신 PostgreSQL을 선택한 이유
+- **주요 이유**: 복잡한 관계형 쿼리 필요
+- **트레이드오프**: 유연성 대비 더 엄격한 스키마
+- **맥락**: 재고 관리가 있는 전자상거래 앱
+- 전체 논의: [architecture-decisions.md#database-2024-03]
 ```
 </strategy>
 
-### 3. Reference-First Approach
+### 3. 참조 우선 접근
 
 <strategy name="reference_first">
-**Principle**: Link to information rather than duplicating it.
+**원칙**: 정보를 복제하지 않고 링크합니다.
 
-**Use References For**:
-- Standard library documentation
-- Well-known design patterns
-- Project README and setup guides
-- Common utilities and helpers
-- Build and deployment procedures
+**참조를 사용할 대상**:
+- 표준 라이브러리 문서
+- 잘 알려진 디자인 패턴
+- 프로젝트 README 및 설정 가이드
+- 공통 유틸리티와 헬퍼
+- 빌드 및 배포 절차
 
-**Inline vs Reference Decision Tree**:
+**인라인 vs 참조 결정 트리**:
 ```
-Is the information:
-├─ Specific to current task? → INLINE
-├─ Frequently referenced? → INLINE (once, then reference)
-├─ Standard/well-known? → REFERENCE only
-├─ Generated/boilerplate? → REFERENCE only
-└─ Large dataset/config? → REFERENCE only
+해당 정보가:
+├─ 현재 작업에 특화? → 인라인
+├─ 자주 참조? → 인라인 (한 번, 이후 참조)
+├─ 표준/잘 알려진? → 참조만
+├─ 생성/보일러플레이트? → 참조만
+└─ 대용량 데이터셋/설정? → 참조만
 ```
 
-**Good Reference Examples**:
+**좋은 참조 예시**:
 ```markdown
-✅ "Following the Observer pattern (see: Design Patterns book)"
-✅ "Using standard Express middleware (docs: expressjs.com/guide/using-middleware)"
-✅ "Build process defined in [BUILD.md](./docs/BUILD.md)"
-✅ "Test data in [fixtures/users.json](./tests/fixtures/users.json)"
+✅ "Observer 패턴 적용 (참조: 디자인 패턴 책)"
+✅ "표준 Express 미들웨어 사용 (문서: expressjs.com/guide/using-middleware)"
+✅ "빌드 프로세스는 [BUILD.md](./docs/BUILD.md)에 정의"
+✅ "테스트 데이터는 [fixtures/users.json](./tests/fixtures/users.json)에 위치"
 ```
 
-**Bad Reference Examples** (should inline):
+**나쁜 참조 예시** (인라인해야 함):
 ```markdown
-❌ "Fix the bug in [src/auth.ts]" (should show the buggy code)
-❌ "Following team conventions" (should state what conventions)
-❌ "As discussed before" (should re-state the decision briefly)
+❌ "[src/auth.ts]의 버그 수정" (버그가 있는 코드를 보여줘야 함)
+❌ "팀 관례 따름" (어떤 관례인지 명시해야 함)
+❌ "이전에 논의한 대로" (결정을 간략히 다시 기술해야 함)
 ```
 </strategy>
 
-### 4. Symbolic vs Full Code Reading
+### 4. 심볼릭 vs 전체 코드 읽기
 
 <strategy name="symbolic_reading">
-**Principle**: Use symbolic tools to understand structure before reading full code.
+**원칙**: 전체 코드를 읽기 전에 심볼릭 도구로 구조를 파악합니다.
 
-**Workflow**:
+**워크플로우**:
 ```
-1. Get overview (file structure, module organization)
-2. Identify relevant symbols (classes, functions)
-3. Read signatures/interfaces (understand contracts)
-4. Read implementations (only for code being modified)
-5. Read tests (to understand expected behavior)
+1. 개요 파악 (파일 구조, 모듈 조직)
+2. 관련 심볼 식별 (클래스, 함수)
+3. 시그니처/인터페이스 읽기 (계약 이해)
+4. 구현 읽기 (수정 중인 코드만)
+5. 테스트 읽기 (예상 동작 이해)
 ```
 
-**Tools to Use** (via Serena MCP):
-- `get_symbols_overview`: See file structure without reading code
-- `find_symbol`: Get specific function/class without full file
-- `find_referencing_symbols`: Understand usage without reading all callers
-- `search_for_pattern`: Find specific patterns without broad search
+**사용할 도구** (Serena MCP 경유):
+- `get_symbols_overview`: 코드 읽기 없이 파일 구조 확인
+- `find_symbol`: 전체 파일 없이 특정 함수/클래스 가져오기
+- `find_referencing_symbols`: 모든 호출자를 읽지 않고 사용처 이해
+- `search_for_pattern`: 넓은 검색 없이 특정 패턴 찾기
 
-**Example**:
+**예시**:
 ```markdown
-Task: "Add caching to getUserProfile"
+작업: "getUserProfile에 캐싱 추가"
 
-❌ Bad approach (wastes tokens):
-→ Read entire user.service.ts (500 lines)
-→ Read entire cache.service.ts (300 lines)
-→ Read entire user.controller.ts (400 lines)
-Total: ~1200 lines, ~6000 tokens
+❌ 나쁜 접근 (토큰 낭비):
+→ user.service.ts 전체 읽기 (500줄)
+→ cache.service.ts 전체 읽기 (300줄)
+→ user.controller.ts 전체 읽기 (400줄)
+합계: ~1200줄, ~6000 토큰
 
-✅ Good approach (efficient):
-→ find_symbol "getUserProfile" (read just this function: ~20 lines)
-→ find_symbol "cacheService" (read interface: ~10 lines)
-→ search_for_pattern "cache.*get.*User" (find similar usage: ~5 examples)
-Total: ~40 lines, ~200 tokens (30x more efficient!)
+✅ 좋은 접근 (효율적):
+→ find_symbol "getUserProfile" (이 함수만 읽기: ~20줄)
+→ find_symbol "cacheService" (인터페이스 읽기: ~10줄)
+→ search_for_pattern "cache.*get.*User" (유사 사용법 찾기: ~5개 예시)
+합계: ~40줄, ~200 토큰 (30배 더 효율적!)
 ```
 </strategy>
 
-### 5. Conversation Checkpointing
+### 5. 대화 체크포인트
 
 <strategy name="checkpointing">
-**Purpose**: Maintain long conversations without context overflow.
+**목적**: 컨텍스트 오버플로우 없이 긴 대화를 유지합니다.
 
-**When to Checkpoint**:
-- Every 10-15 exchanges in complex discussions
-- After completing a major subtask
-- Before switching to a different topic/file
-- When approaching 150K token usage
+**체크포인트를 만들 때**:
+- 복잡한 논의에서 10-15회 교환마다
+- 주요 하위 작업 완료 후
+- 다른 주제/파일로 전환하기 전
+- 150K 토큰 사용량에 근접할 때
 
-**Checkpoint Format**:
+**체크포인트 형식**:
 ```markdown
-## Checkpoint: [Task Name] - [Timestamp]
+## 체크포인트: [작업명] - [타임스탬프]
 
-### Completed
-- ✅ [What was accomplished]
-- ✅ [Key decisions made]
-- ✅ [Files modified: list with line numbers]
+### 완료됨
+- ✅ [달성한 내용]
+- ✅ [내려진 주요 결정]
+- ✅ [수정된 파일: 줄 번호 포함 목록]
 
-### Current State
-- 📍 Working on: [Current subtask]
-- 📂 Key files: [Most relevant files]
-- ⚠️ Open issues: [Known problems]
+### 현재 상태
+- 📍 작업 중: [현재 하위 작업]
+- 📂 주요 파일: [가장 관련 있는 파일]
+- ⚠️ 미해결 이슈: [알려진 문제]
 
-### Next Steps
-1. [Next immediate action]
-2. [Following action]
-3. [Final goal]
+### 다음 단계
+1. [다음 즉시 행동]
+2. [후속 행동]
+3. [최종 목표]
 
-### Important Context
-- [Critical information to remember]
-- [Constraints or requirements]
-- [User preferences stated]
+### 중요 컨텍스트
+- [기억해야 할 핵심 정보]
+- [제약 조건이나 요구사항]
+- [사용자가 명시한 선호사항]
 
 ---
-*Checkpoint allows starting fresh conversation if needed*
+*체크포인트를 통해 필요 시 새 대화에서 시작 가능*
 ```
 
-**Using Checkpoints**:
+**체크포인트 사용법**:
 ```markdown
-User: "Let's checkpoint and continue"
-Assistant: [Creates checkpoint as above]
+사용자: "체크포인트 만들고 계속 진행하죠"
+어시스턴트: [위와 같이 체크포인트 생성]
 
-[New conversation]
-User: "Continue from checkpoint: [paste checkpoint]"
-Assistant: [Resumes with fresh context window]
+[새 대화]
+사용자: "체크포인트에서 계속: [체크포인트 붙여넣기]"
+어시스턴트: [새로운 컨텍스트 윈도우에서 재개]
 ```
 </strategy>
 
-### 6. Claude 4.5 State Management
+### 6. Claude 4.5 상태 관리
 
 <strategy name="state_management_claude4">
-**Principle**: Use Claude 4.5's context awareness feature to efficiently track state.
+**원칙**: Claude 4.5의 컨텍스트 인식 기능을 활용하여 효율적으로 상태를 추적합니다.
 
-**Structured State Tracking (JSON)**:
-Suitable for structured data like test results, task status:
+**구조화된 상태 추적 (JSON)**:
+테스트 결과, 작업 상태 등 구조화된 데이터에 적합:
 ```json
 {
   "tasks": [
@@ -332,253 +332,253 @@ Suitable for structured data like test results, task status:
 }
 ```
 
-**Progress Notes (Free-form)**:
-Suitable for exploration process or decision records:
+**진행 노트 (자유 형식)**:
+탐색 과정이나 결정 기록에 적합:
 ```markdown
-## Session 3 Progress:
-- Completed auth token validation logic fix
-- Discovered DB connection timeout issue
-- Next: Need to check connection pool settings
+## 세션 3 진행사항:
+- 인증 토큰 검증 로직 수정 완료
+- DB 연결 타임아웃 이슈 발견
+- 다음: 연결 풀 설정 확인 필요
 ```
 
-**Git Usage**:
-- Use as checkpoints for work restoration between sessions
-- Save work state with WIP commits
-- Isolate experimental changes with branches
+**Git 활용**:
+- 세션 간 작업 복원을 위한 체크포인트로 사용
+- WIP 커밋으로 작업 상태 저장
+- 브랜치로 실험적 변경 격리
 
-**Multi-Context Workflow**:
-Complex tasks are divided into multiple contexts:
+**멀티 컨텍스트 워크플로우**:
+복잡한 작업을 여러 컨텍스트로 분할:
 ```
-Context 1: Framework setup
-- Configure test environment
-- Write setup scripts
-- Establish initial structure
+컨텍스트 1: 프레임워크 설정
+- 테스트 환경 구성
+- 설정 스크립트 작성
+- 초기 구조 수립
 
-Context 2+: Iterative implementation
-- Proceed with todo-list based work
-- Save state when approaching context limit
-- Restore state and continue in next context
+컨텍스트 2+: 반복적 구현
+- 할 일 목록 기반 작업 진행
+- 컨텍스트 한계에 근접하면 상태 저장
+- 다음 컨텍스트에서 상태 복원 및 계속
 ```
 
-**When to Save State**:
-- When major milestones are completed
-- When approaching 150K context window
-- During complex debugging sessions
-- At natural break points in long tasks
+**상태를 저장해야 할 때**:
+- 주요 마일스톤 완료 시
+- 150K 컨텍스트 윈도우에 근접할 때
+- 복잡한 디버깅 세션 중
+- 긴 작업의 자연스러운 중단점에서
 </strategy>
 
-## Context Budget Guidelines
+## 컨텍스트 예산 가이드라인
 
 <budgeting>
-### Task-Based Budgets
+### 작업 기반 예산
 
-**Small Bug Fix** (< 20K tokens):
-- Error message + stack trace: ~2K
-- Relevant function/class: ~2-5K
-- Related tests: ~2K
-- Context/architecture: ~1-2K
-- Discussion/reasoning: ~5-10K
-- Buffer: ~5K
+**소규모 버그 수정** (< 20K 토큰):
+- 오류 메시지 + 스택 트레이스: ~2K
+- 관련 함수/클래스: ~2-5K
+- 관련 테스트: ~2K
+- 컨텍스트/아키텍처: ~1-2K
+- 논의/추론: ~5-10K
+- 버퍼: ~5K
 
-**New Feature** (< 50K tokens):
-- Requirements + specs: ~5K
-- Existing similar features: ~10K
-- Architecture context: ~5K
-- Implementation: ~10-15K
-- Tests: ~5-10K
-- Discussion/planning: ~10K
+**새 기능** (< 50K 토큰):
+- 요구사항 + 스펙: ~5K
+- 기존 유사 기능: ~10K
+- 아키텍처 컨텍스트: ~5K
+- 구현: ~10-15K
+- 테스트: ~5-10K
+- 논의/계획: ~10K
 
-**Large Refactoring** (< 100K tokens):
-- Current codebase analysis: ~20-30K
-- Architecture documentation: ~10K
-- Migration plan: ~10K
-- Implementation: ~20-30K
-- Testing strategy: ~10K
-- Discussion/review: ~20K
+**대규모 리팩토링** (< 100K 토큰):
+- 현재 코드베이스 분석: ~20-30K
+- 아키텍처 문서: ~10K
+- 마이그레이션 계획: ~10K
+- 구현: ~20-30K
+- 테스트 전략: ~10K
+- 논의/리뷰: ~20K
 
-**System Design** (< 150K tokens):
-- Requirements gathering: ~20K
-- Alternative analysis: ~30K
-- Detailed design: ~40K
-- Implementation plan: ~30K
-- Risk analysis: ~15K
-- Documentation: ~15K
+**시스템 설계** (< 150K 토큰):
+- 요구사항 수집: ~20K
+- 대안 분석: ~30K
+- 상세 설계: ~40K
+- 구현 계획: ~30K
+- 위험 분석: ~15K
+- 문서: ~15K
 
-### Budget Monitoring
+### 예산 모니터링
 
-**Signs You're Approaching Limits**:
-- Response latency increasing
-- Reduced response quality
-- Claude "forgetting" earlier context
-- Responses missing key details
+**한계에 근접하는 징후**:
+- 응답 지연 증가
+- 응답 품질 저하
+- Claude가 이전 컨텍스트를 "잊는" 현상
+- 응답에서 주요 세부사항 누락
 
-**Actions When Near Limit**:
-1. **Summarize**: Condense earlier discussion
-2. **Checkpoint**: Save state and start fresh
-3. **Focus**: Remove tangential context
-4. **Reference**: Replace duplicated content with links
+**한계 근처에서의 조치**:
+1. **요약**: 이전 논의 압축
+2. **체크포인트**: 상태 저장 후 새로 시작
+3. **집중**: 부수적 컨텍스트 제거
+4. **참조**: 중복 콘텐츠를 링크로 대체
 </budgeting>
 
-## Anti-Patterns (What NOT to Do)
+## 안티패턴 (하지 말아야 할 것)
 
 <anti_patterns>
-### ❌ The "Include Everything" Anti-Pattern
+### ❌ "모든 것 포함" 안티패턴
 ```markdown
-Bad: Reading entire codebase "just in case"
-- Reads 50 files
-- 100K tokens consumed
-- Most information unused
-- Slow, unfocused responses
+나쁨: "만약을 위해" 전체 코드베이스 읽기
+- 50개 파일 읽기
+- 100K 토큰 소비
+- 대부분의 정보 미사용
+- 느리고 집중되지 않은 응답
 
-Good: Targeted reading based on task
-- Reads 3-5 relevant files
-- 5-10K tokens consumed
-- All information used
-- Fast, focused responses
+좋음: 작업 기반 대상 읽기
+- 3-5개 관련 파일 읽기
+- 5-10K 토큰 소비
+- 모든 정보 활용
+- 빠르고 집중된 응답
 ```
 
-### ❌ The "Repeat Full Context" Anti-Pattern
+### ❌ "전체 컨텍스트 반복" 안티패턴
 ```markdown
-Bad: Every response includes full context
-User: "What about error handling?"
-Assistant: [Re-explains entire system architecture,
-           then answers error handling question]
+나쁨: 매 응답에 전체 컨텍스트 포함
+사용자: "오류 처리는 어떻게 해야 하나요?"
+어시스턴트: [전체 시스템 아키텍처를 다시 설명한 후,
+           오류 처리 질문에 답변]
 
-Good: Build on existing context
-User: "What about error handling?"
-Assistant: "In the authentication flow we discussed,
-           error handling should..."
+좋음: 기존 컨텍스트 위에 구축
+사용자: "오류 처리는 어떻게 해야 하나요?"
+어시스턴트: "논의한 인증 플로우에서,
+           오류 처리는..."
 ```
 
-### ❌ The "No Summarization" Anti-Pattern
+### ❌ "요약 없음" 안티패턴
 ```markdown
-Bad: Keeping every detail forever
-- Hour 1: Read files A, B, C (10K tokens)
-- Hour 2: Read files D, E, F (10K tokens)
-- Hour 3: Still keeping all previous content
-- Hour 4: Context overflow, information lost
+나쁨: 모든 세부사항을 영구 보존
+- 1시간차: 파일 A, B, C 읽기 (10K 토큰)
+- 2시간차: 파일 D, E, F 읽기 (10K 토큰)
+- 3시간차: 여전히 이전 콘텐츠 전부 유지
+- 4시간차: 컨텍스트 오버플로우, 정보 소실
 
-Good: Progressive summarization
-- Hour 1: Read files A, B, C (10K tokens)
-- Hour 2: Summarize A, B, C (2K), Read D, E, F (10K)
-- Hour 3: Summarize A-F (3K), New content (10K)
-- Hour 4: Working context: 13K tokens
+좋음: 점진적 요약
+- 1시간차: 파일 A, B, C 읽기 (10K 토큰)
+- 2시간차: A, B, C 요약 (2K), D, E, F 읽기 (10K)
+- 3시간차: A-F 요약 (3K), 새 콘텐츠 (10K)
+- 4시간차: 작업 컨텍스트: 13K 토큰
 ```
 
-### ❌ The "Duplicate Documentation" Anti-Pattern
+### ❌ "문서 복제" 안티패턴
 ```markdown
-Bad: Copying official documentation
-"Here's how Express.js middleware works: [3000 words]"
-"Here's how JWT works: [2000 words]"
-"Here's how PostgreSQL transactions work: [2000 words]"
+나쁨: 공식 문서 복사
+"Express.js 미들웨어 작동 방식: [3000단어]"
+"JWT 작동 방식: [2000단어]"
+"PostgreSQL 트랜잭션 작동 방식: [2000단어]"
 
-Good: Reference with key points
-"Using Express.js middleware (docs: expressjs.com/guide/using-middleware)
- Key for our use: Order matters, next() is required"
-"JWT authentication (jwt.io) - We use HS256 with 1hr expiry"
+좋음: 핵심 사항과 함께 참조
+"Express.js 미들웨어 사용 (문서: expressjs.com/guide/using-middleware)
+ 핵심: 순서가 중요, next() 필수"
+"JWT 인증 (jwt.io) - HS256 사용, 1시간 만료"
 ```
 
-### ❌ The "Premature Detail" Anti-Pattern
+### ❌ "조기 세부사항" 안티패턴
 ```markdown
-Bad: Loading all details before understanding need
-Task: "Add a new API endpoint"
-→ Reads entire API documentation (20K tokens)
-→ Reads all existing endpoints (30K tokens)
-→ Reads authentication system (15K tokens)
-→ Finally starts actual work
+나쁨: 필요성 이해 전에 모든 세부사항 로딩
+작업: "새 API 엔드포인트 추가"
+→ 전체 API 문서 읽기 (20K 토큰)
+→ 모든 기존 엔드포인트 읽기 (30K 토큰)
+→ 인증 시스템 읽기 (15K 토큰)
+→ 드디어 실제 작업 시작
 
-Good: Progressive detail loading
-Task: "Add a new API endpoint"
-→ Finds similar endpoint (1K tokens)
-→ Reads authentication middleware (2K tokens)
-→ Implements new endpoint
-→ Reads additional details only if needed
+좋음: 점진적 세부사항 로딩
+작업: "새 API 엔드포인트 추가"
+→ 유사 엔드포인트 찾기 (1K 토큰)
+→ 인증 미들웨어 읽기 (2K 토큰)
+→ 새 엔드포인트 구현
+→ 필요한 경우에만 추가 세부사항 읽기
 ```
 </anti_patterns>
 
-## Context-Aware Tool Usage
+## 컨텍스트 인식 도구 사용
 
 <tool_usage>
-### Prefer These Patterns
+### 선호하는 패턴
 
-**For Exploration**:
+**탐색용**:
 ```markdown
-✅ Use: glob "**/*.service.ts" (get file list)
-✅ Use: grep "class.*Service" (find relevant classes)
-✅ Use: get_symbols_overview (see structure)
+✅ 사용: glob "**/*.service.ts" (파일 목록 가져오기)
+✅ 사용: grep "class.*Service" (관련 클래스 찾기)
+✅ 사용: get_symbols_overview (구조 파악)
 
-❌ Avoid: Reading every file to "understand the system"
+❌ 피하기: "시스템을 이해하기 위해" 모든 파일 읽기
 ```
 
-**For Understanding Dependencies**:
+**의존성 이해용**:
 ```markdown
-✅ Use: find_referencing_symbols (who calls this?)
-✅ Use: grep "import.*MyClass" (where is this used?)
+✅ 사용: find_referencing_symbols (누가 이것을 호출하는가?)
+✅ 사용: grep "import.*MyClass" (어디에서 사용되는가?)
 
-❌ Avoid: Reading every file that might import it
+❌ 피하기: 임포트할 수 있는 모든 파일 읽기
 ```
 
-**For Implementing Features**:
+**기능 구현용**:
 ```markdown
-✅ Use: find_symbol with include_body=True (targeted reading)
-✅ Use: search_for_pattern "similar.*pattern" (find examples)
+✅ 사용: find_symbol with include_body=True (대상 읽기)
+✅ 사용: search_for_pattern "similar.*pattern" (예시 찾기)
 
-❌ Avoid: Read entire files when you need one function
+❌ 피하기: 함수 하나만 필요할 때 전체 파일 읽기
 ```
 
-**For Debugging**:
+**디버깅용**:
 ```markdown
-✅ Read: Exact error location + stack trace
-✅ Read: Function where error occurs
-✅ Read: Relevant test cases
+✅ 읽기: 정확한 오류 위치 + 스택 트레이스
+✅ 읽기: 오류가 발생하는 함수
+✅ 읽기: 관련 테스트 케이스
 
-❌ Avoid: Reading entire modules "to understand context"
+❌ 피하기: "컨텍스트를 이해하기 위해" 전체 모듈 읽기
 ```
 </tool_usage>
 
-## Best Practices Summary
+## 모범 사례 요약
 
 <best_practices>
-1. **Start Narrow, Expand If Needed**
-   - Begin with minimal context
-   - Add incrementally based on actual need
-   - Stop when sufficient
+1. **좁게 시작하고, 필요하면 확장**
+   - 최소한의 컨텍스트로 시작
+   - 실제 필요에 따라 점진적으로 추가
+   - 충분하면 중단
 
-2. **Use the Right Tool for Reading**
-   - Symbolic tools for structure
-   - Targeted reads for implementation
-   - Search for patterns and examples
+2. **읽기에 적합한 도구 사용**
+   - 구조에는 심볼릭 도구
+   - 구현에는 대상 읽기
+   - 패턴과 예시에는 검색
 
-3. **Summarize Progressively**
-   - Condense completed work
-   - Keep only active context detailed
-   - Reference historical decisions
+3. **점진적으로 요약**
+   - 완료된 작업 압축
+   - 활성 컨텍스트만 상세 유지
+   - 역사적 결정은 참조
 
-4. **Think in Priorities**
-   - Critical info always included
-   - Supporting info conditionally
-   - Reference info linked only
+4. **우선순위로 사고**
+   - 핵심 정보는 항상 포함
+   - 보조 정보는 조건부
+   - 참조 정보는 링크만
 
-5. **Monitor Your Budget**
-   - Be aware of conversation length
-   - Checkpoint when getting long
-   - Trim unnecessary context
+5. **예산 모니터링**
+   - 대화 길이 인식
+   - 길어지면 체크포인트
+   - 불필요한 컨텍스트 정리
 
-6. **Reference Over Duplication**
-   - Link to standard docs
-   - Point to previous discussions
-   - Avoid copying boilerplate
+6. **복제보다 참조**
+   - 표준 문서는 링크
+   - 이전 논의는 가리키기
+   - 보일러플레이트 복사 피하기
 
-7. **Quality Over Quantity**
-   - Focused context produces better responses
-   - Too much context causes confusion
-   - Relevant context enables precision
+7. **양보다 질**
+   - 집중된 컨텍스트가 더 나은 응답 생성
+   - 너무 많은 컨텍스트는 혼란 유발
+   - 관련 컨텍스트가 정밀성 제공
 </best_practices>
 
-## See Also
+## 참고 문서
 
-- [**CLAUDE.md**](../CLAUDE.md) - Primary document with complete guidelines
-- [Process](./process.md) - Implementation workflow (uses context efficiently)
-- [Conflict Resolution](./conflict-resolution.md) - Managing complex decisions
-- [Output Formats](./output-formats.md) - Structured responses save tokens
-- [Technical Standards](./technical-standards.md) - Code reading best practices
+- [**CLAUDE.md**](../CLAUDE.md) - 완전한 가이드라인이 포함된 기본 문서
+- [프로세스](./process.md) - 구현 워크플로우 (컨텍스트를 효율적으로 사용)
+- [충돌 해결](./conflict-resolution.md) - 복잡한 결정 관리
+- [출력 형식](./output-formats.md) - 토큰을 절약하는 구조화된 응답
+- [기술 표준](./technical-standards.md) - 코드 읽기 모범 사례

@@ -1,99 +1,99 @@
-# Important Guidelines
+# 중요 가이드라인
 
 <meta>
 Document: guidelines.md
 Role: Practice Guide
 Priority: Medium
-Applies To: All development interactions
+Applies To: 모든 개발 상호작용
 Optimized For: Claude 4.5 (Sonnet/Opus)
 Last Updated: 2025-12-21
 </meta>
 
 <context>
-This document provides important guidelines to follow when using Claude Code.
-It defines best practices and default behaviors for daily development work.
+이 문서는 Claude Code를 사용할 때 따라야 할 중요한 가이드라인을 제공합니다.
+일상적인 개발 작업을 위한 모범 사례와 기본 동작을 정의합니다.
 </context>
 
 <your_responsibility>
-As Practice Guide, you must:
-- **Follow conventions**: Adhere to documented rules and practices
-- **Be proactive**: Infer useful actions when uncertain
-- **Maintain quality**: Maintain code quality and consistency
+실천 가이드로서, 당신은 반드시:
+- **관례 준수**: 문서화된 규칙과 관행을 따른다
+- **능동적 행동**: 불확실할 때 유용한 행동을 추론한다
+- **품질 유지**: 코드 품질과 일관성을 유지한다
 </your_responsibility>
 
-## Maintenance Rules
+## 유지보수 규칙
 
-- **Document unclear code**
-  Add comments to explain ambiguous code or names.
-- **Confirm model changes**
-  Get user confirmation before changing LLM model versions.
-- **Use modern syntax**
-  Use the latest stable language syntax.
+- **불명확한 코드를 문서화한다**
+  모호한 코드나 이름에 설명 주석을 추가한다.
+- **모델 변경을 확인한다**
+  LLM 모델 버전을 변경하기 전에 사용자 확인을 받는다.
+- **최신 문법을 사용한다**
+  최신 안정 버전의 언어 문법을 사용한다.
 
-## Default Behaviors
+## 기본 동작
 
 <default_to_action>
-When user intent is unclear, infer and proceed with the most useful action:
+사용자 의도가 불명확할 때, 가장 유용한 행동을 추론하고 진행한다:
 
-**Core principles:**
-- "Suggest" might mean implement - consider context
-- Use tools to gather missing information directly
-- Default to implementation over suggestions
+**핵심 원칙:**
+- "제안"은 구현을 의미할 수 있다 - 맥락을 고려한다
+- 도구를 사용하여 누락된 정보를 직접 수집한다
+- 제안보다 구현을 기본으로 한다
 
-**Always require explicit approval for:**
-- Destructive operations (DELETE, DROP, bulk deletions)
-- Large-scale refactoring
-- API changes or breaking changes
-- Production environment operations
+**항상 명시적 승인이 필요한 경우:**
+- 파괴적 작업 (DELETE, DROP, 대량 삭제)
+- 대규모 리팩토링
+- API 변경 또는 호환성 깨뜨리는 변경
+- 프로덕션 환경 작업
 </default_to_action>
 
-## Things to Avoid
+## 피해야 할 것
 
-- Bypassing commit hooks with `--no-verify`
-- Disabling tests instead of fixing them
-- Committing code that doesn't compile
-- Making assumptions without checking existing code
-- Storing secrets in code
-- Ignoring security warnings
-- Skipping code reviews
-- Using deprecated APIs without justification
+- `--no-verify`로 커밋 훅을 우회하기
+- 테스트를 고치지 않고 비활성화하기
+- 컴파일되지 않는 코드를 커밋하기
+- 기존 코드를 확인하지 않고 가정하기
+- 코드에 비밀 정보를 저장하기
+- 보안 경고를 무시하기
+- 코드 리뷰를 건너뛰기
+- 정당한 이유 없이 더 이상 사용되지 않는 API를 사용하기
 
-## Things to Always Do
+## 항상 해야 할 것
 
-- Commit working code incrementally
-- Update plan documents as you progress
-- Learn from existing implementations
-- Reassess after 3 failed attempts
-- Consider security implications
-- Consider edge cases
-- Document non-obvious decisions
-- Keep user experience in mind
+- 작동하는 코드를 점진적으로 커밋한다
+- 진행하면서 계획 문서를 업데이트한다
+- 기존 구현에서 배운다
+- 3번 실패 후 재평가한다
+- 보안 영향을 고려한다
+- 엣지 케이스를 고려한다
+- 명확하지 않은 결정을 문서화한다
+- 사용자 경험을 염두에 둔다
 
-## Emergency Procedures
+## 긴급 절차
 
-### When Things Break
+### 문제가 발생했을 때
 
-1. Don't panic
-2. Check recent changes
-3. Review error logs
-4. Isolate the problem
-5. Create minimal reproduction
-6. Document findings
-7. Implement fix with tests
-8. Post-mortem for learning
+1. 당황하지 않는다
+2. 최근 변경 사항을 확인한다
+3. 오류 로그를 검토한다
+4. 문제를 격리한다
+5. 최소 재현 케이스를 만든다
+6. 발견 사항을 문서화한다
+7. 테스트와 함께 수정을 구현한다
+8. 학습을 위한 사후 분석을 수행한다
 
-### Getting Help
+### 도움 받기
 
-- After 3 attempts, ask for guidance
-- Provide context and what you've tried
-- Share error messages and logs
-- Explain your understanding of the problem
-- Be open to different approaches
+- 3번 시도 후 안내를 요청한다
+- 맥락과 시도한 내용을 제공한다
+- 오류 메시지와 로그를 공유한다
+- 문제에 대한 자신의 이해를 설명한다
+- 다른 접근 방식에 열려 있는다
 
-## See Also
+## 참고 문서
 
-- [**CLAUDE.md**](../CLAUDE.md) - Primary document with complete guidelines
-- [System Rules](../system-rules.md) - Critical system-wide rules
-- [Process](../process.md) - Problem solving and troubleshooting
-- [Quality Assurance](../quality-assurance.md) - Quality gates and testing
-- [Security](../security.md) - Security principles and warnings
+- [**CLAUDE.md**](../CLAUDE.md) - 전체 가이드라인이 포함된 기본 문서
+- [시스템 규칙](../system-rules.md) - 시스템 전체 핵심 규칙
+- [프로세스](../process.md) - 문제 해결 및 트러블슈팅
+- [품질 보증](../quality-assurance.md) - 품질 게이트 및 테스트
+- [보안](../security.md) - 보안 원칙 및 경고
