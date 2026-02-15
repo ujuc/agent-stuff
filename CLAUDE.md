@@ -2,12 +2,6 @@
 
 Centralized AI agent configuration repository. Manages settings for Claude Code, Gemini CLI, and Pi agent, deployed via symlinks from the parent [dotrc](https://github.com/ujuc/dotrc) repository.
 
-## Key Commands
-
-```bash
-claude/scripts/lint-docs.sh    # Validate markdown links in Claude guides
-```
-
 ## Architecture
 
 ### Repository Structure
@@ -32,11 +26,11 @@ agents/
 
 This repository is a git submodule of [dotrc](https://github.com/ujuc/dotrc) at `agents/`. Each agent directory symlinks to its expected location:
 
-| Source            | Target       | Description              |
-| ----------------- | ------------ | ------------------------ |
-| `claude/`         | `~/.claude`  | Claude Code global config |
-| `gemini/`         | `~/.gemini`  | Gemini CLI config         |
-| `pi/`             | `~/.pi`      | Pi agent config           |
+| Source    | Target      | Description               |
+| --------- | ----------- | ------------------------- |
+| `claude/` | `~/.claude` | Claude Code global config |
+| `gemini/` | `~/.gemini` | Gemini CLI config         |
+| `pi/`     | `~/.pi`     | Pi agent config           |
 
 Always edit files in this repository, not at symlink targets.
 
@@ -74,6 +68,7 @@ Korean Conventional Commits ending with `-하다`:
 **Scopes**: `claude`, `gemini`, `pi`, `specs`, `skills`, `guides`
 
 Examples:
+
 - `feat(claude): 새 MCP 서버 설정을 추가하다`
 - `docs(specs): SOUL.md 사명 섹션을 업데이트하다`
 - `chore(gemini): Gemini CLI 초기 설정을 추가하다`
