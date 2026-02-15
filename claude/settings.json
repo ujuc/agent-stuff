@@ -28,6 +28,9 @@
       "write": {
         "additionalAllow": ["/tmp", "/private/tmp"]
       }
+    },
+    "network": {
+      "allowUnixSockets": ["/private/tmp/com.apple.launchd.*/Listeners"]
     }
   },
   "spinnerTipsEnabled": false,
