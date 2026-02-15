@@ -497,7 +497,7 @@ dev-mode로 구현과 함께 간결한 테스트를 제공하겠습니다.
 
 ## 📚 참고 문서
 
-- [**CLAUDE.md**](../CLAUDE.md) - 전체 가이드라인이 포함된 기본 문서
+- [**CLAUDE.md**](../../CLAUDE.md) - 전체 가이드라인이 포함된 기본 문서
 - [**시스템 규칙**](../system-rules.md) - 협상 불가능한 핵심 규칙 (최우선 순위)
 - [가이드라인](../guidelines.md) - 중요한 안내와 모범 사례
 - [프로세스](../process.md) - 문제 해결 및 트러블슈팅 접근법
@@ -531,8 +531,8 @@ dev-mode로 구현과 함께 간결한 테스트를 제공하겠습니다.
 
 ## 참고 문서
 
-- [**CLAUDE.md**](../CLAUDE.md) - 전체 가이드라인이 포함된 기본 문서
+- [**CLAUDE.md**](../../CLAUDE.md) - 전체 가이드라인이 포함된 기본 문서
 - [시스템 규칙](../system-rules.md) - 핵심 규칙 (모드가 무시할 수 없음)
-- [출력 형식](./output-formats.md) - 다양한 시나리오를 위한 응답 템플릿
-- [충돌 해결](./conflict-resolution.md) - 충돌하는 요구사항 처리
+- [출력 형식](output-formats.md) - 다양한 시나리오를 위한 응답 템플릿
+- [충돌 해결](conflict-resolution.md) - 충돌하는 요구사항 처리
 

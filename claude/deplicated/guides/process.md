@@ -538,7 +538,7 @@ Does this sound right, or should I take a different approach?
 
 ## 참고
 
-- [**CLAUDE.md**](../CLAUDE.md) - 전체 가이드라인이 포함된 기본 문서
+- [**CLAUDE.md**](../../CLAUDE.md) - 전체 가이드라인이 포함된 기본 문서
 - [시스템 규칙](../system-rules.md) - 시스템 전반의 필수 규칙
 - [철학](../philosophy.md) - 개발 철학 및 원칙
 - [품질 보증](../quality-assurance.md) - 테스트 및 품질 게이트

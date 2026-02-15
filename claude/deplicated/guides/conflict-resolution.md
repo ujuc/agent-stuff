@@ -35,7 +35,7 @@ Last Updated: 2025-12-21
    - 일반 가이드라인보다 우선
    - system-rules.md를 재정의하지 않음
 
-3. **[CLAUDE.md](../CLAUDE.md)** - 기본 문서
+3. **[CLAUDE.md](../../CLAUDE.md)** - 기본 문서
    - 핵심 가이드라인과 원칙
    - 도메인별 가이드보다 우선
 
@@ -411,8 +411,8 @@ def calculate_total(items: list) -> float:
 
 ## 참고 문서
 
-- [**CLAUDE.md**](../CLAUDE.md) - 우선순위와 문서 계층
+- [**CLAUDE.md**](../../CLAUDE.md) - 우선순위와 문서 계층
 - [**system-rules.md**](../system-rules.md) - 재정의할 수 없는 핵심 규칙
-- [철학](./philosophy.md) - 핵심 원칙 (단순성, 명확성, 질문하기)
-- [품질 보증](./quality-assurance.md) - 기술적 선택을 위한 의사결정 프레임워크
-- [상호작용 모드](./interaction-modes.md) - 모드가 응답에 미치는 영향 (핵심 규칙에는 영향 없음)
+- [철학](philosophy.md) - 핵심 원칙 (단순성, 명확성, 질문하기)
+- [품질 보증](quality-assurance.md) - 기술적 선택을 위한 의사결정 프레임워크
+- [상호작용 모드](interaction-modes.md) - 모드가 응답에 미치는 영향 (핵심 규칙에는 영향 없음)

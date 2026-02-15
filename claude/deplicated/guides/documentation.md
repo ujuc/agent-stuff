@@ -145,7 +145,7 @@ Additional explanation...
 
 ## 참고 문서
 
-- [**CLAUDE.md**](../CLAUDE.md) - 완전한 가이드라인이 포함된 기본 문서
+- [**CLAUDE.md**](../../CLAUDE.md) - 완전한 가이드라인이 포함된 기본 문서
 - [시스템 규칙](../system-rules.md) - 핵심 시스템 전체 규칙
 - [기술 표준](../technical-standards.md) - 코드 품질과 표준
 - [버전 관리](../version-control.md) - Git 워크플로우와 커밋 메시지

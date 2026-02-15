@@ -819,7 +819,7 @@ Claude 4.5는 간결하고 사실 기반의 응답을 선호합니다:
 
 ## 참고 문서
 
-- [**CLAUDE.md**](../CLAUDE.md) - 전체 가이드라인이 포함된 주요 문서
+- [**CLAUDE.md**](../../CLAUDE.md) - 전체 가이드라인이 포함된 주요 문서
 - [시스템 규칙](../system-rules.md) - 언어 정책 (한국어/영어)
-- [상호작용 모드](./interaction-modes.md) - 모드가 응답 스타일에 미치는 영향
-- [문서화](./documentation.md) - 코드 문서화 표준
+- [상호작용 모드](interaction-modes.md) - 모드가 응답 스타일에 미치는 영향
+- [문서화](documentation.md) - 코드 문서화 표준

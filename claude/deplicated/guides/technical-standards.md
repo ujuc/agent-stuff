@@ -109,8 +109,8 @@ Claude 4.5는 과도한 엔지니어링 경향이 있을 수 있습니다. 다�
 
 ## 참고
 
-- [**CLAUDE.md**](../CLAUDE.md) - 전체 가이드라인이 포함된 기본 문서
+- [**CLAUDE.md**](../../CLAUDE.md) - 전체 가이드라인이 포함된 기본 문서
 - [시스템 규칙](../system-rules.md) - 핵심 시스템 규칙
-- [철학](./philosophy.md) - 개발 철학 및 원칙
-- [품질 보증](./quality-assurance.md) - 코드 리뷰 및 테스트
-- [보안](./security.md) - 보안 관행 및 데이터 안전
+- [철학](philosophy.md) - 개발 철학 및 원칙
+- [품질 보증](quality-assurance.md) - 코드 리뷰 및 테스트
+- [보안](security.md) - 보안 관행 및 데이터 안전

@@ -577,8 +577,8 @@ Last Updated: 2025-12-21
 
 ## 참고 문서
 
-- [**CLAUDE.md**](../CLAUDE.md) - 완전한 가이드라인이 포함된 기본 문서
-- [프로세스](./process.md) - 구현 워크플로우 (컨텍스트를 효율적으로 사용)
-- [충돌 해결](./conflict-resolution.md) - 복잡한 결정 관리
-- [출력 형식](./output-formats.md) - 토큰을 절약하는 구조화된 응답
-- [기술 표준](./technical-standards.md) - 코드 읽기 모범 사례
+- [**CLAUDE.md**](../../CLAUDE.md) - 완전한 가이드라인이 포함된 기본 문서
+- [프로세스](process.md) - 구현 워크플로우 (컨텍스트를 효율적으로 사용)
+- [충돌 해결](conflict-resolution.md) - 복잡한 결정 관리
+- [출력 형식](output-formats.md) - 토큰을 절약하는 구조화된 응답
+- [기술 표준](technical-standards.md) - 코드 읽기 모범 사례

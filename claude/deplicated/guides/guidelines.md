@@ -92,7 +92,7 @@ Last Updated: 2025-12-21
 
 ## 참고 문서
 
-- [**CLAUDE.md**](../CLAUDE.md) - 전체 가이드라인이 포함된 기본 문서
+- [**CLAUDE.md**](../../CLAUDE.md) - 전체 가이드라인이 포함된 기본 문서
 - [시스템 규칙](../system-rules.md) - 시스템 전체 핵심 규칙
 - [프로세스](../process.md) - 문제 해결 및 트러블슈팅
 - [품질 보증](../quality-assurance.md) - 품질 게이트 및 테스트

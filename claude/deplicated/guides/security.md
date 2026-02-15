@@ -51,7 +51,7 @@ Last Updated: 2025-12-21
 
 ## 참고 문서
 
-- [**CLAUDE.md**](../CLAUDE.md) - 전체 가이드라인이 포함된 기본 문서
+- [**CLAUDE.md**](../../CLAUDE.md) - 전체 가이드라인이 포함된 기본 문서
 - [시스템 규칙](../system-rules.md) - 시스템 전체 핵심 규칙
 - [기술 표준](../technical-standards.md) - 안전한 코딩 관행
 - [가이드라인](../guidelines.md) - 보안 경고 및 모범 사례

@@ -32,7 +32,7 @@ Last Updated: 2025-12-21
 
 ## 참고 문서
 
-- [**CLAUDE.md**](../CLAUDE.md) - 전체 가이드라인이 포함된 주요 문서
+- [**CLAUDE.md**](../../CLAUDE.md) - 전체 가이드라인이 포함된 주요 문서
 - [시스템 규칙](../system-rules.md) - 시스템 전체에 적용되는 핵심 규칙
 - [보안](../security.md) - 보안 원칙 및 데이터 보호
 - [성능](../performance.md) - 성능 최적화

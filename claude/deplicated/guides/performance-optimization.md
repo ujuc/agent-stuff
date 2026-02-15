@@ -486,6 +486,6 @@ counter2: int (aligned to cache line)
 
 ## 참고 문서
 
-- [**CLAUDE.md**](../CLAUDE.md) - 주요 문서
-- [성능](./performance.md) - 기본 최적화 가이드라인
-- [기술 표준](./technical-standards.md) - 아키텍처 및 코드 품질
+- [**CLAUDE.md**](../../CLAUDE.md) - 주요 문서
+- [성능](performance.md) - 기본 최적화 가이드라인
+- [기술 표준](technical-standards.md) - 아키텍처 및 코드 품질

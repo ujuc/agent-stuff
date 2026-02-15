@@ -404,7 +404,7 @@ time make && make test
 
 ## 참고
 
-- [**CLAUDE.md**](../CLAUDE.md) - 전체 가이드라인이 포함된 기본 문서
+- [**CLAUDE.md**](../../CLAUDE.md) - 전체 가이드라인이 포함된 기본 문서
 - [시스템 규칙](../system-rules.md) - 시스템 전반의 필수 규칙
 - [기술 표준](../technical-standards.md) - 코드 품질 요구사항
 - [프로세스](../process.md) - 테스트 주도 개발 워크플로우

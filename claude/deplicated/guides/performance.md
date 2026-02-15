@@ -32,8 +32,8 @@ Last Updated: 2025-12-21
 
 ## 참고 문서
 
-- [**CLAUDE.md**](../CLAUDE.md) - 전체 가이드라인이 포함된 기본 문서
-- [성능 최적화](./performance-optimization.md) - 상세 최적화 기법 참조
+- [**CLAUDE.md**](../../CLAUDE.md) - 전체 가이드라인이 포함된 기본 문서
+- [성능 최적화](performance-optimization.md) - 상세 최적화 기법 참조
 - [시스템 규칙](../system-rules.md) - 중요 시스템 전체 규칙
-- [기술 표준](./technical-standards.md) - 아키텍처 및 코드 품질
-- [모니터링](./monitoring.md) - 성능 지표 및 로깅
+- [기술 표준](technical-standards.md) - 아키텍처 및 코드 품질
+- [모니터링](monitoring.md) - 성능 지표 및 로깅

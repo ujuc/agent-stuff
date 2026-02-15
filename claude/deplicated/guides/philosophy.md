@@ -62,12 +62,12 @@ Last Updated: 2025-12-21
 Claude 4.5는 과도한 엔지니어링 경향이 있을 수 있습니다.
 추가 파일 생성, 불필요한 추상화, 요청되지 않은 유연성을 경계하세요.
 항상 먼저 "이게 정말 필요한가?"라고 물으세요.
-상세 가이드: [Technical Standards - Avoid Over-engineering](./technical-standards.md)
+상세 가이드: [Technical Standards - Avoid Over-engineering](technical-standards.md)
 </claude4_note>
 
 ## 참고 문서
 
-- [**CLAUDE.md**](../CLAUDE.md) - 전체 가이드라인이 포함된 주요 문서
+- [**CLAUDE.md**](../../CLAUDE.md) - 전체 가이드라인이 포함된 주요 문서
 - [System Rules](../system-rules.md) - 시스템 전체의 중요 규칙
 - [Technical Standards](../technical-standards.md) - 코드 생성 및 아키텍처
 - [Process](../process.md) - 구현 워크플로우 및 계획

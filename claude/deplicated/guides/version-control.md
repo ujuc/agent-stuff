@@ -21,7 +21,7 @@ Last Updated: 2025-12-21
 - **저작자 표시 포함**: AI 에이전트가 생성한 커밋에 저작자 표시 포함
 </your_responsibility>
 
-**기준 문서**: 이 문서의 커밋 메시지 규칙은 [`git message template`](../../../gitmessage) 템플릿을 기반으로 합니다.
+**기준 문서**: 이 문서의 커밋 메시지 규칙은 [`git message template`](../../../../gitmessage) 템플릿을 기반으로 합니다.
 **상세 가이드**: 구현 세부사항은 [commit 스킬](../skills/commit/SKILL.md)을 참조하세요.
 
 ## Git 워크플로우
@@ -117,13 +117,13 @@ gitmessage (Source of Truth)
 └── commit.md (Detailed implementation guide)
 ```
 
-- **Git 템플릿**: [`gitmessage`](../../../gitmessage) - 모든 커밋 메시지 규칙의 원본
+- **Git 템플릿**: [`gitmessage`](../../../../gitmessage) - 모든 커밋 메시지 규칙의 원본
 - **상세 구현 가이드**: [commit 스킬](../skills/commit/SKILL.md) - 자동 커밋 생성 및 예제
 - **변경 동기화**: gitmessage가 변경되면 두 문서 모두 업데이트 필요
 
 ## 참고 문서
 
-- [**CLAUDE.md**](../CLAUDE.md) - 전체 가이드라인이 포함된 기본 문서
+- [**CLAUDE.md**](../../CLAUDE.md) - 전체 가이드라인이 포함된 기본 문서
 - [시스템 규칙](../system-rules.md) - 중요 시스템 전체 규칙
 - [문서화](../documentation.md) - 문서 및 변경 관리
 - [품질 보증](../quality-assurance.md) - 코드 리뷰 및 품질 게이트
