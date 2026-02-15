@@ -1,0 +1,42 @@
+Implement the following plan:
+
+# Plan: Move template/guide files from docs/ to spec-design/
+
+## Context
+
+The files in `docs/` (`common-template.md`, `writing-guide.md`) are user-authored design specifications — rules and templates that AI agents reference when generating documents. `docs/` should be reserved for AI-generated output. These specification files need a new home: `spec-design/`.
+
+## Changes
+
+### 1. Create `spec-design/` directory and move files
+
+- `docs/common-template.md` → `spec-design/common-template.md`
+- `docs/writing-guide.md` → `spec-design/writing-guide.md`
+
+Use `git mv` to preserve history.
+
+### 2. Update `CLAUDE.md` references
+
+- Change `docs/common-template.md` references to `spec-design/common-template.md`
+- Update the Documentation Guidelines section to reflect the new structure:
+  - `spec-design/` — user-authored design specs (templates, writing guides)
+  - `docs/` — AI-generated documents (must follow spec-design rules)
+
+### 3. Update internal cross-references
+
+- `writing-guide.md` links to `common-template.md` — verify relative link still works (both files move together, so it should)
+
+## Files to modify
+
+- `spec-design/common-template.md` (moved from docs/)
+- `spec-design/writing-guide.md` (moved from docs/)
+- `CLAUDE.md` — update references and directory descriptions
+
+## Verification
+
+- `git status` confirms clean move (renamed, not deleted+added)
+- All cross-references in CLAUDE.md point to correct paths
+- Internal link in `writing-guide.md` still resolves
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /Users/ujuc/.REDACTED.jsonl

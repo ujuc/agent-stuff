@@ -1,0 +1,425 @@
+Implement the following plan:
+
+# Documentation.md Migration Plan
+
+## Context
+
+The user maintains comprehensive development guidelines in a global `~/.claude/` configuration. The `documentation.md` file (located at `~/.claude/guides/documentation.md`) defines documentation standards for code, APIs, and project files.
+
+The `agent-stuff` repository needs this documentation guide to establish standards for:
+- Code comments and inline documentation
+- API documentation requirements
+- Architecture Decision Records (ADR)
+- Project documentation files
+- Markdown formatting standards
+- Change management and versioning
+
+**Goal**: Migrate the global `documentation.md` into the `agent-stuff` project under `docs/guides/documentation.md`, transforming its format to comply with the project's documentation specifications.
+
+**Why this change is needed**:
+- Establish documentation standards within the project context
+- Follow the project's YAML front matter specification
+- Ensure consistency with other guide documents (like system-rules.md)
+- Make documentation guidelines accessible to all project contributors
+- Provide a second reference implementation for guide document migrations
+
+**User Decisions** (confirmed):
+1. **File location**: `docs/guides/documentation.md` (following spec-design/writing-guide.md)
+2. **YAML spec**: Use agent-stuff project spec (common-template.md + writing-guide.md)
+3. **Responsibility block**: Convert `<your_responsibility>` to `## Responsibilities` section
+4. **Section ordering**: Move "Documentation Reviews" and "Migration Guides" before "See Also"
+5. **See Also position**: Always place at the very end of the document
+
+## Implementation Approach
+
+### Overview
+
+Transform the global `~/.claude/guides/documentation.md` (165 lines) from XML metadata format to YAML front matter format following `spec-design/common-template.md` and `spec-design/writing-guide.md` specifications.
+
+### Step 1: Create docs/guides/documentation.md
+
+**Transform the document structure:**
+
+#### 1.1 Convert XML Metadata to YAML Front Matter
+
+**Source XML** (lines 3-22 of global documentation.md):
+```xml
+<meta>
+Document: documentation.md
+Role: Documentation Guide
+Priority: Medium
+Applies To: All code documentation and comments
+Optimized For: Claude 4.5 (Sonnet/Opus)
+Last Updated: 2025-12-21
+</meta>
+
+<context>
+This document defines documentation standards for code, APIs, and project files. Good documentation helps others understand and maintain the codebase.
+</context>
+
+<your_responsibility>
+As Documentation Guide, you must:
+- **Document the why**: Explain reasoning, not just what the code does
+- **Keep docs current**: Update documentation with code changes
+- **Use examples**: Include practical, working examples
+- **Follow standards**: Apply consistent formatting and structure
+</your_responsibility>
+```
+
+**Target YAML Front Matter:**
+```yaml
+---
+name: Documentation Standards
+description: 코드, API, 프로젝트 문서화 표준 - 효과적인 문서 작성 가이드라인
+version: 2026.02.0
+tags: documentation, code-comments, api-docs, markdown, standards, adr
+context: |
+  This document defines documentation standards for code, APIs, and project files.
+  Good documentation helps others understand and maintain the codebase.
+
+  Covers: code comments, API documentation, Architecture Decision Records (ADR),
+  project documentation files, markdown formatting, and change management.
+metadata:
+  author: ujuc
+  status: active
+  role: Documentation Guide - Standards for code and project documentation
+  priority: medium
+  applies-to: agent
+  optimized-for: Claude Sonnet 4.5, Claude Opus 4.6
+---
+```
+
+**Key transformations:**
+- `<meta>` block → YAML `metadata` section
+- `<context>` → YAML `context` field (expanded with coverage summary)
+- `<your_responsibility>` → Will become `## Responsibilities` section (not in front matter)
+- Add Korean `description` (within 200 char limit)
+- Set CalVer `version: 2026.02.0` (February 2026 migration, patch 0)
+- Generate relevant `tags` based on document content
+
+#### 1.2 Add Responsibilities Section
+
+Following `spec-design/writing-guide.md`, add after the title:
+
+```markdown
+# Documentation Standards
+
+## Responsibilities
+
+- **Document the why**: Explain reasoning, not just what the code does
+- **Keep docs current**: Update documentation with code changes
+- **Use examples**: Include practical, working examples
+- **Follow standards**: Apply consistent formatting and structure
+```
+
+#### 1.3 Preserve All Content Sections
+
+**Keep all existing sections** in the following order:
+
+1. **Documentation Principles** (lines 24-30)
+2. **Code Comments** (lines 32-46)
+   - When to Comment
+   - Comment Guidelines
+3. **API Documentation** (lines 48-63)
+   - Essential Elements
+   - Best Practices
+4. **Architecture Decision Records (ADR)** (lines 65-80)
+   - ADR Structure
+   - When to Write ADRs
+5. **Project Documentation Files** (lines 82-100)
+   - Essential Files
+   - Architecture Documentation
+   - Development Documentation
+6. **Markdown Formatting Standards** (lines 102-135)
+   - Document Structure
+   - Code Blocks
+   - Formatting Guidelines
+7. **Change Management** (lines 137-144)
+   - Version Documentation
+8. **Documentation Reviews** (lines 153-158) - **MOVE BEFORE See Also**
+9. **Migration Guides** (lines 160-165) - **MOVE BEFORE See Also**
+10. **See Also** (lines 146-151) - **MOVE TO END**
+
+#### 1.4 Reorganize Sections
+
+**Current problematic order** (lines 146-165):
+```markdown
+## See Also
+
+- [**CLAUDE.md**](../CLAUDE.md) - Primary document with complete guidelines
+- [System Rules](../system-rules.md) - Critical system-wide rules
+- [Technical Standards](../technical-standards.md) - Code quality and standards
+- [Version Control](../version-control.md) - Git workflow and commit messages
+
+### Documentation Reviews
+- Review docs with code changes
+- Check for accuracy and completeness
+- Verify examples still work
+- Update version numbers and dates
+- Remove outdated information
+
+### Migration Guides
+- Document breaking changes clearly
+- Provide step-by-step migration instructions
+- Include before/after examples
+- Estimate migration effort
+- Offer automation scripts when possible
+```
+
+**Target reorganization:**
+
+1. Move "Documentation Reviews" and "Migration Guides" as subsections under "Change Management"
+2. Place "See Also" at the very end
+
+**New structure:**
+```markdown
+## Change Management
+
+### Version Documentation
+- Maintain CHANGELOG.md following Keep a Changelog format
+- Group changes by type: Added, Changed, Deprecated, Removed, Fixed, Security
+- Include release date and version number
+- Link to relevant issues/PRs
+
+### Documentation Reviews
+- Review docs with code changes
+- Check for accuracy and completeness
+- Verify examples still work
+- Update version numbers and dates
+- Remove outdated information
+
+### Migration Guides
+- Document breaking changes clearly
+- Provide step-by-step migration instructions
+- Include before/after examples
+- Estimate migration effort
+- Offer automation scripts when possible
+
+## See Also
+
+- [**CLAUDE.md**](../../CLAUDE.md) - Primary document with complete guidelines
+- [System Rules](../system-rules.md) - Critical system-wide rules
+- [Technical Standards](../technical-standards.md) - Code quality and standards
+- [Version Control](../version-control.md) - Git workflow and commit messages
+```
+
+**Note**: Update relative paths in "See Also" links:
+- `../CLAUDE.md` → `../../CLAUDE.md` (docs/guides/ is two levels deep)
+- `../system-rules.md` → `../system-rules.md` (system-rules.md is in docs/)
+- Other guide references remain as-is (will be commented out if they don't exist)
+
+#### 1.5 Handle Guide Document References
+
+In "See Also" section, only keep references to existing or soon-to-exist documents:
+
+**Active references:**
+- `[**CLAUDE.md**](../../CLAUDE.md)` - exists in project root
+- `[System Rules](../system-rules.md)` - exists in docs/
+
+**Comment out non-existent references:**
+```markdown
+<!-- The following guide documents are referenced from the global ~/.claude/
+     configuration and may be migrated to this project in the future:
+
+- [Technical Standards](../technical-standards.md) - Code quality and standards
+- [Version Control](../version-control.md) - Git workflow and commit messages
+-->
+```
+
+### Step 2: Update Project CLAUDE.md (Optional)
+
+**Decision point**: Should we add a reference to documentation.md in CLAUDE.md?
+
+Current CLAUDE.md structure (53 lines):
+- Project Overview
+- Directory Structure
+- Documentation Guidelines
+  - Required YAML Front Matter
+  - Core System Rules (references system-rules.md)
+- Maintenance Rules
+
+**Recommendation**: Add a brief reference to documentation.md under the "Documentation Guidelines" section:
+
+```markdown
+### Documentation Standards
+
+For detailed guidelines on code comments, API documentation, and project documentation files, see [docs/guides/documentation.md](./docs/guides/documentation.md).
+```
+
+**Line count check**:
+- Current CLAUDE.md: 53 lines
+- Addition: ~3 lines
+- New total: ~56 lines (well under 300 line limit)
+
+### Step 3: Verification
+
+**Document format validation:**
+1. YAML front matter syntax is valid (no parsing errors)
+2. All required fields present: name, description, version, tags, context, metadata
+3. Description in Korean, max 200 chars
+4. Version follows CalVer: `2026.02.0`
+5. Metadata includes: author, status, role, priority, applies-to, optimized-for
+
+**Content integrity validation:**
+1. All 10 main sections preserved
+2. "Responsibilities" section added after title
+3. "Documentation Reviews" and "Migration Guides" moved under "Change Management"
+4. "See Also" section at the very end
+5. Relative paths corrected for docs/guides/ location
+
+**Cross-reference validation:**
+1. Verify that referenced files exist or are commented out
+2. Check relative paths are correct
+3. CLAUDE.md reference added (if Step 2 implemented)
+4. CLAUDE.md line count remains under 300
+
+**Test the documentation:**
+1. Read the new docs/guides/documentation.md to verify it's well-formed
+2. Verify YAML front matter can be parsed correctly
+3. Confirm section ordering is logical
+4. Check that Korean description displays correctly
+
+## Critical Files
+
+**Files to create:**
+- `/Users/ujuc/repos/agent-stuff/docs/guides/documentation.md` - New document (estimated ~170 lines with reorganization)
+
+**Files to modify (optional):**
+- `/Users/ujuc/repos/agent-stuff/CLAUDE.md` - Add documentation.md reference (~3 lines added)
+
+**Source files (read-only):**
+- `/Users/ujuc/.claude/guides/documentation.md` - Source content (165 lines)
+- `/Users/ujuc/repos/agent-stuff/spec-design/common-template.md` - YAML front matter specification
+- `/Users/ujuc/repos/agent-stuff/spec-design/writing-guide.md` - Guide document format specification
+
+**Directories:**
+- `/Users/ujuc/repos/agent-stuff/docs/guides/` - Target directory (currently empty)
+
+## Expected Outcomes
+
+After implementation:
+
+1. **docs/guides/documentation.md exists** as a guide document following project specs
+2. **YAML front matter compliance** - All required fields present, Korean description, CalVer version
+3. **Content preservation** - All sections preserved with proper organization
+4. **Responsibilities section added** - Converted from `<your_responsibility>` XML block
+5. **Logical section ordering** - "See Also" at the very end, subsections properly grouped
+6. **Correct relative paths** - All cross-references updated for docs/guides/ location
+7. **CLAUDE.md integration** (optional) - Project documentation properly references documentation.md
+
+This establishes documentation.md as a core guide document and provides a second reference implementation for guide migrations, demonstrating how to:
+- Handle section reorganization
+- Convert XML responsibility blocks to markdown sections
+- Manage relative path updates for nested directories
+- Apply project-specific YAML front matter specifications
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /Users/ujuc/.REDACTED.jsonl
+
+---
+
+# Important Guidelines
+
+<meta>
+Document: guidelines.md
+Role: Practice Guide
+Priority: Medium
+Applies To: All development interactions
+Optimized For: Claude 4.5 (Sonnet/Opus)
+Last Updated: 2025-12-21
+</meta>
+
+<context>
+This document provides important guidelines to follow when using Claude Code.
+It defines best practices and default behaviors for daily development work.
+</context>
+
+<your_responsibility>
+As Practice Guide, you must:
+- **Follow conventions**: Adhere to documented rules and practices
+- **Be proactive**: Infer useful actions when uncertain
+- **Maintain quality**: Maintain code quality and consistency
+</your_responsibility>
+
+## Maintenance Rules
+
+- **Document unclear code**
+  Add comments to explain ambiguous code or names.
+- **Confirm model changes**
+  Get user confirmation before changing LLM model versions.
+- **Use modern syntax**
+  Use the latest stable language syntax.
+
+## Default Behaviors
+
+<default_to_action>
+When user intent is unclear, infer and proceed with the most useful action:
+
+**Core principles:**
+- "Suggest" might mean implement - consider context
+- Use tools to gather missing information directly
+- Default to implementation over suggestions
+
+**Always require explicit approval for:**
+- Destructive operations (DELETE, DROP, bulk deletions)
+- Large-scale refactoring
+- API changes or breaking changes
+- Production environment operations
+</default_to_action>
+
+## Things to Avoid
+
+- Bypassing commit hooks with `--no-verify`
+- Disabling tests instead of fixing them
+- Committing code that doesn't compile
+- Making assumptions without checking existing code
+- Storing secrets in code
+- Ignoring security warnings
+- Skipping code reviews
+- Using deprecated APIs without justification
+
+## Things to Always Do
+
+- Commit working code incrementally
+- Update plan documents as you progress
+- Learn from existing implementations
+- Reassess after 3 failed attempts
+- Consider security implications
+- Consider edge cases
+- Document non-obvious decisions
+- Keep user experience in mind
+
+## Emergency Procedures
+
+### When Things Break
+
+1. Don't panic
+2. Check recent changes
+3. Review error logs
+4. Isolate the problem
+5. Create minimal reproduction
+6. Document findings
+7. Implement fix with tests
+8. Post-mortem for learning
+
+### Getting Help
+
+- After 3 attempts, ask for guidance
+- Provide context and what you've tried
+- Share error messages and logs
+- Explain your understanding of the problem
+- Be open to different approaches
+
+## See Also
+
+- [**CLAUDE.md**](../CLAUDE.md) - Primary document with complete guidelines
+- [System Rules](../system-rules.md) - Critical system-wide rules
+- [Process](../process.md) - Problem solving and troubleshooting
+- [Quality Assurance](../quality-assurance.md) - Quality gates and testing
+- [Security](../security.md) - Security principles and warnings
+
+해당 파일도 이동해줘
+
+---
+
+[Request interrupted by user for tool use]

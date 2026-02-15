@@ -1,0 +1,64 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "2281c24bf2ba",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 19,
+  "files_touched": [
+    "CLAUDE.md",
+    "docs/guides/conflict-resolution.md",
+    "docs/guides/context-management.md",
+    "docs/guides/documentation.md",
+    "docs/guides/guidelines.md",
+    "docs/guides/interaction-modes.md",
+    "docs/guides/monitoring.md",
+    "docs/guides/output-formats.md",
+    "docs/guides/performance-optimization.md",
+    "docs/guides/performance.md",
+    "docs/guides/philosophy.md",
+    "docs/guides/process.md",
+    "docs/guides/project-integration.md",
+    "docs/guides/quality-assurance.md",
+    "docs/guides/security.md",
+    "docs/guides/technical-standards.md",
+    "docs/guides/version-control.md",
+    "docs/system-rules.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/22/81c24bf2ba/0/metadata.json",
+      "transcript": "/22/81c24bf2ba/0/full.jsonl",
+      "context": "/22/81c24bf2ba/0/context.md",
+      "content_hash": "/22/81c24bf2ba/0/content_hash.txt",
+      "prompt": "/22/81c24bf2ba/0/prompt.txt"
+    },
+    {
+      "metadata": "/22/81c24bf2ba/1/metadata.json",
+      "transcript": "/22/81c24bf2ba/1/full.jsonl",
+      "context": "/22/81c24bf2ba/1/context.md",
+      "content_hash": "/22/81c24bf2ba/1/content_hash.txt",
+      "prompt": "/22/81c24bf2ba/1/prompt.txt"
+    },
+    {
+      "metadata": "/22/81c24bf2ba/2/metadata.json",
+      "transcript": "/22/81c24bf2ba/2/full.jsonl",
+      "context": "/22/81c24bf2ba/2/context.md",
+      "content_hash": "/22/81c24bf2ba/2/content_hash.txt",
+      "prompt": "/22/81c24bf2ba/2/prompt.txt"
+    },
+    {
+      "metadata": "/22/81c24bf2ba/3/metadata.json",
+      "transcript": "/22/81c24bf2ba/3/full.jsonl",
+      "context": "/22/81c24bf2ba/3/context.md",
+      "content_hash": "/22/81c24bf2ba/3/content_hash.txt",
+      "prompt": "/22/81c24bf2ba/3/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1060,
+    "cache_creation_tokens": 509180,
+    "cache_read_tokens": 8399352,
+    "output_tokens": 45235,
+    "api_call_count": 127
+  }
+}

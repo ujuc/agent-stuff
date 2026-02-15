@@ -1,0 +1,238 @@
+Implement the following plan:
+
+# Plan: Convert system-rules.md from XML to Pure Markdown
+
+## Context
+
+The `docs/system-rules.md` file is the only document (out of 16) that uses XML tags mixed with Markdown, causing IDE recognition issues. The other 15 guide documents use pure Markdown with YAML frontmatter, creating an inconsistency in the documentation structure.
+
+**Problem**:
+- XML tags (`<rule>`, `<examples>`, `<example>`, etc.) are not recognized properly by Markdown IDEs
+- Single file uses different markup style than 15 other documents
+- User wants consistent, clean Markdown across all documentation
+
+**Goal**: Convert all XML semantic markup in `system-rules.md` to pure Markdown equivalents while preserving the document's semantic structure and readability.
+
+## Current XML Usage in system-rules.md
+
+**XML Tags Found** (7 rule blocks + 6 example sets):
+- `<rule type="critical" id="rule-id">`: Critical rules (7 instances)
+- `<examples>` / `<example type="correct|incorrect">`: Example comparisons (12 examples total)
+- `<scenario>`, `<response>`, `<reason>`: Example sub-elements
+
+**Purpose**: These tags provide semantic structure to distinguish critical rules from regular content and to present side-by-side comparisons of correct vs incorrect patterns.
+
+## Conversion Strategy
+
+### 1. Rule Blocks (`<rule>` tags)
+
+**Current XML format**:
+```xml
+<rule type="critical" id="rule-name">
+- Rule statement 1
+- Rule statement 2
+</rule>
+```
+
+**Convert to Markdown format** (following patterns from other guide files):
+```markdown
+**Critical Rule: [Rule Name]**
+
+- Rule statement 1
+- Rule statement 2
+```
+
+**Rationale**: Uses bold headers consistent with other guides (e.g., `philosophy.md` uses bold for section emphasis). The rule content remains in bullet list format.
+
+### 2. Example Blocks (`<examples>` tags)
+
+**Current XML format**:
+```xml
+<examples>
+<example type="correct">
+<scenario>User: "Question"</scenario>
+<response>
+Code or explanation
+</response>
+<reason>Why this is correct</reason>
+</example>
+
+<example type="incorrect">
+<scenario>User: "Question"</scenario>
+<response>
+Code or explanation
+</response>
+<reason>Why this is wrong</reason>
+</example>
+</examples>
+```
+
+**Convert to structured Markdown**:
+```markdown
+### Examples
+
+#### ✅ Correct Example
+
+**Scenario**: User asks "Question"
+
+**Response**:
+```[language]
+Code or explanation
+```
+
+**Reason**: Why this is correct
+
+#### ❌ Incorrect Example
+
+**Scenario**: User asks "Question"
+
+**Response**:
+```[language]
+Code or explanation
+```
+
+**Reason**: Why this is wrong
+```
+
+**Rationale**:
+- Uses H3/H4 headers for structure (consistent with other guides)
+- Visual indicators (✅/❌) replace `type="correct|incorrect"` attributes
+- Bold labels replace XML element names
+- Maintains semantic grouping and visual clarity
+
+### 3. Section-Specific Transformations
+
+Each of the 7 rule sections needs conversion:
+
+1. **Language Policy** (lines 32-86)
+   - 1 rule block + 2 example sets
+
+2. **Core Principles** (lines 93-129)
+   - 1 rule block + 2 example sets
+
+3. **Code Modification** (lines 132-193)
+   - 1 rule block + 2 example sets
+
+4. **Testing** (lines 196-262)
+   - 1 rule block + 2 example sets
+
+5. **Data Safety** (lines 265-316)
+   - 1 rule block + 2 example sets
+
+6. **Problem Solving** (lines 319-363)
+   - 1 rule block + 2 example sets
+
+7. **Documentation** (lines 366-377) and **Communication** (lines 380-389)
+   - 2 rule blocks (no examples)
+
+## Implementation Steps
+
+### Phase 1: Backup and Preparation
+1. Verify current file integrity
+2. Document line numbers for each XML block
+3. Confirm no 4-backtick code fences exist (already verified: none found)
+
+### Phase 2: Rule Block Conversion
+For each of 7 `<rule>` blocks:
+1. Extract rule ID from `id="rule-id"` attribute
+2. Convert to bold header: `**Critical Rule: [Title Case of Rule ID]**`
+3. Preserve bullet list content exactly
+4. Remove opening/closing `<rule>` tags
+
+### Phase 3: Example Block Conversion
+For each of 6 `<examples>` blocks:
+1. Add H3 header: `### Examples`
+2. For each `<example>` child:
+   - Add H4 with emoji: `#### ✅ Correct Example` or `#### ❌ Incorrect Example`
+   - Convert `<scenario>` to bold label: `**Scenario**: ...`
+   - Convert `<response>` to bold label + code block or text
+   - Convert `<reason>` to bold label: `**Reason**: ...`
+3. Remove all XML tags
+
+### Phase 4: Verification
+1. Read converted file to ensure:
+   - No XML tags remain
+   - YAML frontmatter intact
+   - All 7 rules converted
+   - All 12 examples (6 correct + 6 incorrect) converted
+   - Code blocks have proper language hints
+   - Headings follow hierarchy (H1 → H2 → H3 → H4)
+
+2. Compare line count (should be similar, ±10 lines)
+
+3. Verify Markdown lint-clean (standard Markdown parsers can read it)
+
+## Critical Files
+
+**Primary File**:
+- `/Users/ujuc/repos/agent-stuff/docs/system-rules.md`
+
+**Reference Files** (for style consistency):
+- `/Users/ujuc/repos/agent-stuff/docs/guides/philosophy.md` - Bold emphasis patterns
+- `/Users/ujuc/repos/agent-stuff/docs/guides/process.md` - Example formatting
+- `/Users/ujuc/repos/agent-stuff/spec-design/common-template.md` - YAML frontmatter spec
+
+## Validation Plan
+
+### 1. Structural Validation
+```bash
+# Check no XML tags remain
+grep -E '<(rule|examples|example|scenario|response|reason)' docs/system-rules.md
+# Should return: no matches
+
+# Verify heading hierarchy
+grep '^#' docs/system-rules.md
+# Should show proper H1 → H2 → H3 → H4 nesting
+
+# Check code fence consistency
+grep '```' docs/system-rules.md | wc -l
+# Should return even number (all blocks closed)
+```
+
+### 2. Content Validation
+1. **Count verification**:
+   - 7 rule blocks → 7 `**Critical Rule:**` headers
+   - 6 example sets → 6 `### Examples` headers
+   - 12 examples → 12 `#### ✅` or `#### ❌` headers
+
+2. **YAML frontmatter**: Unchanged, all fields present
+
+3. **Cross-references**: All internal links still valid
+
+### 3. IDE Compatibility Test
+1. Open file in VS Code / IDE
+2. Verify Markdown preview renders correctly
+3. Check outline view shows proper heading hierarchy
+4. Confirm no XML parsing errors
+
+### 4. Comparison Check
+Compare semantic structure before/after:
+- All rule IDs preserved in headers
+- All example scenarios, responses, reasons intact
+- No content loss during conversion
+
+## Expected Outcome
+
+**Before**: Mixed XML + Markdown, IDE parsing issues
+**After**: Pure Markdown, consistent with 15 other guide files
+
+**Benefits**:
+- ✅ IDE recognition and preview working correctly
+- ✅ Consistent markup across all 16 documentation files
+- ✅ Standard Markdown linters can validate
+- ✅ Easier to maintain and edit
+- ✅ Semantic structure preserved through headers and formatting
+
+**No Loss**:
+- Critical rule semantics maintained via bold headers
+- Example structure maintained via heading hierarchy
+- Visual distinction maintained via emoji indicators (✅/❌)
+- Automated parsing still possible via heading detection
+
+## See Also
+
+- [spec-design/writing-guide.md](../../spec-design/writing-guide.md) - Documentation standards
+- [docs/guides/documentation.md](../docs/guides/documentation.md) - Code documentation guidelines
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /Users/ujuc/.claude/projects/-Users-ujuc-repos-agent-stuff/8fdfa78f-eff6-4ccf-81aa-65ca8e6ba42c.jsonl

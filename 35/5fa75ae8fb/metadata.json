@@ -1,0 +1,42 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "355fa75ae8fb",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 6,
+  "files_touched": [
+    "CLAUDE.md",
+    "docs/common-template.md",
+    "docs/guides/conflict-resolution.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/35/5fa75ae8fb/0/metadata.json",
+      "transcript": "/35/5fa75ae8fb/0/full.jsonl",
+      "context": "/35/5fa75ae8fb/0/context.md",
+      "content_hash": "/35/5fa75ae8fb/0/content_hash.txt",
+      "prompt": "/35/5fa75ae8fb/0/prompt.txt"
+    },
+    {
+      "metadata": "/35/5fa75ae8fb/1/metadata.json",
+      "transcript": "/35/5fa75ae8fb/1/full.jsonl",
+      "context": "/35/5fa75ae8fb/1/context.md",
+      "content_hash": "/35/5fa75ae8fb/1/content_hash.txt",
+      "prompt": "/35/5fa75ae8fb/1/prompt.txt"
+    },
+    {
+      "metadata": "/35/5fa75ae8fb/2/metadata.json",
+      "transcript": "/35/5fa75ae8fb/2/full.jsonl",
+      "context": "/35/5fa75ae8fb/2/context.md",
+      "content_hash": "/35/5fa75ae8fb/2/content_hash.txt",
+      "prompt": "/35/5fa75ae8fb/2/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 181,
+    "cache_creation_tokens": 90570,
+    "cache_read_tokens": 1285212,
+    "output_tokens": 1952,
+    "api_call_count": 45
+  }
+}
