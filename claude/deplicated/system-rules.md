@@ -14,8 +14,8 @@ Last Updated: 2025-12-21
 이 규칙들은 모든 코드 생성 및 수정 작업에서 최우선 순위를 가집니다.
 </context>
 
-**이 문서는 [CLAUDE.md](./CLAUDE.md)의 핵심 규칙을 추출합니다.**
-전체 가이드라인은 [CLAUDE.md](./CLAUDE.md)를 참조하세요.
+**이 문서는 [CLAUDE.md](../CLAUDE.md)의 핵심 규칙을 추출합니다.**
+전체 가이드라인은 [CLAUDE.md](../CLAUDE.md)를 참조하세요.
 
 <enforcement_policy>
 이 규칙들은 코드 생성 및 수정 시 적용됩니다.
@@ -82,7 +82,7 @@ def process_data(data: list) -> dict:
 각 영역의 자세한 지침은 링크된 문서를 참조하세요.
 
 ### 1. 핵심 원칙
-**상세 내용: [Philosophy](./guides/philosophy.md)**
+**상세 내용: [Philosophy](guides/philosophy.md)**
 
 <rule type="critical" id="core-principles">
 - **불확실하면 질문하기**
@@ -120,7 +120,7 @@ def process_data(data: list) -> dict:
 </examples>
 
 ### 2. 코드 수정
-**상세 내용: [Technical Standards](./guides/technical-standards.md)**
+**상세 내용: [Technical Standards](guides/technical-standards.md)**
 
 <rule type="critical" id="code-modification">
 - **코드를 먼저 읽기**
@@ -179,7 +179,7 @@ class UserService {
 </examples>
 
 ### 3. 테스트
-**상세 내용: [Quality Assurance](./guides/quality-assurance.md)**
+**상세 내용: [Quality Assurance](guides/quality-assurance.md)**
 
 <rule type="critical" id="testing">
 - **테스트 필수**
@@ -244,7 +244,7 @@ def calculate_discount(price: float, rate: float) -> float:
 </examples>
 
 ### 4. 데이터 안전
-**상세 내용: [Security](./guides/security.md)**
+**상세 내용: [Security](guides/security.md)**
 
 <rule type="critical" id="data-safety">
 - **파괴적 쿼리 승인 필요**
@@ -295,7 +295,7 @@ TRUNCATE TABLE logs;
 </examples>
 
 ### 5. 문제 해결
-**상세 내용: [Process](./guides/process.md)**
+**상세 내용: [Process](guides/process.md)**
 
 <rule type="critical" id="problem-solving">
 - **근본 원인 해결**
@@ -341,7 +341,7 @@ except TimeoutError:
 </examples>
 
 ### 6. 문서화
-**상세 내용: [Guidelines](./guides/guidelines.md)**
+**상세 내용: [Guidelines](guides/guidelines.md)**
 
 <rule type="critical" id="documentation">
 - **불명확한 코드 문서화**
@@ -354,7 +354,7 @@ except TimeoutError:
 </rule>
 
 ### 7. 의사소통
-**상세 내용: [Interaction Modes](./guides/interaction-modes.md)**
+**상세 내용: [Interaction Modes](guides/interaction-modes.md)**
 
 <rule type="critical" id="communication">
 - **적절한 응답 스타일**
@@ -368,11 +368,11 @@ except TimeoutError:
 
 ## 참고 문서
 
-- [**CLAUDE.md**](./CLAUDE.md) - **전체 가이드라인이 포함된 주요 문서**
-- [Philosophy](./guides/philosophy.md) - 개발 철학 및 핵심 원칙
-- [Process](./guides/process.md) - 계획, 구현, 문제 해결
-- [Technical Standards](./guides/technical-standards.md) - 코드 생성 및 아키텍처
-- [Quality Assurance](./guides/quality-assurance.md) - 테스트 및 품질 기준
-- [Security](./guides/security.md) - 보안 원칙 및 데이터 보호
-- [Guidelines](./guides/guidelines.md) - 중요한 알림 및 모범 사례
-- [Interaction Modes](./guides/interaction-modes.md) - 응답 스타일 및 추론 명령
+- [**CLAUDE.md**](../CLAUDE.md) - **전체 가이드라인이 포함된 주요 문서**
+- [Philosophy](guides/philosophy.md) - 개발 철학 및 핵심 원칙
+- [Process](guides/process.md) - 계획, 구현, 문제 해결
+- [Technical Standards](guides/technical-standards.md) - 코드 생성 및 아키텍처
+- [Quality Assurance](guides/quality-assurance.md) - 테스트 및 품질 기준
+- [Security](guides/security.md) - 보안 원칙 및 데이터 보호
+- [Guidelines](guides/guidelines.md) - 중요한 알림 및 모범 사례
+- [Interaction Modes](guides/interaction-modes.md) - 응답 스타일 및 추론 명령

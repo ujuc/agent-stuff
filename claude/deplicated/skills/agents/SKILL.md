@@ -23,7 +23,7 @@ This skill creates and manages AGENTS.md files for universal AI agent integratio
 ## Source of Truth
 
 - **AGENTS.md Spec**: [agents.md](https://agents.md/)
-- **Template**: [`agents-template.md`](./agents-template.md) - Base template for new AGENTS.md files
+- **Template**: [`agents-template.md`](agents-template.md) - Base template for new AGENTS.md files
 
 ## When to Activate
 
@@ -279,7 +279,7 @@ diff <backup-file> AGENTS.md
 
 ## Template Sections Reference
 
-Full template: [`agents-template.md`](./agents-template.md)
+Full template: [`agents-template.md`](agents-template.md)
 
 ### 6 Core Areas (Required)
 
@@ -320,5 +320,5 @@ These 6 areas must be present in every AGENTS.md (based on analysis of 2,500+ re
 
 ## See Also
 
-- [agents-template.md](./agents-template.md) - AGENTS.md base template (6 Core Areas)
+- [agents-template.md](agents-template.md) - AGENTS.md base template (6 Core Areas)
 - [AGENTS.md Spec](https://agents.md/) - Universal AI agent file standard

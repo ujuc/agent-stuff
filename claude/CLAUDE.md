@@ -54,6 +54,7 @@ Triggered by natural language. Located in skills/<skill-name>/SKILL.md.
 | `review`             | "리뷰해줘", "이거 괜찮아?"           | sonnet |
 | `refactor`           | "리팩토링 해줘", "정리해줘"          | opus   |
 | `troubleshoot`       | "왜 안돼?", "에러 났어"              | opus   |
+| `ship`               | "배포해줘", "ship it", "완성해줘"    | opus   |
 | `generate-claude-md` | `/generate-claude-md` (manual)       | opus   |
 
 ## Git Workflow
