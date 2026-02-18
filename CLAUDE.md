@@ -4,7 +4,7 @@ Personal AI agent configuration repository. Git submodule of [dotrc](https://git
 
 ## Technical Stack
 
-- Markdown, JSON, Shell (Bash/Zsh)
+- Markdown, JSON
 - Symlink deployment model (this repo → dotrc submodule → ~/.claude, ~/.gemini, ~/.pi)
 
 ## Architecture
@@ -19,12 +19,7 @@ Personal AI agent configuration repository. Git submodule of [dotrc](https://git
 
 ## Development Commands
 
-No build or test toolchain. Validation scripts for `claude/` markdown docs:
-
-```bash
-claude/scripts/lint-docs.sh --all     # Lint all claude/ markdown files
-claude/scripts/pre-commit-lint        # Pre-commit hook (claude/*.md only)
-```
+No build or test toolchain. This is a pure configuration repository.
 
 ## Work Rules
 

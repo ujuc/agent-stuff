@@ -12,7 +12,6 @@ Personal AI agent configuration repository. Manages global settings for Claude C
 ### Technical Stack
 
 - **Configuration**: Markdown, JSON
-- **Scripts**: Bash/Zsh (validation, automation)
 - **Deployment**: Git submodule + symlinks
 - **CI/CD**: None
 
@@ -34,9 +33,6 @@ agent-stuff/
 │   ├── statusline-command.sh
 │   ├── plugins/config.json
 │   ├── memory/MEMORY.md   # Auto memory (persistent across sessions)
-│   ├── scripts/
-│   │   ├── lint-docs.sh       # Markdown format linter
-│   │   └── pre-commit-lint    # Pre-commit hook for claude/*.md
 │   ├── skills/
 │   │   └── generate-claude-md/  # Active skill: CLAUDE.md/AGENTS.md generator
 │   └── deplicated/        # DEPRECATED — do not use
@@ -59,15 +55,6 @@ agent-stuff/
 ## Build & Test
 
 No build or test toolchain. This is a pure configuration repository.
-
-### Validation
-
-```bash
-claude/scripts/lint-docs.sh --all     # Lint all claude/ markdown files
-claude/scripts/pre-commit-lint        # Pre-commit hook for staged claude/*.md
-```
-
-The linter checks markdown format consistency: meta blocks, YAML frontmatter, date formats, and header language.
 
 ## Git Workflow
 
