@@ -53,3 +53,4 @@ Triggered by natural language. Located in skills/<skill-name>/SKILL.md.
 | Skill                | Triggers                             | Model  |
 | -------------------- | ------------------------------------ | ------ |
 | `generate-claude-md` | `/generate-claude-md` (manual)       | opus   |
+| `generate-skills`    | 스킬 만들어줘, 새 스킬 추가, generate-skills | opus   |
