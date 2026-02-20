@@ -15,7 +15,8 @@
     "defaultMode": "plan",
     "disableBypassPermissionsMode": "disable"
   },
-  "model": "opus",
+  "model": "opusplan",
+  "effortLevel": "high",
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline-command.sh"
@@ -43,6 +44,5 @@
   },
   "spinnerTipsEnabled": false,
   "alwaysThinkingEnabled": true,
-  "teammateMode": "auto",
-  "effortLevel": "high"
+  "teammateMode": "auto"
 }
