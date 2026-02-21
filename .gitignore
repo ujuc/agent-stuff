@@ -63,6 +63,7 @@ claude/tasks
 claude/security_warnings_state*
 claude/chrome
 claude/usage-data
+claude/backups
 
 ### Pi agent runtime
 pi/agent/bin
