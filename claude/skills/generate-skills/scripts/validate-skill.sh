@@ -87,6 +87,25 @@ else
   fi
 fi
 
+# --- Check 4-b: name length <= 64 ---
+if [[ -n "$NAME" ]]; then
+  NAME_LEN=${#NAME}
+  if [[ $NAME_LEN -le 64 ]]; then
+    pass "name length is ${NAME_LEN} chars (max 64)"
+  else
+    fail "name exceeds 64 chars: '${NAME}' (${NAME_LEN} chars)"
+  fi
+fi
+
+# --- Check 4-c: no leading/trailing/consecutive hyphens ---
+if [[ -n "$NAME" ]]; then
+  if [[ "$NAME" == -* ]] || [[ "$NAME" == *- ]] || [[ "$NAME" == *--* ]]; then
+    fail "name has leading, trailing, or consecutive hyphens: '${NAME}'"
+  else
+    pass "name has no invalid hyphens"
+  fi
+fi
+
 # --- Check 5: name matches folder name ---
 if [[ -n "$NAME" ]]; then
   if [[ "$NAME" == "$FOLDER_NAME" ]]; then
@@ -123,6 +142,38 @@ if [[ -n "$NAME" ]]; then
   else
     pass "name does not use reserved prefix"
   fi
+fi
+
+# --- Check 9: allowed frontmatter keys ---
+ALLOWED_KEYS="name description model disable-model-invocation license metadata allowed-tools compatibility"
+ALL_KEYS=$(echo "$FRONTMATTER" | yq 'keys | .[]' 2>/dev/null || true)
+UNKNOWN_KEYS=""
+while IFS= read -r key; do
+  [[ -z "$key" ]] && continue
+  found=false
+  for allowed in $ALLOWED_KEYS; do
+    [[ "$key" == "$allowed" ]] && found=true && break
+  done
+  if [[ "$found" == false ]]; then
+    UNKNOWN_KEYS="${UNKNOWN_KEYS} ${key}"
+  fi
+done <<< "$ALL_KEYS"
+if [[ -z "$UNKNOWN_KEYS" ]]; then
+  pass "All frontmatter keys are allowed"
+else
+  warn "Unknown frontmatter key(s):${UNKNOWN_KEYS}"
+fi
+
+# --- Check 10: SKILL.md body line count ---
+echo ""
+echo "Content checks:"
+TOTAL_LINES=$(wc -l < "$SKILL_FILE")
+FM_END=$(awk 'NR>1 && /^---/{print NR; exit}' "$SKILL_FILE")
+BODY_LINES=$((TOTAL_LINES - FM_END))
+if [[ $BODY_LINES -le 500 ]]; then
+  pass "SKILL.md body is ${BODY_LINES} lines (max 500)"
+else
+  warn "SKILL.md body exceeds 500 lines (${BODY_LINES} lines) — consider moving content to references/"
 fi
 
 # --- Summary ---
