@@ -25,23 +25,6 @@
     "superpowers@superpowers-marketplace": true
   },
   "language": "korean",
-  "sandbox": {
-    "enabled": true,
-    "autoAllowBashIfSandboxed": true,
-    "network": {
-      "allowUnixSockets": [
-        "/private/tmp/com.apple.launchd.*/Listeners"
-      ]
-    },
-    "permissions": {
-      "write": {
-        "additionalAllow": [
-          "/tmp",
-          "/private/tmp"
-        ]
-      }
-    }
-  },
   "spinnerTipsEnabled": false,
   "alwaysThinkingEnabled": true,
   "teammateMode": "auto"
