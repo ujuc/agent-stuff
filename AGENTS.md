@@ -28,13 +28,15 @@ agent-stuff/
 │   └── SOUL.md            # Shared agent mission and values (canonical)
 ├── claude/                # Claude Code global config (→ ~/.claude)
 │   ├── CLAUDE.md          # Global Claude Code configuration
-│   ├── settings.json      # Model, permissions, sandbox, language
+│   ├── settings.json      # Model, permissions, language
 │   ├── mcp.json           # MCP servers (sequential-thinking)
 │   ├── statusline-command.sh
 │   ├── plugins/config.json
 │   ├── memory/MEMORY.md   # Auto memory (persistent across sessions)
 │   ├── skills/
-│   │   └── generate-claude-md/  # Active skill: CLAUDE.md/AGENTS.md generator
+│   │   ├── commit/              # Active skill: Korean Conventional Commits
+│   │   ├── generate-claude-md/  # Active skill: CLAUDE.md/AGENTS.md generator
+│   │   └── generate-skills/     # Active skill: Skill generator
 │   └── deplicated/        # DEPRECATED — do not use
 ├── gemini/                # Gemini CLI config (→ ~/.gemini) — placeholder
 │   └── .gitkeep
@@ -49,7 +51,7 @@ agent-stuff/
 | `specs/SOUL.md` | Canonical shared mission and values. Sync changes to `claude/CLAUDE.md` Agent Identity. |
 | `claude/CLAUDE.md` | Global Claude Code configuration. Deployed to `~/.claude/CLAUDE.md`. |
 | `.claude/settings.json` | Project-specific hooks (entire integration) and permissions. |
-| `claude/settings.json` | Global Claude Code settings (model, sandbox, language, etc.). |
+| `claude/settings.json` | Global Claude Code settings (model, permissions, language, etc.). |
 | `claude/mcp.json` | MCP server configuration (sequential-thinking via mise + npx). |
 
 ## Build & Test
