@@ -5,11 +5,7 @@
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
   "permissions": {
-    "allow": [
-      "Bash(git commit*)",
-      "Bash(git add*)",
-      "Bash(git push*)"
-    ],
+    "allow": ["Bash(git commit*)", "Bash(git add*)", "Bash(git push*)"],
     "deny": [],
     "ask": [],
     "defaultMode": "plan",
@@ -34,5 +30,18 @@
   "alwaysThinkingEnabled": true,
   "effortLevel": "high",
   "teammateMode": "auto",
-  "autoUpdatesChannel": "stable"
+  "autoUpdatesChannel": "stable",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/rtk-rewrite.sh"
+          }
+        ]
+      }
+    ]
+  }
 }

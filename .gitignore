@@ -64,6 +64,7 @@ claude/security_warnings_state*
 claude/chrome
 claude/usage-data
 claude/backups
+claude/hooks/*rtk*
 
 ### Pi agent runtime
 pi/agent/bin
