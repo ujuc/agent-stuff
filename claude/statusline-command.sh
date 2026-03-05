@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Claude Code statusline — 3-row format with rate limit progress bars
-# Row 1: model | context% | lines changed | branch
+# Row 1: directory on branch [status] via model [context%]
 # Row 2: 5-hour rate limit bar
 # Row 3: 7-day  rate limit bar
 
@@ -13,7 +13,9 @@ TZ_DISPLAY="Asia/Seoul"
 CLR_GREEN="#97C9C3"
 CLR_YELLOW="#E5C07B"
 CLR_RED="#E06C75"
-CLR_SEP="#4A585C"
+CLR_CYAN="#56B6C2"
+CLR_MAGENTA="#C678DD"
+CLR_BLUE="#61AFEF"
 
 # ── ANSI helpers ─────────────────────────────────────────────────────────────
 # c <hex> <text>  — wrap text in 24-bit foreground color
@@ -67,13 +69,11 @@ to_int_pct() {
 # ── Parse stdin (single jq call, IFS=$'\t') ──────────────────────────────────
 input=$(cat)
 
-IFS=$'\t' read -r cwd model_display used_pct lines_added lines_deleted git_branch_json < <(
+IFS=$'\t' read -r cwd model_display used_pct git_branch_json < <(
     echo "$input" | jq -r '[
         .workspace.current_dir,
         .model.display_name,
         (.context_window.used_percentage // ""),
-        (.lines_changed.added    // ""),
-        (.lines_changed.deleted  // ""),
         (.git.branch             // "")
     ] | @tsv'
 )
@@ -141,28 +141,26 @@ fh_int=$(to_int_pct "$fh_pct_raw")
 sd_int=$(to_int_pct "$sd_pct_raw")
 
 # ── Row 1 ────────────────────────────────────────────────────────────────────
-sep=$(c "$CLR_SEP" "│")
+dir_part=$(c "$CLR_CYAN" "$home_replaced")
 
-model_part="🤖 ${model_display}"
+git_status_part=""
+if [[ -n "$git_branch_json" ]]; then
+    git_dirty=$(git --no-optional-locks -C "$cwd" status --porcelain 2>/dev/null)
+    if [[ -z "$git_dirty" ]]; then
+        status_indicator=$(c "$CLR_GREEN" "[✓]")
+    else
+        status_indicator=$(c "$CLR_RED" "[✗]")
+    fi
+    git_status_part=" $(c "$CLR_MAGENTA" "on") ${git_branch_json} ${status_indicator}"
+fi
 
+model_ctx_part=" $(c "$CLR_BLUE" "via") ${model_display}"
 if [[ -n "$used_pct" ]]; then
     ctx_color=$(pct_color "$used_pct")
-    ctx_part="📊 $(c "$ctx_color" "${used_pct}%")"
-else
-    ctx_part="📊 —"
+    model_ctx_part+=" $(c "$ctx_color" "[${used_pct}%]")"
 fi
 
-diff_part=""
-if [[ -n "$lines_added" || -n "$lines_deleted" ]]; then
-    diff_part="✏️  +${lines_added:-0}/-${lines_deleted:-0}"
-fi
-
-branch_part=""
-[[ -n "$git_branch_json" ]] && branch_part="🔀 ${git_branch_json}"
-
-row1="$model_part $sep $ctx_part"
-[[ -n "$diff_part"   ]] && row1+=" $sep $diff_part"
-[[ -n "$branch_part" ]] && row1+=" $sep $branch_part"
+row1="${dir_part}${git_status_part}${model_ctx_part}"
 
 # ── Row 2 (5-hour) ───────────────────────────────────────────────────────────
 row2=""
@@ -170,8 +168,8 @@ if [[ -n "$fh_int" ]]; then
     bar=$(make_bar "$fh_int")
     clr=$(pct_color "$fh_int")
     reset_str=""
-    [[ -n "$fh_reset" ]] && reset_str="  Resets $(format_time_short "$fh_reset") ($TZ_DISPLAY)"
-    row2="$(c "$clr" "⏱ 5h")  $(c "$clr" "$bar")  $(c "$clr" "${fh_int}%")${reset_str}"
+    [[ -n "$fh_reset" ]] && reset_str="  Resets $(format_time_short "$fh_reset")"
+    row2="$(c "$clr" "5h")  $(c "$clr" "$bar")  $(c "$clr" "${fh_int}%")${reset_str}"
 fi
 
 # ── Row 3 (7-day) ────────────────────────────────────────────────────────────
@@ -180,8 +178,8 @@ if [[ -n "$sd_int" ]]; then
     bar=$(make_bar "$sd_int")
     clr=$(pct_color "$sd_int")
     reset_str=""
-    [[ -n "$sd_reset" ]] && reset_str="  Resets $(format_time_long "$sd_reset") ($TZ_DISPLAY)"
-    row3="$(c "$clr" "📅 7d")  $(c "$clr" "$bar")  $(c "$clr" "${sd_int}%")${reset_str}"
+    [[ -n "$sd_reset" ]] && reset_str="  Resets $(format_time_long "$sd_reset")"
+    row3="$(c "$clr" "7d")  $(c "$clr" "$bar")  $(c "$clr" "${sd_int}%")${reset_str}"
 fi
 
 # ── Output ───────────────────────────────────────────────────────────────────
