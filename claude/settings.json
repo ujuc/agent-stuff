@@ -16,16 +16,23 @@
     "disableBypassPermissionsMode": "disable"
   },
   "model": "opusplan",
-  "effortLevel": "high",
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline-command.sh"
   },
-  "enabledPlugins": {
-    "superpowers@superpowers-marketplace": true
+  "enabledPlugins": {},
+  "extraKnownMarketplaces": {
+    "anthropic-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/skills"
+      }
+    }
   },
   "language": "korean",
   "spinnerTipsEnabled": false,
   "alwaysThinkingEnabled": true,
-  "teammateMode": "auto"
+  "effortLevel": "high",
+  "teammateMode": "auto",
+  "autoUpdatesChannel": "stable"
 }
