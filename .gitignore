@@ -65,6 +65,8 @@ claude/chrome
 claude/usage-data
 claude/backups
 claude/hooks/*rtk*
+claude/mcp-needs*.json
+claude/policy-limits.json
 
 ### Pi agent runtime
 pi/agent/bin
