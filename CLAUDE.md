@@ -4,7 +4,6 @@ Personal AI agent configuration repository. Git submodule of [dotrc](https://git
 
 ## Technical Stack
 
-- Markdown, JSON
 - Symlink deployment model (this repo → dotrc submodule → ~/.claude, ~/.gemini, ~/.pi)
 
 ## Architecture
@@ -29,7 +28,7 @@ No build or test toolchain. This is a pure configuration repository.
   <type>(<scope>): <Korean subject ending with -하다>
   ```
 - **Types**: feat, fix, docs, style, refactor, test, chore
-- **Scopes**: claude, gemini, pi, specs, skills, guides
+- **Scopes**: claude, gemini, pi, specs, skills
 
 ## Behavioral Guidelines
 

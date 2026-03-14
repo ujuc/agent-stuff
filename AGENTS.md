@@ -11,9 +11,7 @@ Personal AI agent configuration repository. Manages global settings for Claude C
 
 ### Technical Stack
 
-- **Configuration**: Markdown, JSON
-- **Deployment**: Git submodule + symlinks
-- **CI/CD**: None
+- **Deployment**: Git submodule of [dotrc](https://github.com/ujuc/dotrc) + symlinks
 
 ## Repository Structure
 
@@ -23,16 +21,16 @@ agent-stuff/
 ├── AGENTS.md              # This file — project guide for AI agents
 ├── README.md
 ├── .claude/               # Project-specific Claude Code settings
-│   └── settings.json      # Hooks (entire integration), permissions
+│   └── settings.json      # Permissions (git operations)
 ├── specs/
 │   └── SOUL.md            # Shared agent mission and values (canonical)
 ├── claude/                # Claude Code global config (→ ~/.claude)
 │   ├── CLAUDE.md          # Global Claude Code configuration
-│   ├── settings.json      # Model, permissions, language
-│   ├── mcp.json           # MCP servers (sequential-thinking)
+│   ├── RTK.md             # RTK (Rust Token Killer) reference
+│   ├── settings.json      # Global settings (model, permissions, hooks, etc.)
+│   ├── mcp.json           # MCP server configuration (placeholder)
 │   ├── statusline-command.sh
 │   ├── plugins/config.json
-│   ├── memory/MEMORY.md   # Auto memory (persistent across sessions)
 │   ├── skills/
 │   │   ├── commit/              # Active skill: Korean Conventional Commits
 │   │   ├── generate-claude-md/  # Active skill: CLAUDE.md/AGENTS.md generator
@@ -49,10 +47,8 @@ agent-stuff/
 | File | Purpose |
 | ---- | ------- |
 | `specs/SOUL.md` | Canonical shared mission and values. Sync changes to `claude/CLAUDE.md` Agent Identity. |
-| `claude/CLAUDE.md` | Global Claude Code configuration. Deployed to `~/.claude/CLAUDE.md`. |
-| `.claude/settings.json` | Project-specific hooks (entire integration) and permissions. |
-| `claude/settings.json` | Global Claude Code settings (model, permissions, language, etc.). |
-| `claude/mcp.json` | MCP server configuration (sequential-thinking via mise + npx). |
+| `.claude/settings.json` | Project-specific permissions (git operations). |
+| `claude/settings.json` | Global Claude Code settings (model, permissions, hooks, statusline, etc.). |
 
 ## Build & Test
 
@@ -80,7 +76,6 @@ feat, fix, docs, style, refactor, test, chore
 | `pi`     | Changes to `pi/` directory     |
 | `specs`  | Changes to `specs/` directory  |
 | `skills` | Changes to skill definitions   |
-| `guides` | Changes to guide documents     |
 
 ### Examples
 
