@@ -2,7 +2,7 @@
 name: commit
 description: "한국어 Conventional Commits 규칙에 따라 git 커밋을 생성한다. /commit, 커밋해줘, commit, 변경사항 커밋 요청 시 사용한다."
 model: sonnet
-allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git add:*), Bash(git commit:*)
+allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git add:*), Bash(git commit:*), Agent
 ---
 
 # Git Commit
@@ -25,7 +25,8 @@ allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git a
 3. `git log --oneline -20`으로 최근 커밋 스타일과 scope를 확인한다
 4. 스테이징할 파일이 불명확하면 사용자에게 확인한다
 5. 해당 파일만 `git add`로 스테이징한다
-6. heredoc으로 커밋한다:
+6. 구조적 변경이 감지되면 Agent로 문서 업데이트 서브에이전트를 실행한다 (아래 "문서 업데이트" 참조)
+7. heredoc으로 커밋한다:
 
 ```bash
 git commit -m "$(cat <<'EOF'
@@ -36,12 +37,38 @@ EOF
 )"
 ```
 
+## 문서 업데이트
+
+스테이징 완료 후, 아래 조건에 따라 Agent 도구로 문서 업데이트 서브에이전트를 실행한다.
+
+### 트리거 조건 (하나라도 해당하면 Agent 실행)
+
+1. 파일/디렉토리 추가 또는 삭제
+2. 새 scope 후보 등장 (새 최상위 디렉토리)
+3. 외부 도구 의존성 추가
+
+### 적용 제외 (Agent를 실행하지 않음)
+
+- 기존 파일 내용만 변경 (구조 변경 없음)
+- 서브모듈 포인터 업데이트
+- style, refactor 타입의 내부 변경
+- 프로젝트 루트에 AGENTS.md/CLAUDE.md가 없는 경우
+
+### Agent 호출 방법
+
+1. `git diff --staged --name-status` 결과를 프롬프트에 포함한다
+2. references/doc-update-agent.md의 지시사항을 에이전트 프롬프트로 사용한다
+3. 에이전트 완료 후 수정된 문서를 `git add`로 스테이징한다
+
 ## 금지 사항
 
 - Co-Authored-By를 추가하지 않는다 (시스템이 자동 처리)
 - `git push`를 실행하지 않는다
 - 사용자 확인 없이 파일을 스테이징하지 않는다
+- 서브모듈 내부의 문서를 수정하지 않는다
+- 새 문서 파일을 생성하지 않는다 (기존 문서의 증분 수정만 수행)
 
 ## 참고
 
-커밋 메시지 상세 규칙은 references/gitmessage.md를 따른다.
+- 커밋 메시지 상세 규칙은 references/gitmessage.md를 따른다.
+- 문서 업데이트 에이전트 지시사항은 references/doc-update-agent.md를 따른다.
