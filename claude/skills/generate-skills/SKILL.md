@@ -20,6 +20,7 @@ $ARGUMENTS 가 주어지면 해당 경로/이름을 대상으로 한다. 없으�
 1. **간결함이 핵심**: 컨텍스트 윈도우는 공공재. Claude가 이미 아는 것은 포함하지 않는다.
 2. **자유도 조절**: 작업의 취약성에 맞춰 지시 수준을 결정한다 (높음/중간/낮음).
 3. **Progressive Disclosure**: 정보를 3단계로 계층 분리한다 (메타데이터 → 본문 → 번들 리소스).
+4. **서브에이전트 활용**: 컨텍스트 보호와 병렬 실행이 가능한 지점에서 서브에이전트를 적극 활용한다. 상세 기준은 references/subagent-guidelines.md를 참조한다.
 
 ---
 
@@ -43,6 +44,13 @@ $ARGUMENTS 가 주어지면 해당 경로/이름을 대상으로 한다. 없으�
 | 검증·리뷰 | 품질 점검 | 중간 |
 
 선택한 패턴과 근거를 사용자에게 확인한다.
+
+### 병렬 탐색 (선택)
+
+AskUserQuestion 발송 후, 사용자 응답 대기 중에 Explore 에이전트를 스폰하여 기존 스킬을 조사한다.
+상세 지시사항은 references/subagent-guidelines.md의 "Explore-1"을 따른다.
+
+$ARGUMENTS로 충분한 정보가 제공된 경우 건너뛴다.
 
 ---
 
@@ -108,6 +116,12 @@ references/frontmatter-spec.md와 references/description-examples.md를 참조�
 
 1단계에서 선택한 패턴 구조를 따라 SKILL.md 본문을 작성한다.
 
+### 참조 스킬 분석 (선택)
+
+1단계에서 유사 패턴 스킬이 식별된 경우, Explore 에이전트를 스폰하여 해당 스킬 구조를 심층 분석한다.
+본문 초안 작성과 병렬로 실행하며, 결과를 초안에 반영한다.
+상세 지시사항은 references/subagent-guidelines.md의 "Explore-2"를 따른다.
+
 ### 공통 규칙
 
 - **구체적으로**: 실행 가능한 명령, 정확한 경로, 구체적 기준 포함
@@ -150,6 +164,13 @@ bash agents/claude/skills/generate-skills/scripts/validate-skill.sh <스킬-디�
 ```
 
 실패 항목이 있으면 해당 단계로 돌아가 수정한 후 재실행한다.
+
+### 독립 검증 (선택)
+
+생성된 스킬이 references/ 또는 scripts/를 포함하는 경우, general-purpose 에이전트를 스폰하여 맹검 검증을 수행한다.
+상세 지시사항은 references/subagent-guidelines.md의 "Reviewer"를 따른다.
+
+스킬이 최소 구조(SKILL.md만)이거나, 사용자가 빠른 생성을 요청한 경우 건너뛴다.
 
 ### 수동 검증
 
