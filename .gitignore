@@ -42,6 +42,7 @@ Temporary Items
 .apdisk
 
 ### Claude Code runtime
+claude/sessions
 claude/debug
 claude/file-history
 claude/ide
