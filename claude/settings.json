@@ -5,13 +5,29 @@
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
   "permissions": {
-    "allow": ["Bash(git commit*)", "Bash(git add*)", "Bash(git push*)"],
+    "allow": [
+      "Bash(git commit*)",
+      "Bash(git add*)",
+      "Bash(git push*)"
+    ],
     "deny": [],
     "ask": [],
     "defaultMode": "plan",
     "disableBypassPermissionsMode": "disable"
   },
-  "model": "opusplan",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/rtk-rewrite.sh"
+          }
+        ]
+      }
+    ]
+  },
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline-command.sh"
@@ -28,20 +44,6 @@
   "language": "korean",
   "spinnerTipsEnabled": false,
   "alwaysThinkingEnabled": true,
-  "effortLevel": "high",
-  "teammateMode": "auto",
-  "autoUpdatesChannel": "stable",
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/rtk-rewrite.sh"
-          }
-        ]
-      }
-    ]
-  }
+  "autoUpdatesChannel": "latest",
+  "teammateMode": "auto"
 }
