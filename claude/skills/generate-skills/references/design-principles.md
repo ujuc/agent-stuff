@@ -1,6 +1,6 @@
 # Skill Design Principles
 
-> Three core principles that guide all skill creation.
+> Seven core principles that guide all skill creation.
 
 ---
 
@@ -58,6 +58,74 @@ Split information into 3 tiers. Agents load only what they need.
 - `scripts/`: automation and validation scripts
 - `assets/`: images, diagrams, PDFs
 - No size limit
+
+---
+
+## 4. Gotchas Section
+
+Build and maintain a Gotchas section in every skill. This is the highest-signal content in any skill.
+
+**What to include:**
+- Common failure points Claude runs into when using the skill
+- Edge cases that break expected behavior
+- Mistakes that are hard to debug
+
+**How to build it:**
+- Start with known failure modes during initial creation
+- Update the skill over time as Claude hits new edge cases
+- Each gotcha should be actionable: describe the problem AND the correct approach
+
+> Source: [Lessons from Building Claude Code](https://x.com/trq212/article/2033949937936085378) — Thariq (@trq212), 2026-03-18
+
+---
+
+## 5. Setup & Configuration
+
+Some skills need user-specific context before they can run. Use a `config.json` pattern to manage this.
+
+**Pattern:**
+1. Check for `config.json` in the skill directory (or `${CLAUDE_PLUGIN_DATA}`)
+2. If missing or incomplete, ask the user via AskUserQuestion
+3. Store responses in `config.json` for future runs
+
+**Example:** A standup-post skill needs to know which Slack channel to post to. On first run, it asks the user and saves the choice.
+
+**Structured questions:** Instruct Claude to use AskUserQuestion for multiple choice or structured input.
+
+> Source: [Lessons from Building Claude Code](https://x.com/trq212/article/2033949937936085378) — Thariq (@trq212), 2026-03-18
+
+---
+
+## 6. Memory & Data Persistence
+
+Skills can store data across runs using `${CLAUDE_PLUGIN_DATA}` — a stable folder per plugin.
+
+**Storage options:**
+- Append-only text log (simplest — e.g., `standups.log`)
+- JSON files (structured data)
+- SQLite database (complex queries)
+
+**Why not the skill directory?** Data stored in the skill directory may be deleted when the skill is upgraded. Always use `${CLAUDE_PLUGIN_DATA}` for persistent data.
+
+**Example:** A standup-post skill keeps `standups.log` with every post. On next run, Claude reads its own history and reports what changed since yesterday.
+
+> Source: [Lessons from Building Claude Code](https://x.com/trq212/article/2033949937936085378) — Thariq (@trq212), 2026-03-18
+
+---
+
+## 7. On Demand Hooks
+
+Skills can register hooks that activate only when the skill is called and last for the session duration. Use this for opinionated guardrails that would be too noisy if always active.
+
+**Examples:**
+- **/careful** — PreToolUse matcher on Bash that blocks `rm -rf`, `DROP TABLE`, `force-push`, `kubectl delete`. Useful when touching prod.
+- **/freeze** — blocks Edit/Write outside a specific directory. Useful when debugging to prevent accidentally "fixing" unrelated code.
+
+**When to use:** The skill involves destructive actions, or the user needs temporary constraints on Claude's behavior.
+
+**Implementation:** Define hooks in the skill's frontmatter. They are session-scoped and automatically cleaned up.
+
+> Source: [Lessons from Building Claude Code](https://x.com/trq212/article/2033949937936085378) — Thariq (@trq212), 2026-03-18
 
 ---
 

@@ -33,7 +33,7 @@ $ARGUMENTS 가 주어지면 해당 경로/이름을 대상으로 한다. 없으�
 3. **기대 출력**: 스킬 실행 결과물은 무엇인가? (파일, 메시지, 코드 등)
 4. **트리거 상황**: 사용자가 어떤 말을 할 때 이 스킬이 로드되어야 하는가?
 
-수집한 정보를 기반으로 references/patterns.md에서 적합한 패턴을 선택한다:
+수집한 정보를 기반으로 먼저 references/skill-types.md에서 스킬의 도메인 유형을 파악한 후, references/patterns.md에서 적합한 구조 패턴을 선택한다:
 
 | 패턴 | 적합한 상황 | 자유도 |
 |------|------------|--------|
@@ -128,6 +128,7 @@ references/frontmatter-spec.md와 references/description-examples.md를 참조�
 - **에러 처리**: 실패 시나리오와 대응 방법 포함
 - **예시 포함**: 각 단계의 입력/출력 예시 제공
 - **도구 명시**: 사용하는 도구(Read, Write, Bash, AskUserQuestion 등) 명시
+- **Gotchas 섹션 포함 권장**: 알려진 실패 포인트를 Gotchas 섹션으로 구축한다. 스킬에서 가장 높은 가치의 콘텐츠다. references/design-principles.md의 원칙 4 참조.
 
 ### 출력 패턴 선택
 
@@ -197,3 +198,7 @@ references/review-checklist.md의 최종 검증 체크리스트를 적용한다:
 ```markdown
 | `skill-name` | 트리거 문구들 | model |
 ```
+
+### 배포 (선택)
+
+팀 배포가 필요한 경우 references/distribution-guide.md를 참조한다. 레포 체크인 vs 플러그인 마켓플레이스 선택, 스킬 간 조합, 사용량 측정 방법을 안내한다.
