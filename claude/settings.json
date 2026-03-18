@@ -39,6 +39,12 @@
         "source": "github",
         "repo": "anthropics/skills"
       }
+    },
+    "claude-plugins-official": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-plugins-official"
+      }
     }
   },
   "language": "korean",
