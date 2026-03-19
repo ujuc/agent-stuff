@@ -166,6 +166,12 @@ bash agents/claude/skills/generate-skills/scripts/validate-skill.sh <스킬-디�
 
 실패 항목이 있으면 해당 단계로 돌아가 수정한 후 재실행한다.
 
+### 행동 검증 (선택)
+
+스킬의 출력 품질을 측정할 이진(binary) eval 기준을 정의한다.
+references/eval-guide.md를 참조하여 3-6개의 yes/no 체크를 SKILL.md 하단 `## Eval Criteria` 섹션 또는 별도 `evals.md`에 기록한다.
+이 기준은 이후 autoresearch 스킬로 자율 최적화할 때 재활용된다.
+
 ### 독립 검증 (선택)
 
 생성된 스킬이 references/ 또는 scripts/를 포함하는 경우, general-purpose 에이전트를 스폰하여 맹검 검증을 수행한다.
