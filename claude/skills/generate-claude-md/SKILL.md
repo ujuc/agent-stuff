@@ -22,6 +22,9 @@ $ARGUMENTS 가 주어지면 해당 프로젝트 경로를 대상으로 한다. �
 
 **성능 근거**: 자동 생성 컨텍스트는 성공률 -2~3%, 비용 +20%. 수동 작성 gotcha만 성공률 +4% (ETH Zurich). 모든 줄은 존재 이유를 증명해야 한다.
 
+**거버넌스 원칙** (references/entry-router-guidelines.md):
+- 프로젝트가 자율 에이전트 안전장치를 필요로 하는 경우, AGENTS.md Boundaries 섹션과 CLAUDE.md 행동 가이드라인에 Entry Router 패턴의 CORE 규칙을 반영한다
+
 **서브에이전트 활용**: 컨텍스트 보호와 병렬 실행이 가능한 지점에서 서브에이전트를 활용한다. 상세 기준은 references/subagent-guidelines.md를 참조한다.
 
 아래 4단계를 순서대로 수행한다.
