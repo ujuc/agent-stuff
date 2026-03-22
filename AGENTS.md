@@ -33,6 +33,7 @@ agent-stuff/
 │   ├── plugins/config.json
 │   ├── skills/
 │   │   ├── commit/              # Active skill: Korean Conventional Commits
+│   │   ├── autoresearch/         # Active skill: Autonomous skill optimizer
 │   │   ├── generate-claude-md/  # Active skill: CLAUDE.md/AGENTS.md generator
 │   │   └── generate-skills/     # Active skill: Skill generator
 │   └── deplicated/        # DEPRECATED — do not use

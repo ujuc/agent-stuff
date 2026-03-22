@@ -1,13 +1,35 @@
 ---
 name: generate-claude-md
-description: CLAUDE.md, AGENTS.md, contributing-docs/, .claude/rules/ 파일을 가이드 원칙에 따라 생성한다. 프로젝트 분석, 인터뷰, 생성, 검증의 4단계 워크플로우를 수행한다.
+description: "CLAUDE.md, AGENTS.md, contributing-docs/, .claude/rules/ 파일을 가이드 원칙에 따라 생성하거나 업데이트한다. /generate-claude-md, CLAUDE.md 업데이트, AGENTS.md 갱신 요청 시 사용한다."
 model: opus
 disable-model-invocation: true
 ---
 
-# CLAUDE.md 및 AGENTS.md 생성 스킬
+# CLAUDE.md 및 AGENTS.md 생성/업데이트 스킬
 
-$ARGUMENTS 가 주어지면 해당 프로젝트 경로를 대상으로 한다. 없으면 현재 작업 디렉토리를 대상으로 한다.
+## 모드 판별
+
+$ARGUMENTS를 분석하여 모드를 결정한다:
+
+- **업데이트 모드**: $ARGUMENTS에 "업데이트", "수정", "갱신", "update", "refresh" 키워드 포함 시
+  → 1단계(재분석) → U1(감사) → U2(비교) → U3(적용) → 4단계(검증) 순서로 진행
+- **생성 모드**: 그 외
+  → 1단계 → 2단계 → 3단계 → 4단계 순서로 진행
+
+### 대상 파일 특정
+
+$ARGUMENTS에서 대상 파일을 특정할 수 있다:
+
+| 키워드 | 대상 |
+|--------|------|
+| "CLAUDE.md" (단독) | Root CLAUDE.md만 |
+| "AGENTS.md" | AGENTS.md + contributing-docs/ |
+| "rules" | .claude/rules/만 |
+| 키워드 없이 "업데이트" | 5종 전체 |
+
+$ARGUMENTS가 없으면 현재 작업 디렉토리를 대상으로 생성 모드로 진행한다.
+
+---
 
 ## 생성 철학
 
@@ -269,9 +291,129 @@ alwaysApply: false            # true면 모든 세션에 항상 로드
 
 ---
 
+## U1단계: 기존 파일 감사 (업데이트 모드)
+
+대상 디렉토리에서 기존 생성 파일의 현재 상태를 파악한다.
+
+### 절차
+
+1. 기존 파일 탐지 (Glob/Read):
+   - Root CLAUDE.md: 줄 수, 섹션 목록 (`#`/`##` 헤더 파싱), 참조 경로 유효성
+   - AGENTS.md: frontmatter 필드, 섹션 목록, contributing-docs/ 참조 유효성, Boundaries 유무
+   - contributing-docs/: 파일 목록, 각 파일 줄 수, AGENTS.md에서의 참조 여부
+   - 중첩 CLAUDE.md: 위치, 줄 수, 상위 참조 경로 유효성, 상위 CLAUDE.md와의 내용 중복
+   - .claude/rules/: 파일 목록, 각 파일의 description/globs/alwaysApply, CLAUDE.md와의 내용 중복
+
+2. 감사 결과를 사용자에게 요약 테이블로 보여준다:
+
+| 파일 | 줄 수 | 상태 | 비고 |
+|------|-------|------|------|
+| CLAUDE.md | N줄 | 존재 | 섹션 N개 |
+| ... | ... | ... | ... |
+
+3. 파일이 하나도 없으면 "기존 파일이 없습니다. 생성 모드로 전환하시겠습니까?"를 AskUserQuestion으로 제안하고 중단한다.
+
+### 병렬화
+
+1단계(프로젝트 재분석)의 Explore 에이전트와 U1 파일 읽기를 병렬로 실행할 수 있다. 단, 대상 파일이 3개 이하인 경우 직접 읽는 것이 효율적이다.
+
+---
+
+## U2단계: 드리프트 비교 (업데이트 모드)
+
+1단계(재분석) 결과와 U1(감사) 결과를 대조하여 3축으로 비교한다.
+
+### 축 1: 코드베이스 드리프트
+
+현재 코드베이스 상태(1단계 결과)와 기존 문서 내용을 비교한다:
+
+| 파일 유형 | 비교 대상 | 드리프트 기준 |
+|-----------|-----------|---------------|
+| Root CLAUDE.md | 기술 스택 vs 실제 설정 파일 | 기술 추가/제거/버전 변경 |
+| Root CLAUDE.md | 개발 명령 vs 실제 scripts/Makefile | 명령 변경/추가/제거 |
+| AGENTS.md | Operational Gotchas vs 현재 코드 | 해결된 gotcha 잔존, 새 gotcha 필요 |
+| contributing-docs/ | 각 문서 내용 vs 실제 구조/설정 | 구조/전략 변경 |
+| 중첩 CLAUDE.md | 해당 디렉토리 기술/명령 vs 문서 | 하위 디렉토리 변경 |
+| .claude/rules/ | globs 패턴 vs 실제 파일 경로 | 스코핑 대상 경로 부재 |
+
+### 축 2: 생성 원칙 재적용
+
+기존 파일의 모든 줄에 3단계 생성 철학을 재적용한다:
+
+- **발견 가능성 테스트**: 코드 개선으로 이제 발견 가능해진 항목 식별
+- **분량 제약**: Root CLAUDE.md 100줄 초과, 중첩 CLAUDE.md 50줄 초과 여부
+- **진부화 위험**: 특정 버전/도구명/의존성이 현재와 불일치
+- **중복 검사**: 파일 간 내용 중복 (CLAUDE.md ↔ rules/, 상위 ↔ 중첩, AGENTS.md ↔ contributing-docs/)
+
+### 축 3: 구조 정합성
+
+파일 간 참조 관계의 유효성을 검사한다:
+
+- CLAUDE.md → AGENTS.md 참조 경로 유효
+- AGENTS.md → contributing-docs/ 참조와 실제 파일 일치
+- 중첩 CLAUDE.md → 상위 참조 경로 올바름
+- .claude/rules/ globs가 실제 존재하는 경로를 가리킴
+
+### 비교 보고서
+
+비교 결과를 카테고리별로 정리하여 사용자에게 제시한다:
+
+```
+## 드리프트 비교 결과
+
+### 변경 필요 (Change Required)
+| # | 파일 | 항목 | 사유 | 권장 조치 |
+
+### 삭제 권장 (Remove Recommended)
+| # | 파일 | 항목 | 사유 |
+
+### 추가 후보 (Add Candidate)
+| # | 파일 | 항목 | 사유 |
+
+### 유지 (No Change)
+(변경 불필요 항목 수만 요약)
+```
+
+이후 AskUserQuestion으로 업데이트 범위를 확인한다: "위 항목 중 어떤 것을 적용하시겠습니까?" (전체/선택/파일별)
+
+---
+
+## U3단계: 적용 (업데이트 모드)
+
+사용자가 승인한 범위에 따라 Edit 도구로 수정한다.
+
+### 적용 원칙
+
+- **Surgical Changes**: 변경이 필요한 줄만 수정한다. 전체 재생성하지 않는다
+- **적용 순서**: 참조 관계의 하류(leaf)부터 수정한다:
+  1. contributing-docs/ 개별 파일
+  2. .claude/rules/ 개별 파일
+  3. 중첩 CLAUDE.md
+  4. AGENTS.md (contributing-docs/ 참조 갱신 포함)
+  5. Root CLAUDE.md (AGENTS.md 참조 갱신 포함)
+- **각 파일 수정 전**: 변경 내용을 사용자에게 보여주고 확인을 받는다
+- **파일 삭제**: 불필요해진 파일은 삭제 제안만 하고 사용자 승인 후 실행
+- **파일 추가**: 새로 필요한 파일은 3단계 생성 원칙을 따라 작성
+
+완료 후 4단계(검증)로 진행한다.
+
+---
+
 ## 4단계: 검증 — Goal-Driven Execution
 
-생성된 CLAUDE.md와 AGENTS.md에 대해 다음 체크리스트를 줄 단위로 적용한다:
+생성 모드와 업데이트 모드 모두 이 단계를 거친다.
+
+생성된/수정된 CLAUDE.md와 AGENTS.md에 대해 다음 체크리스트를 줄 단위로 적용한다:
+
+### 업데이트 모드 추가 체크
+
+업데이트 모드인 경우 아래 항목을 추가로 확인한다:
+
+- 수정하지 않은 줄이 의도치 않게 변경되지 않았는가?
+- 참조 경로가 수정 후에도 유효한가?
+- 파일 간 정합성이 유지되는가? (U2 축 3 재확인)
+
+### 공통 체크리스트
 
 1. **보편성/필수성/중복**: 모든 작업에 적용되는가? 없으면 실수하는가? 코드를 읽으면 자명한가? → 아니면 삭제 또는 AGENTS.md/contributing-docs/로 이동
 2. **린터 역할**: 코드 스타일 규칙인가? → 삭제하고 린터/Hook으로 대체 권장
