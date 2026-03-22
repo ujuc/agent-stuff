@@ -3,6 +3,7 @@ name: autoresearch
 description: "Autonomously optimize any Claude Code skill by running it repeatedly, scoring outputs against binary evals, mutating the prompt, and keeping improvements. Based on Karpathy's autoresearch methodology. Use when: 스킬 최적화, 스킬 개선, autoresearch, run autoresearch on, make this skill better, benchmark skill, eval my skill."
 model: opus
 disable-model-invocation: true
+argument-hint: "[skill-name]"
 ---
 
 # Autoresearch for Skills
