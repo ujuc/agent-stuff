@@ -7,7 +7,7 @@ standard: agents.md/v1
 
 ## Project Overview
 
-Personal AI agent configuration repository. Manages global settings for Claude Code and Pi agent. Deployed as a git submodule of [dotrc](https://github.com/ujuc/dotrc) via symlinks to each tool's expected system location.
+Personal AI agent configuration repository. Manages global settings for Claude Code. Deployed as a git submodule of [dotrc](https://github.com/ujuc/dotrc) via symlinks to each tool's expected system location.
 
 ### Technical Stack
 
@@ -37,8 +37,6 @@ agent-stuff/
 │   │   ├── generate-claude-md/  # Active skill: CLAUDE.md/AGENTS.md generator
 │   │   └── generate-skills/     # Active skill: Skill generator
 │   └── deplicated/        # DEPRECATED — do not use
-└── pi/                    # Pi agent config (→ ~/.pi) — placeholder
-    └── .gitkeep
 ```
 
 ### Key Files
@@ -71,7 +69,6 @@ feat, fix, docs, style, refactor, test, chore
 | Scope    | When to use                    |
 | -------- | ------------------------------ |
 | `claude` | Changes to `claude/` directory |
-| `pi`     | Changes to `pi/` directory     |
 | `specs`  | Changes to `specs/` directory  |
 | `skills` | Changes to skill definitions   |
 
