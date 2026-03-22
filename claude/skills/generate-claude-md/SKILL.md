@@ -1,6 +1,6 @@
 ---
 name: generate-claude-md
-description: CLAUDE.md 및 AGENTS.md 파일을 가이드 원칙에 따라 생성한다. 프로젝트 분석, 인터뷰, 생성, 검증의 4단계 워크플로우를 수행한다.
+description: CLAUDE.md, AGENTS.md, contributing-docs/, .claude/rules/ 파일을 가이드 원칙에 따라 생성한다. 프로젝트 분석, 인터뷰, 생성, 검증의 4단계 워크플로우를 수행한다.
 model: opus
 disable-model-invocation: true
 ---
@@ -38,6 +38,7 @@ $ARGUMENTS 가 주어지면 해당 프로젝트 경로를 대상으로 한다. �
 - 패키지/빌드/테스트/린트·포매터 설정 (package.json, Cargo.toml, pyproject.toml, go.mod, .eslintrc, .prettierrc, biome.json, ruff.toml 등)
 - 저장소 구조 및 독립성 (모노레포: workspaces, packages/, apps/; 서브모듈: .gitmodules 파싱으로 경로/URL/독립 저장소 여부; 하위 디렉토리의 자체 패키지 매니저 존재 여부)
 - 문서/CI 구성 (기존 CLAUDE.md, AGENTS.md, contributing-docs/, .cursorrules, 하위 CLAUDE.md 위치/내용, CI/CD: .github/workflows, .gitlab-ci.yml)
+- 기존 `.claude/rules/` 파일 유무 및 내용 (경로 스코핑 규칙 재활용 판단용)
 
 ### 병렬 탐색 (선택)
 
@@ -99,7 +100,7 @@ AskUserQuestion 발송 후 사용자 응답 대기 중, 1단계 결과에서 해
 
 ## 3단계: 생성 — Simplicity First + Surgical Changes
 
-네 가지를 생성한다:
+다섯 가지를 생성한다:
 
 공통 작성 규칙:
 - 코드 스니펫은 직접 포함하지 않고 file:line 참조만 사용한다
@@ -224,6 +225,48 @@ Section A의 원칙을 상속하되, 추가로:
 - 서브모듈: 부모 저장소 CLAUDE.md를 URL 또는 상대 경로로 참조
 - 형제 디렉토리: 직접 참조하지 않는다 (상위를 경유)
 
+### E. .claude/rules/ 규칙 파일
+
+Claude Code가 매 세션 자동 주입하는 경로 스코핑 규칙 파일. contributing-docs/가 인간 개발자용 상세 문서라면, rules/는 Claude Code 전용 행동 규칙이다.
+
+#### 생성 조건
+
+1~2단계에서 다음 중 **하나 이상** 발견 시에만 생성한다:
+
+1. **경로 스코핑 필요**: 특정 디렉토리에서만 적용되는 규칙이 존재
+2. **CLAUDE.md 분량 초과**: 100줄을 넘길 것으로 예상되어 보편적이지 않은 규칙을 분리
+3. **독립적 관심사 3+**: 서로 무관한 규칙 그룹이 3개 이상 식별
+
+#### 생성 원칙
+
+- **경로 스코핑 우선**: globs 지정 가능한 규칙은 반드시 globs를 명시
+- **alwaysApply 최소화**: 모든 세션에 필요한 규칙은 CLAUDE.md 우선. rules/에서 `alwaysApply: true`는 CLAUDE.md 분량 초과 시에만
+- **파일당 하나의 관심사**: 여러 관심사를 한 파일에 섞지 않음
+- **파일명**: `{관심사}.md` (예: `api-conventions.md`, `testing.md`, `database-safety.md`)
+- **크기 제한**: 파일당 50줄 이하
+- **발견 가능성 테스트**: 공통 작성 규칙 상속
+
+#### 파일 형식
+
+```markdown
+---
+description: (이 규칙의 한 줄 설명)
+globs: ["src/api/**/*.ts"]    # 선택: 경로 스코핑
+alwaysApply: false            # true면 모든 세션에 항상 로드
+---
+
+(규칙 내용 — 발견 불가능한 정보만)
+```
+
+#### contributing-docs/와의 역할 구분
+
+| 구분 | contributing-docs/ | rules/ |
+|------|-------------------|--------|
+| 대상 | 모든 AI 에이전트 + 인간 개발자 | Claude Code 전용 |
+| 로드 방식 | AGENTS.md에서 참조, 필요 시 읽기 | 매 세션 자동 주입 |
+| 경로 스코핑 | 불가 | globs로 가능 |
+| 내용 | 상세 문서 (architecture, testing 등) | 짧은 행동 규칙 |
+
 ---
 
 ## 4단계: 검증 — Goal-Driven Execution
@@ -235,7 +278,7 @@ Section A의 원칙을 상속하되, 추가로:
 3. **추측 배제**: 1~2단계에서 확인되지 않은 내용이 포함되는가? → 있으면 삭제
 4. **검증 가능성**: 각 지시사항을 따랐는지 판별 가능한가? → 아니면 구체화
 5. **분량 제약**: 100줄 이하, 개별 지시사항 50개 이하인가? → 초과하면 통합 또는 삭제
-6. **계층/범위**: CLAUDE.md가 contributing-docs/를 직접 참조하는가? AGENTS.md가 Claude 전용 내용만 담는가? 중첩 CLAUDE.md가 자기 디렉토리 밖을 포함하거나 상위 내용을 반복하는가? → 있으면 이동/삭제 또는 상위 참조로 대체
+6. **계층/범위**: CLAUDE.md가 contributing-docs/를 직접 참조하는가? AGENTS.md가 Claude 전용 내용만 담는가? 중첩 CLAUDE.md가 자기 디렉토리 밖을 포함하거나 상위 내용을 반복하는가? rules/ 파일이 CLAUDE.md와 내용 중복이 있는가? globs 지정 가능한 규칙이 alwaysApply: true인가? rules/ 파일이 contributing-docs/와 역할이 겹치는가? 경로 스코핑 없는 alwaysApply: true 규칙이 CLAUDE.md로 이동 가능한가? → 있으면 이동/삭제 또는 상위 참조로 대체
 7. **참조 정합성**: 중첩 CLAUDE.md의 상위 참조 경로가 올바른가? → 상대 경로 검증
 8. **발견 가능성**: 에이전트가 코드를 읽으면 알 수 있는 내용인가? → 있으면 삭제
 9. **진부화 위험**: 특정 버전, 도구명, 의존성을 포함하여 6개월 내 부정확해질 수 있는가? → 위험하면 삭제 또는 유통기한 주석
@@ -248,7 +291,7 @@ Section A의 원칙을 상속하되, 추가로:
 
 자기 테스트 질문:
 - "시니어 엔지니어가 이 CLAUDE.md를 보고 '과하다'고 할까?"
-- "CLAUDE.md → AGENTS.md → contributing-docs/ 계층이 명확하게 분리되어 있는가?"
+- "CLAUDE.md → AGENTS.md → contributing-docs/ 계층과 CLAUDE.md → .claude/rules/ 경로가 명확하게 분리되어 있는가?"
 - "중첩 CLAUDE.md를 제거해도 상위 CLAUDE.md만으로 해당 디렉토리 작업이 충분한가?" → 충분하면 중첩 파일 삭제 권장
 - "중첩 CLAUDE.md 간에 내용이 서로 모순되는가?"
 - "이 줄을 삭제해도 에이전트가 코드를 읽으면 같은 결론에 도달하는가?" → 도달하면 삭제
