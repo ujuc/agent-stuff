@@ -69,6 +69,9 @@ claude/hooks/*rtk*
 claude/mcp-needs*.json
 claude/policy-limits.json
 claude/memory
+claude/homunculus
+claude/metrics
+claude/teams
 
 ### Pi agent runtime
 pi/agent/bin
