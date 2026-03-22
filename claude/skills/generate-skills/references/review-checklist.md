@@ -14,7 +14,7 @@
 
 ### YAML Frontmatter
 
-필수 필드:
+권장 필드:
 
 ~~~yaml
 ---
@@ -23,14 +23,23 @@ description: 무엇을 한다. 언제 사용한다.
 ---
 ~~~
 
+- `name`: 생략 시 디렉토리명 사용 (max 64자, kebab-case)
+- `description`: 생략 시 마크다운 첫 문단 사용 (max 1024자)
+
 선택 필드:
 
 ~~~yaml
-license: MIT
-metadata:
-  author: 작성자
-  version: 1.0.0
-  mcp-server: 서버명
+disable-model-invocation: true   # 수동 호출 전용
+user-invocable: false            # / 메뉴 숨김 (배경 지식용)
+model: opus                      # 실행 모델
+effort: max                      # 실행 노력 수준
+context: fork                    # 서브에이전트 격리 실행
+agent: Explore                   # context: fork 시 에이전트 타입
+allowed-tools: Read, Grep, Glob  # 허용 도구 제한
+argument-hint: "[issue-number]"  # 자동완성 힌트
+hooks:                           # 스킬 라이프사이클 훅
+  - event: on_skill_start
+    command: echo "started"
 ~~~
 
 ---

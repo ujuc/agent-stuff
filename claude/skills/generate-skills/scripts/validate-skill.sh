@@ -73,10 +73,11 @@ else
   fail "First line must be --- (got: '${FIRST_LINE}')"
 fi
 
-# --- Check 4: name field exists + kebab-case ---
+# --- Check 4: name field + kebab-case ---
 NAME=$(echo "$FRONTMATTER" | yq '.name // ""')
 if [[ -z "$NAME" ]]; then
-  fail "name field is missing"
+  warn "name field is missing (optional; directory name will be used)"
+  NAME="$FOLDER_NAME"
 else
   pass "name field exists: ${NAME}"
 
@@ -115,10 +116,10 @@ if [[ -n "$NAME" ]]; then
   fi
 fi
 
-# --- Check 6: description field exists + length ---
+# --- Check 6: description field + length ---
 DESC=$(echo "$FRONTMATTER" | yq '.description // ""')
 if [[ -z "$DESC" ]]; then
-  fail "description field is missing"
+  warn "description field is missing (recommended for trigger accuracy)"
 else
   DESC_LEN=${#DESC}
   if [[ $DESC_LEN -le 1024 ]]; then
@@ -145,7 +146,7 @@ if [[ -n "$NAME" ]]; then
 fi
 
 # --- Check 9: allowed frontmatter keys ---
-ALLOWED_KEYS="name description model disable-model-invocation license metadata allowed-tools compatibility"
+ALLOWED_KEYS="name description model disable-model-invocation allowed-tools argument-hint user-invocable effort context agent hooks"
 ALL_KEYS=$(echo "$FRONTMATTER" | yq 'keys | .[]' 2>/dev/null || true)
 UNKNOWN_KEYS=""
 while IFS= read -r key; do

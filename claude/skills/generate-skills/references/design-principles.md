@@ -42,8 +42,8 @@ Split information into 3 tiers. Agents load only what they need.
 
 ### Tier 1: Metadata (always loaded)
 
-- `name` + `description` fields only
-- Used by the system for trigger detection
+- Frontmatter fields: `name`, `description`, `disable-model-invocation`, `user-invocable`
+- Used by the system for trigger detection and invocation control
 - Target: ~100 words or fewer
 
 ### Tier 2: SKILL.md body (loaded on trigger)

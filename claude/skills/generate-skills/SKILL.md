@@ -1,15 +1,22 @@
 ---
 name: generate-skills
-description: "새로운 Claude 스킬을 폴더 구조, 프론트매터, 지시사항까지 단계적으로 생성한다. 스킬 만들어줘, 새 스킬 추가, SKILL.md 작성, generate-skills 요청 시 사용한다."
+description: "Claude 스킬을 생성하거나 기존 스킬을 최신 spec에 맞게 업데이트한다. 스킬 만들어줘, 새 스킬 추가, 스킬 업데이트, 스킬 수정, generate-skills 요청 시 사용한다."
 model: opus
 disable-model-invocation: true
 ---
 
-# 스킬 생성 워크플로우
+# 스킬 생성/업데이트 워크플로우
 
-새 Claude 스킬을 5단계로 생성한다. 각 단계를 순서대로 수행하며, 이전 단계가 완료되어야 다음 단계로 진행한다.
+## 모드 판별
 
-$ARGUMENTS 가 주어지면 해당 경로/이름을 대상으로 한다. 없으면 사용자에게 확인한다.
+$ARGUMENTS를 분석하여 모드를 결정한다:
+
+- **업데이트 모드**: $ARGUMENTS에 "업데이트", "수정", "update" 키워드 포함 시
+  → 0단계 → U1~U3단계 → 5단계(검증) 순서로 진행
+- **생성 모드**: 그 외
+  → 0단계 → 1~5단계 순서로 진행
+
+$ARGUMENTS가 없으면 사용자에게 모드와 대상을 확인한다.
 
 ---
 
@@ -21,6 +28,31 @@ $ARGUMENTS 가 주어지면 해당 경로/이름을 대상으로 한다. 없으�
 2. **자유도 조절**: 작업의 취약성에 맞춰 지시 수준을 결정한다 (높음/중간/낮음).
 3. **Progressive Disclosure**: 정보를 3단계로 계층 분리한다 (메타데이터 → 본문 → 번들 리소스).
 4. **서브에이전트 활용**: 컨텍스트 보호와 병렬 실행이 가능한 지점에서 서브에이전트를 적극 활용한다. 상세 기준은 references/subagent-guidelines.md를 참조한다.
+
+---
+
+## 0단계: 문서 검증 (실행 전)
+
+공식 Skills 문서가 자주 변경되므로, 스킬 생성 전에 최신 상태를 확인한다.
+
+### 절차
+
+1. WebFetch로 https://code.claude.com/docs/en/skills 페이지를 확인한다
+2. Frontmatter reference 섹션의 필드 목록을 추출한다
+3. references/frontmatter-spec.md의 "Field Reference" 섹션과 비교한다
+4. **변경 감지 시**: references/frontmatter-spec.md를 업데이트한 후 1단계로 진행한다
+5. **변경 없음**: 바로 1단계로 진행한다
+
+### 비교 대상
+
+- 필드 추가/제거/변경 여부
+- String substitutions 변경 여부
+- Invocation control matrix 변경 여부
+
+### 주의
+
+- WebFetch 실패 시 (네트워크 오류 등) 기존 references/frontmatter-spec.md를 그대로 사용하고 1단계로 진행한다
+- 변경이 대규모인 경우, 사용자에게 변경 요약을 보여주고 확인을 받은 후 업데이트한다
 
 ---
 
@@ -95,20 +127,39 @@ references/frontmatter-spec.md와 references/description-examples.md를 참조�
 
 ### 작성 절차
 
-1. `name` 작성: 폴더명과 동일, kebab-case
-2. `description` 작성: WHAT + WHEN 공식 적용
+1. `name` 작성 (권장): 폴더명과 동일, kebab-case. 생략 시 디렉토리명을 사용한다.
+2. `description` 작성 (권장): WHAT + WHEN 공식 적용
    - WHAT: 스킬이 무엇을 하는가 (1단계의 문제/시나리오 기반)
    - WHEN: 어떤 상황에서 사용하는가 (1단계의 트리거 상황 기반)
-3. 선택 필드 결정:
-   - `model`: 복잡한 워크플로우면 `opus`, 단순하면 생략
+   - 생략 시 마크다운 본문의 첫 문단을 사용한다.
+3. 선택 필드 결정 (카테고리별):
+
+   **호출 제어:**
    - `disable-model-invocation`: 파괴적/비용 높은 스킬이면 `true`
+   - `user-invocable`: 배경 지식용 스킬이면 `false` (사용자 `/` 메뉴에서 숨김)
+
+   **실행 환경:**
+   - `model`: 복잡한 워크플로우면 `opus`, 단순하면 생략
+   - `effort`: 세션 기본값과 다른 수준이 필요하면 지정 (`low`, `medium`, `high`, `max`)
+   - `context`: 격리된 서브에이전트에서 실행하려면 `fork`
+   - `agent`: `context: fork` 설정 시 사용할 에이전트 타입 (`Explore`, `Plan`, `general-purpose` 등)
+
+   **도구/권한:**
+   - `allowed-tools`: 스킬 실행 중 허가 없이 사용할 도구 목록
+
+   **기타:**
+   - `argument-hint`: 자동완성 시 표시할 인자 힌트 (예: `[issue-number]`)
+   - `hooks`: 스킬 라이프사이클에 연결할 훅
 
 ### 자기 검증
 
-- `name`이 kebab-case 정규식 `^[a-z0-9]+(-[a-z0-9]+)*$`에 매칭하는가
-- `description`이 1024자 이하인가
-- `description`에 XML 태그가 없는가
-- `description`에 WHAT과 WHEN이 모두 포함되어 있는가
+- `name`이 존재하면: kebab-case 정규식 `^[a-z0-9]+(-[a-z0-9]+)*$`에 매칭하는가
+- `name`이 존재하면: 64자 이하인가
+- `description`이 존재하면: 1024자 이하인가
+- `description`이 존재하면: XML 태그가 없는가
+- `description`이 존재하면: WHAT과 WHEN이 모두 포함되어 있는가
+- `context`가 설정되면: 값이 `fork`인가
+- `agent`가 설정되면: `context: fork`도 함께 설정되어 있는가
 
 ---
 
@@ -151,6 +202,45 @@ references/design-principles.md의 자유도 가이드에 따라 지시사항의
 - 모든 references/ 경로가 실제 파일과 일치하는가
 - 지시사항이 검증 가능한 형태인가 (모호한 표현 없이)
 - 불필요한 내용이 없는가 (린터 역할, 추측, 과도한 설명)
+
+---
+
+## U1단계: 대상 스킬 분석 (업데이트 모드)
+
+1. $ARGUMENTS에서 대상 스킬 경로/이름을 추출한다
+2. 대상 스킬의 SKILL.md를 Read로 읽는다
+3. frontmatter 필드를 파싱한다 (name, description, 선택 필드)
+4. references/, scripts/ 존재 여부를 확인한다
+5. SKILL.md 본문 줄 수를 확인한다
+
+대상을 특정할 수 없으면 AskUserQuestion으로 확인한다.
+
+---
+
+## U2단계: 최신 spec과 비교 (업데이트 모드)
+
+0단계에서 확인한 최신 references/frontmatter-spec.md 기준으로 비교한다:
+
+1. **누락 권장 필드**: name, description이 없으면 알림
+2. **제거된 필드**: 공식 문서에 없는 필드 (예: license, metadata) 감지
+3. **새 필드 활용 가능성**: context, agent, effort, allowed-tools 등 유용할 수 있는 필드 제안
+4. **description 품질**: WHAT + WHEN 포함 여부, 트리거 문구 적절성
+5. **구조 점검**: SKILL.md 줄 수 (500줄 한도), references/ 분리 필요성
+
+비교 결과를 요약하여 사용자에게 보여주고, 업데이트 범위를 확인받는다.
+
+---
+
+## U3단계: 업데이트 적용 (업데이트 모드)
+
+사용자가 승인한 범위에 따라 Edit 도구로 수정한다:
+
+1. frontmatter 필드 업데이트 (추가/수정/제거)
+2. description 개선 (필요 시)
+3. 본문 구조 조정 (필요 시)
+
+각 변경 전 변경 내용을 사용자에게 보여주고 확인받는다.
+완료 후 5단계(검증)로 진행한다.
 
 ---
 
