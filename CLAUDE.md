@@ -4,17 +4,16 @@ Personal AI agent configuration repository. Git submodule of [dotrc](https://git
 
 ## Technical Stack
 
-- Symlink deployment model (this repo → dotrc submodule → ~/.claude, ~/.gemini, ~/.pi)
+- Symlink deployment model (this repo → dotrc submodule → ~/.claude, ~/.pi)
 
 ## Architecture
 
 | Source    | Target      | Status      |
 | --------- | ----------- | ----------- |
 | `claude/` | `~/.claude` | Active      |
-| `gemini/` | `~/.gemini` | Placeholder |
 | `pi/`     | `~/.pi`     | Placeholder |
 
-**Critical**: Files inside symlinked directories (`claude/`, `gemini/`, `pi/`) must NOT use relative paths to reference outside their own tree.
+**Critical**: Files inside symlinked directories (`claude/`, `pi/`) must NOT use relative paths to reference outside their own tree.
 
 ## Development Commands
 
@@ -28,7 +27,7 @@ No build or test toolchain. This is a pure configuration repository.
   <type>(<scope>): <Korean subject ending with -하다>
   ```
 - **Types**: feat, fix, docs, style, refactor, test, chore
-- **Scopes**: claude, gemini, pi, specs, skills
+- **Scopes**: claude, pi, specs, skills
 
 ## Behavioral Guidelines
 

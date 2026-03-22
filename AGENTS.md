@@ -7,7 +7,7 @@ standard: agents.md/v1
 
 ## Project Overview
 
-Personal AI agent configuration repository. Manages global settings for Claude Code, Gemini CLI, and Pi agent. Deployed as a git submodule of [dotrc](https://github.com/ujuc/dotrc) via symlinks to each tool's expected system location.
+Personal AI agent configuration repository. Manages global settings for Claude Code and Pi agent. Deployed as a git submodule of [dotrc](https://github.com/ujuc/dotrc) via symlinks to each tool's expected system location.
 
 ### Technical Stack
 
@@ -37,8 +37,6 @@ agent-stuff/
 │   │   ├── generate-claude-md/  # Active skill: CLAUDE.md/AGENTS.md generator
 │   │   └── generate-skills/     # Active skill: Skill generator
 │   └── deplicated/        # DEPRECATED — do not use
-├── gemini/                # Gemini CLI config (→ ~/.gemini) — placeholder
-│   └── .gitkeep
 └── pi/                    # Pi agent config (→ ~/.pi) — placeholder
     └── .gitkeep
 ```
@@ -73,7 +71,6 @@ feat, fix, docs, style, refactor, test, chore
 | Scope    | When to use                    |
 | -------- | ------------------------------ |
 | `claude` | Changes to `claude/` directory |
-| `gemini` | Changes to `gemini/` directory |
 | `pi`     | Changes to `pi/` directory     |
 | `specs`  | Changes to `specs/` directory  |
 | `skills` | Changes to skill definitions   |
@@ -82,7 +79,6 @@ feat, fix, docs, style, refactor, test, chore
 
 - `feat(claude): 새 MCP 서버 설정을 추가하다`
 - `docs(specs): SOUL.md 사명 섹션을 업데이트하다`
-- `chore(gemini): Gemini CLI 초기 설정을 추가하다`
 
 ## Boundaries
 
