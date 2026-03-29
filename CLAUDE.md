@@ -26,13 +26,19 @@ No build or test toolchain. This is a pure configuration repository.
   <type>(<scope>): <Korean subject ending with -하다>
   ```
 - **Types**: feat, fix, docs, style, refactor, test, chore
-- **Scopes**: claude, specs, skills
+- **Scopes**: claude, rules, skills
 
 ## Behavioral Guidelines
 
 - `claude/deplicated/` is fully deprecated — do not reference or modify
-- `specs/SOUL.md` is the canonical shared mission — keep `claude/CLAUDE.md` Agent Identity in sync
+- `rules/SOUL.md` is the canonical shared mission — keep `claude/CLAUDE.md` Agent Identity in sync
 - Always edit files in this repository, not at symlink targets
+
+## Skills
+
+| Skill | Triggers | Model |
+| ----- | -------- | ----- |
+| `maintain` | /maintain, 정비해줘, 헬스체크, 문서 동기화 | opus |
 
 ## References
 

@@ -20,9 +20,15 @@ agent-stuff/
 ├── CLAUDE.md              # Project-level Claude Code instructions
 ├── AGENTS.md              # This file — project guide for AI agents
 ├── README.md
-├── .claude/               # Project-specific Claude Code settings
-│   └── settings.json      # Permissions (git operations)
-├── specs/
+├── .claude/               # Project-specific settings and harness
+│   ├── settings.json      # Permissions (git operations)
+│   ├── agents/            # Harness agent definitions
+│   │   ├── health-checker.md   # Structure validation specialist
+│   │   ├── doc-syncer.md       # Documentation sync specialist
+│   │   └── skill-engineer.md   # Skill lifecycle specialist
+│   └── skills/
+│       └── maintain/            # Orchestrator: repo maintenance
+├── rules/
 │   └── SOUL.md            # Shared agent mission and values (canonical)
 ├── claude/                # Claude Code global config (→ ~/.claude)
 │   ├── CLAUDE.md          # Global Claude Code configuration
@@ -43,7 +49,7 @@ agent-stuff/
 
 | File | Purpose |
 | ---- | ------- |
-| `specs/SOUL.md` | Canonical shared mission and values. Sync changes to `claude/CLAUDE.md` Agent Identity. |
+| `rules/SOUL.md` | Canonical shared mission and values. Sync changes to `claude/CLAUDE.md` Agent Identity. |
 | `.claude/settings.json` | Project-specific permissions (git operations). |
 | `claude/settings.json` | Global Claude Code settings (model, permissions, hooks, statusline, etc.). |
 
@@ -69,20 +75,20 @@ feat, fix, docs, style, refactor, test, chore
 | Scope    | When to use                    |
 | -------- | ------------------------------ |
 | `claude` | Changes to `claude/` directory |
-| `specs`  | Changes to `specs/` directory  |
+| `rules`  | Changes to `rules/` directory  |
 | `skills` | Changes to skill definitions   |
 
 ### Examples
 
 - `feat(claude): 새 MCP 서버 설정을 추가하다`
-- `docs(specs): SOUL.md 사명 섹션을 업데이트하다`
+- `docs(rules): SOUL.md 사명 섹션을 업데이트하다`
 
 ## Boundaries
 
 ### Always Do
 
 - Edit files in this repository, never at symlink targets
-- Keep `claude/CLAUDE.md` Agent Identity in sync with `specs/SOUL.md`
+- Keep `claude/CLAUDE.md` Agent Identity in sync with `rules/SOUL.md`
 - Use correct scope in commit messages matching the directory modified
 - Add `.gitkeep` when creating new placeholder directories
 - Add `.gitignore` entries for agent runtime files
@@ -91,7 +97,7 @@ feat, fix, docs, style, refactor, test, chore
 
 - Modifying `claude/settings.json` or `claude/mcp.json` (affects global Claude Code behavior)
 - Adding new agent directories (needs symlink setup in dotrc)
-- Changes to `specs/SOUL.md` (affects all agents)
+- Changes to `rules/SOUL.md` (affects all agents)
 
 ### Never Do
 
