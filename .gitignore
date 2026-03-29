@@ -72,6 +72,7 @@ claude/memory
 claude/homunculus
 claude/metrics
 claude/teams
+claude/session-data
 
 ### Pi agent runtime
 pi/agent/bin
