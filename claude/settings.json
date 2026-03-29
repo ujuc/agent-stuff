@@ -41,7 +41,8 @@
     "code-simplifier@claude-plugins-official": true,
     "feature-dev@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
-    "security-guidance@claude-plugins-official": true
+    "security-guidance@claude-plugins-official": true,
+    "harness@harness-marketplace": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -66,6 +67,12 @@
       "source": {
         "source": "github",
         "repo": "jarrodwatts/claude-hud"
+      }
+    },
+    "harness-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "revfactory/harness"
       }
     }
   },
