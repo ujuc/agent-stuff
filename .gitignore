@@ -73,6 +73,7 @@ claude/homunculus
 claude/metrics
 claude/teams
 claude/session-data
+claude/settings.local.json
 
 ### Pi agent runtime
 pi/agent/bin
