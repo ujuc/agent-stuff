@@ -42,7 +42,8 @@
     "feature-dev@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
-    "harness@harness-marketplace": true
+    "harness@harness-marketplace": true,
+    "amp-plugin-cc@amp-plugin-cc": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -74,6 +75,13 @@
         "source": "github",
         "repo": "revfactory/harness"
       }
+    },
+    "amp-plugin-cc": {
+      "source": {
+        "source": "github",
+        "repo": "ujuc/amp-plugin-cc"
+      },
+      "autoUpdate": true
     }
   },
   "language": "korean",
