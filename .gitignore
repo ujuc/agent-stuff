@@ -75,6 +75,9 @@ claude/teams
 claude/session-data
 claude/settings.local.json
 
+### Entire agent runtime
+.entire/
+
 ### Pi agent runtime
 pi/agent/bin
 pi/agent/sessions/**

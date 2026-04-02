@@ -36,10 +36,15 @@ agent-stuff/
 │   ├── mcp.json           # MCP server configuration (placeholder)
 │   ├── plugins/config.json
 │   ├── skills/
-│   │   ├── commit/              # Active skill: Korean Conventional Commits
-│   │   ├── autoresearch/         # Active skill: Autonomous skill optimizer
-│   │   ├── generate-claude-md/  # Active skill: CLAUDE.md/AGENTS.md generator
-│   │   └── generate-skills/     # Active skill: Skill generator
+│   │   ├── autoresearch/                  # Active skill: Autonomous skill optimizer
+│   │   ├── commit/                        # Active skill: Korean Conventional Commits
+│   │   ├── frontend-design-evaluator/     # Active skill: Frontend design quality evaluator
+│   │   ├── generate-claude-md/            # Active skill: CLAUDE.md/AGENTS.md generator
+│   │   ├── generate-skills/              # Active skill: Skill generator
+│   │   ├── multi-agent-orchestrator/      # Active skill: Multi-agent pipeline orchestrator
+│   │   ├── qa-evaluator/                  # Active skill: Web app QA tester via Chrome
+│   │   ├── spec-planner/                  # Active skill: Prompt-to-spec expander
+│   │   └── sprint-contract-negotiator/    # Active skill: Done-criteria negotiation protocol
 │   └── deplicated/        # DEPRECATED — do not use
 ```
 
