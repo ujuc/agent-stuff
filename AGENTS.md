@@ -21,7 +21,6 @@ agent-stuff/
 ├── AGENTS.md              # This file — project guide for AI agents
 ├── README.md
 ├── .claude/               # Project-specific settings and harness
-│   ├── settings.json      # Permissions (git operations)
 │   ├── agents/            # Harness agent definitions
 │   │   ├── health-checker.md   # Structure validation specialist
 │   │   ├── doc-syncer.md       # Documentation sync specialist
@@ -35,7 +34,6 @@ agent-stuff/
 │   ├── RTK.md             # RTK (Rust Token Killer) reference
 │   ├── settings.json      # Global settings (model, permissions, hooks, etc.)
 │   ├── mcp.json           # MCP server configuration (placeholder)
-│   ├── statusline-command.sh
 │   ├── plugins/config.json
 │   ├── skills/
 │   │   ├── commit/              # Active skill: Korean Conventional Commits
@@ -50,7 +48,6 @@ agent-stuff/
 | File | Purpose |
 | ---- | ------- |
 | `rules/SOUL.md` | Canonical shared mission and values. Sync changes to `claude/CLAUDE.md` Agent Identity. |
-| `.claude/settings.json` | Project-specific permissions (git operations). |
 | `claude/settings.json` | Global Claude Code settings (model, permissions, hooks, statusline, etc.). |
 
 ## Build & Test

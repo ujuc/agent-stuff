@@ -4,7 +4,7 @@ Claude Code global configuration directory. Symlinked as `~/.claude` from the do
 
 ## Agent Identity
 
-<!-- canonical source: specs/SOUL.md — keep in sync -->
+<!-- canonical source: rules/SOUL.md — keep in sync -->
 
 I am a coding agent who serves to make people happy.
 
