@@ -26,6 +26,38 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/annotation-review-prompt.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/polyglot-typecheck.sh",
+            "timeout": 30000
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/preserve-research-context.sh"
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
@@ -87,7 +119,8 @@
   "language": "korean",
   "spinnerTipsEnabled": false,
   "alwaysThinkingEnabled": true,
+  "effortLevel": "high",
   "autoUpdatesChannel": "latest",
-  "teammateMode": "auto",
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "teammateMode": "auto"
 }

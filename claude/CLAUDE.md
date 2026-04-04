@@ -61,5 +61,8 @@ Triggered by natural language. Located in skills/<skill-name>/SKILL.md.
 | `qa-evaluator`               | QA 테스트, 웹앱 테스트, 앱 검증해줘                   | opus |
 | `spec-planner`               | 스펙 작성, 요구사항 확장, 기획서 만들어줘             | opus |
 | `sprint-contract-negotiator` | sprint contract 협상, done 기준 정의, 완료 조건 합의  | opus |
+| `deep-read`                  | 코드 분석해줘, 깊이 읽어봐, deep-read                  | opus   |
+| `annotate-plan`              | 구현 계획 작성, 플랜 만들어줘, annotate-plan            | opus   |
+| `implement-plan`             | 구현 시작, 플랜 실행해, implement-plan                  | sonnet |
 
 @RTK.md
