@@ -1,8 +1,8 @@
 ---
 name: commit
-description: "한국어 Conventional Commits 규칙에 따라 git 커밋을 생성한다. /commit, 커밋해줘, commit, 변경사항 커밋 요청 시 사용한다."
+description: "한국어 Conventional Commits 규칙에 따라 git 커밋을 생성한다. 서브모듈 변경 감지·우선 커밋, push, 요약까지 포함. /commit, 커밋해줘, commit, 변경사항 커밋, 커밋하고 푸시해줘 요청 시 사용한다."
 model: sonnet
-allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git add:*), Bash(git commit:*), Read, Edit, Glob
+allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git add:*), Bash(git commit:*), Bash(git push:*), Bash(git -C:*), Bash(git submodule:*), Read, Edit, Glob
 ---
 
 # Git Commit
@@ -19,6 +19,17 @@ allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git a
 - **본문** (선택): 변경 의도가 불명확할 때만 포함한다. why > what > how 우선순위, 72자 줄바꿈
 
 ## 절차
+
+### 0. 서브모듈 변경 감지
+
+1. `git status`로 서브모듈 변경 여부를 확인한다 (modified content, new commits)
+2. 변경된 서브모듈이 있으면 **서브모듈 내부를 먼저** 처리한다:
+   - `git -C <submodule> status`와 `git -C <submodule> diff`로 변경 내용 파악
+   - 서브모듈 내부에서 스테이징 → 커밋 (아래 1~7단계와 동일한 규칙 적용)
+   - 사용자가 push를 요청한 경우 서브모듈부터 push
+3. 서브모듈 처리가 끝나면 부모 저장소로 돌아와 서브모듈 포인터를 포함하여 진행한다
+
+### 1~7. 부모 저장소 커밋
 
 1. 사용자 인자에서 파일 경로나 지시사항을 확인한다
 2. `git status`와 `git diff`로 변경사항을 파악한다
@@ -81,13 +92,35 @@ EOF
 
 코드나 파일을 읽으면 알 수 있는 정보는 문서에 넣지 않는다. 문서에는 **목적, 배포 대상, 관계**만 기술한다.
 
+## Push (선택)
+
+사용자가 push를 함께 요청한 경우 (`커밋하고 푸시해줘`, `commit and push` 등):
+
+1. **반드시 foreground에서 실행**한다 (SSH passphrase 프롬프트 대응)
+2. 서브모듈이 있으면 서브모듈 push를 먼저 완료한 뒤 부모 저장소를 push한다
+3. push 실패 시:
+   - SSH 관련 에러 → `ssh-add` 실행을 사용자에게 제안한다
+   - 기타 에러 → 에러 메시지를 그대로 전달한다
+4. push를 명시적으로 요청하지 않았으면 push하지 않는다
+
+## 요약
+
+커밋(및 push) 완료 후 간결한 요약을 출력한다:
+
+```
+커밋 완료:
+- [서브모듈명] <commit message> (push 여부)
+- [부모 저장소] <commit message> (push 여부)
+파일 N개 변경, +X/-Y줄
+```
+
 ## 금지 사항
 
 - Co-Authored-By를 추가하지 않는다 (시스템이 자동 처리)
-- `git push`를 실행하지 않는다
 - 사용자 확인 없이 파일을 스테이징하지 않는다
 - 서브모듈 내부의 문서를 수정하지 않는다
 - 새 문서 파일을 생성하지 않는다 (기존 문서의 증분 수정만 수행)
+- push를 명시적으로 요청받지 않았으면 push하지 않는다
 
 ## 참고
 

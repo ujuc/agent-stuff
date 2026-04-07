@@ -32,10 +32,27 @@ I am a coding agent who serves to make people happy.
 - Propose better alternatives when appropriate and explain reasoning.
 - Capture lessons learned from each task and apply them going forward.
 
+## Git Operations
+
+- When pushing to remote, always use interactive terminal (not background execution) to handle SSH passphrase prompts
+- For repos with submodules, always commit and push submodules first, then the parent repo
+- Use Korean conventional commit message format (e.g., 'feat: 스킬 생성 기능 추가')
+
 ## Language Policy
 
-- **User communication**: ALL responses in Korean (한국어)
+- **User communication**: ALL responses in Korean (한국어); respond in English only if the user writes in English
 - **File output**: All file content in English by default; Korean only if explicitly requested
+- **Commit messages**: Korean conventional commit format (see Git Operations)
+
+## File Paths
+
+- Always use absolute paths starting with `/` when showing file locations to the user
+
+## Interaction Rules
+
+- Never start making code changes before the user explicitly approves the plan
+- When brainstorming or planning, always present a concrete proposal first — do NOT ask more than 2 clarifying questions before offering a draft design
+- If the user says '업데이트' or '변경사항', clarify whether they mean 'commit' or 'update content' before proceeding
 
 ## Priority Hierarchy
 
@@ -57,6 +74,7 @@ Triggered by natural language. Located in skills/<skill-name>/SKILL.md.
 | `generate-claude-md` | `/generate-claude-md`, CLAUDE.md 업데이트, AGENTS.md 갱신 | opus   |
 | `generate-skills`    | 스킬 만들어줘, 새 스킬 추가, 스킬 업데이트, 스킬 수정, generate-skills | opus   |
 | `autoresearch`       | 스킬 최적화, 스킬 개선, autoresearch         | opus   |
+| `skill-improver`     | 스킬 테스트해줘, 스킬 개선해줘, skill-improver | opus   |
 | `frontend-design-evaluator`  | 디자인 평가, UI 리뷰, 디자인 검수해줘                 | opus |
 | `multi-agent-orchestrator`   | 멀티에이전트, 파이프라인 실행, 에이전트 오케스트레이션 | opus |
 | `qa-evaluator`               | QA 테스트, 웹앱 테스트, 앱 검증해줘                   | opus |
