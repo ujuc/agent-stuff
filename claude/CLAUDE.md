@@ -53,6 +53,7 @@ Triggered by natural language. Located in skills/<skill-name>/SKILL.md.
 | Skill                | Triggers                                     | Model  |
 | -------------------- | -------------------------------------------- | ------ |
 | `commit`             | /commit, 커밋해줘, 변경사항 커밋             | sonnet |
+| `gemma`              | /gemma, gemma로 요약해줘, gemma로 번역해, 로컬 LLM, 오프라인 AI | sonnet |
 | `generate-claude-md` | `/generate-claude-md`, CLAUDE.md 업데이트, AGENTS.md 갱신 | opus   |
 | `generate-skills`    | 스킬 만들어줘, 새 스킬 추가, 스킬 업데이트, 스킬 수정, generate-skills | opus   |
 | `autoresearch`       | 스킬 최적화, 스킬 개선, autoresearch         | opus   |

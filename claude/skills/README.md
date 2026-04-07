@@ -6,6 +6,7 @@
 |-------|---------|-------|
 | autoresearch | Autonomous skill optimizer via eval loops | opus |
 | commit | Korean Conventional Commits | sonnet |
+| gemma | Local Gemma model query via Ollama (auto-detects latest version) | sonnet |
 | frontend-design-evaluator | GAN-style frontend design quality evaluation | opus |
 | generate-claude-md | CLAUDE.md/AGENTS.md generator | opus |
 | generate-skills | Skill generator | opus |

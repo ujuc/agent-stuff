@@ -39,6 +39,7 @@ agent-stuff/
 │   │   ├── autoresearch/                  # Active skill: Autonomous skill optimizer
 │   │   ├── commit/                        # Active skill: Korean Conventional Commits
 │   │   ├── frontend-design-evaluator/     # Active skill: Frontend design quality evaluator
+│   │   ├── gemma/                         # Active skill: Local Gemma model query (auto-detect)
 │   │   ├── generate-claude-md/            # Active skill: CLAUDE.md/AGENTS.md generator
 │   │   ├── generate-skills/              # Active skill: Skill generator
 │   │   ├── multi-agent-orchestrator/      # Active skill: Multi-agent pipeline orchestrator
