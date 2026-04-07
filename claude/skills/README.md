@@ -13,6 +13,7 @@
 | generate-claude-md | CLAUDE.md/AGENTS.md generator | opus |
 | generate-skills | Skill generator | opus |
 | implement-plan | Plan executor with continuous verification | sonnet |
+| skill-improver | Test-driven skill improvement loop | opus |
 | multi-agent-orchestrator | Planner-Generator-Evaluator pipeline | opus |
 | qa-evaluator | Web app QA testing via Chrome | opus |
 | spec-planner | Prompt-to-spec expansion | opus |
