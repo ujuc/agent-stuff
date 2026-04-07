@@ -36,12 +36,15 @@ agent-stuff/
 │   ├── mcp.json           # MCP server configuration (placeholder)
 │   ├── plugins/config.json
 │   ├── skills/
+│   │   ├── annotate-plan/                 # Active skill: Implementation plan with annotations
 │   │   ├── autoresearch/                  # Active skill: Autonomous skill optimizer
 │   │   ├── commit/                        # Active skill: Korean Conventional Commits
+│   │   ├── deep-read/                     # Active skill: Deep codebase analysis
 │   │   ├── frontend-design-evaluator/     # Active skill: Frontend design quality evaluator
 │   │   ├── gemma/                         # Active skill: Local Gemma model query (auto-detect)
 │   │   ├── generate-claude-md/            # Active skill: CLAUDE.md/AGENTS.md generator
 │   │   ├── generate-skills/              # Active skill: Skill generator
+│   │   ├── implement-plan/                # Active skill: Plan executor with verification
 │   │   ├── multi-agent-orchestrator/      # Active skill: Multi-agent pipeline orchestrator
 │   │   ├── qa-evaluator/                  # Active skill: Web app QA tester via Chrome
 │   │   ├── spec-planner/                  # Active skill: Prompt-to-spec expander
