@@ -122,5 +122,6 @@
   "effortLevel": "high",
   "autoUpdatesChannel": "latest",
   "skipAutoPermissionPrompt": true,
-  "teammateMode": "auto"
+  "teammateMode": "auto",
+  "advisorModel": "opus"
 }
