@@ -1,6 +1,7 @@
 ---
 name: health-checker
 description: "agent-stuff 저장소의 구조 정합성을 검증한다. 경로 불일치, 누락된 스킬 파일, deprecated 참조, 문서-실제 구조 차이를 감지하여 보고한다."
+model: haiku
 ---
 
 # Health Checker — Repository Structure Validator

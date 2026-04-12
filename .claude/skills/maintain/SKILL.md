@@ -33,26 +33,26 @@ If `$ARGUMENTS` does not match a valid mode, treat the entire argument as a task
 
 ### 2. Dispatch Agents
 
-All agents run as sub-agents (not agent teams). Use `model: "opus"` for every Agent call.
+All agents run as sub-agents (not agent teams). Each agent uses its own model from frontmatter.
 
 **health mode:**
 ```
-Agent(subagent_type: "health-checker", model: "opus")
+Agent(subagent_type: "health-checker")
 → Return health report to user
 ```
 
 **docs mode:**
 ```
-Agent(subagent_type: "health-checker", model: "opus")
+Agent(subagent_type: "health-checker")
 → Read health report
-→ Agent(subagent_type: "doc-syncer", model: "opus",
+→ Agent(subagent_type: "doc-syncer",
         prompt: include health report findings)
 → Summarize changes made
 ```
 
 **skill mode:**
 ```
-Agent(subagent_type: "skill-engineer", model: "opus",
+Agent(subagent_type: "skill-engineer",
       prompt: include $ARGUMENTS context if provided)
 → Return audit results or delegate to generate-skills/autoresearch
 ```

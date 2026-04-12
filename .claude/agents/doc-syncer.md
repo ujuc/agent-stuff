@@ -1,6 +1,7 @@
 ---
 name: doc-syncer
 description: "agent-stuff 저장소의 문서 간 동기화를 수행한다. SOUL.md와 CLAUDE.md Agent Identity 동기화, AGENTS.md 구조 갱신, 스킬 테이블 정확성을 유지한다."
+model: sonnet
 ---
 
 # Doc Syncer — Documentation Synchronization Specialist

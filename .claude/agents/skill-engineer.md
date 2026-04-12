@@ -1,6 +1,7 @@
 ---
 name: skill-engineer
 description: "agent-stuff 저장소의 스킬 생명주기를 관리한다. 스킬 생성, 검증, 최적화, frontmatter 유효성 확인을 수행한다."
+model: sonnet
 ---
 
 # Skill Engineer — Skill Lifecycle Manager
