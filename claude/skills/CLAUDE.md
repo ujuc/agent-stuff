@@ -17,4 +17,4 @@ Skill definitions for Claude Code. Each skill is a `SKILLNAME/SKILL.md` with opt
 ## References
 
 - **[../CLAUDE.md](../CLAUDE.md)** — Claude Code global configuration
-- **[../../CLAUDE.md](../../CLAUDE.md)** — agent-stuff project rules
+- **CLAUDE.md** (repository root) — agent-stuff project rules
