@@ -1,6 +1,6 @@
 ---
 name: implement-plan
-description: "Execute annotated plans with continuous verification. Supports sequential and parallel (worktree) execution modes. Triggers: 구현 시작, 플랜 실행해, implement-plan, 다 구현해, /implement-plan"
+description: "주석이 달린 구현 플랜을 지속적 검증과 함께 실행한다. 순차/병렬(worktree) 실행 모드를 지원한다. 구현 시작, 플랜 실행해, implement-plan, 다 구현해, /implement-plan 요청 시 사용한다."
 model: sonnet
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent
 ---

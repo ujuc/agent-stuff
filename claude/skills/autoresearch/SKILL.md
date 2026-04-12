@@ -1,28 +1,28 @@
 ---
 name: autoresearch
-description: "Autonomously optimize any Claude Code skill by running it repeatedly, scoring outputs against binary evals, mutating the prompt, and keeping improvements. Based on Karpathy's autoresearch methodology. Use when: 스킬 최적화, 스킬 개선, autoresearch, run autoresearch on, make this skill better, benchmark skill, eval my skill."
+description: "편집 가능한 대상(프롬프트, 설정, 코드 등)을 반복 실행-평가-변이하여 자율적으로 최적화한다. Karpathy의 autoresearch 방법론 기반. 자동 실험, eval 루프, autoresearch, make this better, benchmark, eval 요청 시 사용한다."
 model: opus
 disable-model-invocation: true
-argument-hint: "[skill-name]"
+argument-hint: "[target-path]"
 ---
 
-# Autoresearch for Skills
+# Autoresearch
 
-Adapts Andrej Karpathy's autoresearch methodology (autonomous experimentation loops) to Claude Code skills. Instead of optimizing ML training code, we optimize skill prompts.
+Adapts Andrej Karpathy's autoresearch methodology (autonomous experimentation loops) to any editable artifact — skills, prompts, configurations, code, queries, or any file where output quality can be measured.
 
 ---
 
 ## The Core Job
 
-Take any existing skill, define what "good output" looks like as binary yes/no checks, then run an autonomous loop that:
+Take any editable target, define what "good output" looks like as binary yes/no checks, then run an autonomous loop that:
 
-1. Generates outputs from the skill using test inputs
+1. Runs the target using test inputs and the specified execution method
 2. Scores every output against the eval criteria
-3. Mutates the skill prompt to fix failures
+3. Mutates the target file to fix failures
 4. Keeps mutations that improve the score, discards the rest
 5. Repeats until the score ceiling is hit or the budget is exhausted
 
-**Output:** An improved SKILL.md + `results.tsv` log + `changelog.md` of every mutation attempted.
+**Output:** An improved target file + `results.tsv` log + `changelog.md` of every mutation attempted.
 
 ---
 
@@ -30,26 +30,27 @@ Take any existing skill, define what "good output" looks like as binary yes/no c
 
 **STOP. Do not run any experiments until all fields below are confirmed with the user via AskUserQuestion.**
 
-1. **Target skill** — Exact path to SKILL.md
-2. **Test inputs** — 3-5 different prompts/scenarios covering different use cases (avoid overfitting to one scenario)
-3. **Eval criteria** — 3-6 binary yes/no checks defining a good output (see [references/eval-guide.md](references/eval-guide.md))
-4. **Runs per experiment** — How many times to run per mutation. Default: 5
-5. **Budget cap** — Max number of experiment cycles. Default: 20
+1. **Target file** — Path to the file to optimize (e.g., SKILL.md, config.yaml, prompt.md, query.sql)
+2. **Execution method** — How to run/test the target (e.g., invoke as skill, run a shell command, call an API)
+3. **Test inputs** — 3-5 different inputs/scenarios covering different use cases (avoid overfitting to one scenario)
+4. **Eval criteria** — 3-6 binary yes/no checks defining a good output (see [references/eval-guide.md](references/eval-guide.md))
+5. **Runs per experiment** — How many times to run per mutation. Default: 5
+6. **Budget cap** — Max number of experiment cycles. Default: 20
 
-If the target skill already has eval criteria (in `## Eval Criteria` section or `evals.md`), present them to the user and ask whether to reuse, modify, or replace.
+If the target already has eval criteria (in `## Eval Criteria` section or `evals.md`), present them to the user and ask whether to reuse, modify, or replace.
 
 ---
 
-## Step 1: Read the Skill
+## Step 1: Read the Target
 
-Before changing anything, read and understand the target skill completely.
+Before changing anything, read and understand the target completely.
 
-1. Read the full SKILL.md
-2. Read any files in `references/` that the skill links to
-3. Identify the skill's core job, process steps, and output format
+1. Read the target file in full
+2. Read any related files it references or depends on
+3. Identify the target's core purpose, structure, and expected output
 4. Note any existing quality checks or anti-patterns
 
-Do NOT skip this. You need to understand what the skill does before you can improve it.
+Do NOT skip this. You need to understand what the target does before you can improve it.
 
 ---
 
@@ -83,12 +84,12 @@ max_score = [number of evals] × [runs per experiment]
 
 ## Step 3: Establish Baseline
 
-Run the skill AS-IS before changing anything. This is experiment #0.
+Run the target AS-IS before changing anything. This is experiment #0.
 
-1. Create working directory: `autoresearch-[skill-name]/` inside the skill's folder
+1. Create working directory: `autoresearch-[target-name]/` next to the target file
 2. Create `results.tsv` with the header row
-3. Back up the original SKILL.md as `SKILL.md.baseline`
-4. Run the skill [N] times using the test inputs
+3. Back up the original file as `{filename}.baseline`
+4. Run the target [N] times using the test inputs and execution method
 5. Score every output against every eval
 6. Record the baseline score
 
@@ -117,7 +118,7 @@ Look at which evals fail most. Read the actual outputs. Identify the pattern —
 
 Pick ONE thing to change. Never change multiple things at once.
 
-**Good mutations:**
+**Good mutations (prompts/skills):**
 - Add a specific instruction addressing the most common failure
 - Reword an ambiguous instruction to be more explicit
 - Add an anti-pattern ("Do NOT do X") for a recurring mistake
@@ -125,18 +126,25 @@ Pick ONE thing to change. Never change multiple things at once.
 - Add or improve an example showing correct behavior
 - Remove an instruction causing over-optimization for one thing
 
+**Good mutations (code/config):**
+- Adjust a parameter or threshold value
+- Change algorithm or logic flow
+- Reorganize structure or ordering
+- Toggle an option on/off
+- Simplify a complex section
+
 **Bad mutations:**
-- Rewriting the entire skill
-- Adding 10 new rules at once
-- Adding vague instructions ("make it better")
+- Rewriting the entire file
+- Changing multiple things at once
+- Making vague changes without a clear hypothesis
 
 ### 4-3. Make the Change
 
-Edit SKILL.md with ONE targeted mutation.
+Edit the target file with ONE targeted mutation.
 
 ### 4-4. Run and Score
 
-Execute the skill [N] times with the same test inputs. Score every output.
+Run the target [N] times with the same test inputs. Score every output.
 
 ### 4-5. Keep or Discard
 
@@ -195,13 +203,13 @@ When the loop stops, present to terminal:
 ## Output Structure
 
 ```
-autoresearch-[skill-name]/
+autoresearch-[target-name]/
 ├── results.tsv          # score log for every experiment
 ├── changelog.md         # detailed mutation log
-└── SKILL.md.baseline    # original skill before optimization
+└── {filename}.baseline  # original file before optimization
 ```
 
-Plus the improved SKILL.md saved back to its original location.
+Plus the improved target file saved back to its original location.
 
 ---
 
@@ -211,13 +219,13 @@ Plus the improved SKILL.md saved back to its original location.
 2. **One change at a time.** Multi-variable changes make it impossible to attribute improvement.
 3. **Revert fully on discard.** Partial reverts accumulate drift.
 4. **Evals can be wrong.** If all evals pass but output quality is bad, fix the evals first — go back to Step 2.
-5. **Overfitting to test inputs.** If the skill improves on test inputs but degrades on novel inputs, the test inputs lack variety — go back to context gathering.
-6. **Skill size creep.** Each kept mutation adds words. Periodically check if the skill exceeds 5,000 words and consolidate if needed.
+5. **Overfitting to test inputs.** If the target improves on test inputs but degrades on novel inputs, the test inputs lack variety — go back to context gathering.
+6. **Size creep.** Each kept mutation adds complexity. Periodically check if the target has grown significantly and consolidate if needed.
 
 ---
 
 ## How This Connects to Other Skills
 
-- **generate-skills** may define initial eval criteria during skill creation (Step 5 eval guide)
-- If the target skill has existing eval criteria, autoresearch reuses them
+- If optimizing a skill, **generate-skills** may have defined initial eval criteria during creation
+- If the target already has eval criteria, autoresearch reuses them
 - The changelog serves as a research log for future optimization runs
