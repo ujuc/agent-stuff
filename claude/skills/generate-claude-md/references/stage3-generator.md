@@ -22,7 +22,7 @@ The orchestrator passes the following inputs to this agent:
 - **Stage 1 summary**: Detected project facts (tech stack, monorepo structure, submodules, existing files)
 - **Stage 2 answers**: User decisions (which nested CLAUDE.md to generate, scope boundaries)
 - **Target files**: List of files to create or update (Root CLAUDE.md, AGENTS.md, contributing-docs/, nested CLAUDE.md, .claude/rules/)
-- **Generation principles**: Condensed from the four guideline files (karpathy, osmani, subagent-guidelines, entry-router-guidelines)
+- **Generation principles**: Condensed from the four guideline files (karpathy, osmani, SOUL, entry-router-guidelines)
 
 ---
 
