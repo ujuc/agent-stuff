@@ -3,6 +3,7 @@ name: multi-agent-orchestrator
 description: "Planner-Generator-Evaluator 3-agent 파이프라인으로 장시간 자율 코딩 세션을 오케스트레이션한다. 멀티에이전트, 파이프라인 실행, multi-agent-orchestrator, full harness run, autonomous build session, plan and build this 요청 시 사용한다."
 model: opus
 disable-model-invocation: true
+argument-hint: "[1-4 sentence prompt]"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git:*), Agent
 ---
 
