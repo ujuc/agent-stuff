@@ -28,7 +28,6 @@ No build or test toolchain. This is a pure configuration repository.
 ## Behavioral Guidelines
 
 - `claude/deplicated/` is fully deprecated — do not reference or modify
-- `rules/SOUL.md` is the canonical shared mission — keep `claude/CLAUDE.md` Agent Identity in sync
 - Always edit files in this repository, not at symlink targets
 
 ## Skills

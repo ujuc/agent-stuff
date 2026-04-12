@@ -13,7 +13,7 @@ Personal AI agent configuration repository. Manages global settings for Claude C
 
 | File | Purpose |
 | ---- | ------- |
-| `rules/SOUL.md` | Canonical shared mission and values. Sync changes to `claude/CLAUDE.md` Agent Identity. |
+| `rules/SOUL.md` | Canonical shared mission and values. |
 | `claude/settings.json` | Global Claude Code settings (model, permissions, hooks, statusline, etc.). |
 
 ## Operational Gotchas
