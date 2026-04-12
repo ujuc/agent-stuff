@@ -2,465 +2,122 @@
 name: generate-claude-md
 description: "CLAUDE.md, AGENTS.md, contributing-docs/, .claude/rules/ 파일을 가이드 원칙에 따라 생성하거나 업데이트한다. /generate-claude-md, CLAUDE.md 업데이트, AGENTS.md 갱신 요청 시 사용한다."
 model: opus
-disable-model-invocation: true
+allowed-tools: Read, Write, Edit, Glob, Grep, Agent, advisor
 ---
 
-# CLAUDE.md 및 AGENTS.md 생성/업데이트 스킬
+# CLAUDE.md Generator — Orchestrator
 
-## 모드 판별
+## Mode Detection
 
 $ARGUMENTS를 분석하여 모드를 결정한다:
 
-- **업데이트 모드**: $ARGUMENTS에 "업데이트", "수정", "갱신", "update", "refresh" 키워드 포함 시
-  → 1단계(재분석) → U1(감사) → U2(비교) → U3(적용) → 4단계(검증) 순서로 진행
+- **업데이트 모드**: "업데이트", "수정", "갱신", "update", "refresh" 포함 시
+  → Stage 1(재분석) → U1(감사) → U2(비교) → U3(적용) → Stage 4(검증)
 - **생성 모드**: 그 외
-  → 1단계 → 2단계 → 3단계 → 4단계 순서로 진행
+  → Stage 1 → Stage 2 → Stage 3 → Stage 4
 
-### 대상 파일 특정
+### Target Identification
 
-$ARGUMENTS에서 대상 파일을 특정할 수 있다:
-
-| 키워드 | 대상 |
-|--------|------|
+| Keyword | Target |
+|---------|--------|
 | "CLAUDE.md" (단독) | Root CLAUDE.md만 |
 | "AGENTS.md" | AGENTS.md + contributing-docs/ |
 | "rules" | .claude/rules/만 |
 | 키워드 없이 "업데이트" | 5종 전체 |
 
-$ARGUMENTS가 없으면 현재 작업 디렉토리를 대상으로 생성 모드로 진행한다.
+$ARGUMENTS가 없으면 현재 작업 디렉토리를 대상으로 생성 모드.
 
 ---
 
-## 생성 철학
+## Generation Philosophy
 
 이 스킬 전체를 관통하는 원칙이다.
 
-**설계 원칙** (references/karpathy-guidelines.md):
-- 생각 후 행동 / 단순함 우선 / 외과적 정밀함 / 목표 기반 실행
+**설계 원칙** (references/karpathy-guidelines.md): 생각 후 행동 / 단순함 우선 / 외과적 정밀함 / 목표 기반 실행
 
-**콘텐츠 원칙** (references/osmani-guidelines.md):
-- **발견 불가능한 정보만**: 에이전트가 코드를 읽어 스스로 알 수 없는 것만 포함한다
-- **코드베이스 냄새 목록**: AGENTS.md는 영구 문서가 아니라 아직 코드로 해결하지 못한 문제의 진단 목록이다
+**콘텐츠 원칙** (references/osmani-guidelines.md): 발견 불가능한 정보만 포함. AGENTS.md는 코드로 해결하지 못한 문제의 진단 목록이다.
 
-**성능 근거**: 자동 생성 컨텍스트는 성공률 -2~3%, 비용 +20%. 수동 작성 gotcha만 성공률 +4% (ETH Zurich). 모든 줄은 존재 이유를 증명해야 한다.
+**성능 근거**: 자동 생성 컨텍스트 → 성공률 -2~3%, 비용 +20%. 수동 작성 gotcha → 성공률 +4% (ETH Zurich). 모든 줄은 존재 이유를 증명해야 한다.
 
-**거버넌스 원칙** (references/entry-router-guidelines.md):
-- 프로젝트가 자율 에이전트 안전장치를 필요로 하는 경우, AGENTS.md Boundaries 섹션과 CLAUDE.md 행동 가이드라인에 Entry Router 패턴의 CORE 규칙을 반영한다
+**거버넌스 원칙** (references/entry-router-guidelines.md): 자율 에이전트 안전장치가 필요한 경우, Entry Router 패턴의 CORE 규칙을 AGENTS.md Boundaries와 CLAUDE.md 행동 가이드라인에 반영한다.
 
-**서브에이전트 활용**: 컨텍스트 보호와 병렬 실행이 가능한 지점에서 서브에이전트를 활용한다. 상세 기준은 references/subagent-guidelines.md를 참조한다.
+**영혼** (references/SOUL.md): 에이전트 정체성과 태도의 기저.
 
-아래 4단계를 순서대로 수행한다.
+**LLM 컨텍스트**: LLM은 인컨텍스트 학습자 — 코드 패턴을 검색하면 스타일을 따라가므로 스타일 규칙 불필요. 상위 레벨 오류는 하류로 기하급수적 증폭. 지시사항을 검증 가능한 목표로 작성한다.
 
 ---
 
-## 1단계: 프로젝트 분석 — Think Before Coding
+## Stage 1: Project Analysis
 
-대상 디렉토리에서 다음을 자동 탐지한다:
+**참조**: references/stage1-analyzer.md (전체 절차, 에이전트 프롬프트 포함)
 
-- 패키지/빌드/테스트/린트·포매터 설정 (package.json, Cargo.toml, pyproject.toml, go.mod, .eslintrc, .prettierrc, biome.json, ruff.toml 등)
-- 저장소 구조 및 독립성 (모노레포: workspaces, packages/, apps/; 서브모듈: .gitmodules 파싱으로 경로/URL/독립 저장소 여부; 하위 디렉토리의 자체 패키지 매니저 존재 여부)
-- 문서/CI 구성 (기존 CLAUDE.md, AGENTS.md, contributing-docs/, .cursorrules, 하위 CLAUDE.md 위치/내용, CI/CD: .github/workflows, .gitlab-ci.yml)
-- 기존 `.claude/rules/` 파일 유무 및 내용 (경로 스코핑 규칙 재활용 판단용)
+대상 디렉토리에서 패키지/빌드/테스트/린트 설정, 저장소 구조(모노레포/서브모듈), 문서/CI 구성, 기존 `.claude/rules/`를 자동 탐지한다.
 
-### 병렬 탐색 (선택)
+**복잡도 판정**: 설정 파일 3종 이상, 모노레포, 서브모듈 존재 시 → 복잡 프로젝트.
 
-프로젝트가 복잡한 경우(설정 파일 3종 이상, 모노레포, 서브모듈 존재), 3개 Explore 에이전트를 백그라운드로 스폰하여 탐지를 병렬화한다.
+- **복잡 프로젝트**: 3개 Explore 에이전트(model: sonnet) 스폰 — Explore-Config, Explore-Structure, Explore-Docs
+- **단순 프로젝트**: 서브에이전트 없이 직접 탐지
 
-| 에이전트 | 탐지 대상 | 스킵 조건 |
-|----------|-----------|-----------|
-| Explore-Config | 패키지/빌드/테스트/린트 설정 | 설정 파일 2개 이하 |
-| Explore-Structure | 모노레포/서브모듈/디렉토리 구조 | 단일 패키지 저장소 |
-| Explore-Docs | 문서/CI/기존 CLAUDE.md | 문서·CI 파일 없음 |
+탐지 결과를 발견 가능/불가능으로 분류하여 사용자에게 보여준다. 사실과 가정을 구분 표시한다.
 
-단순 프로젝트(설정 파일 소수, 모노레포 아님)에서는 서브에이전트 없이 직접 탐지한다.
-상세 프롬프트와 파라미터는 references/subagent-guidelines.md를 참조한다.
-
-탐지 결과를 간략히 정리하여 사용자에게 보여준다. 이때:
-
-- 탐지 결과를 **발견 가능성**으로 분류한다:
-  - 발견 가능: 에이전트가 코드/설정 파일을 읽으면 알 수 있는 정보 → 생성 후보에서 제외
-  - 발견 불가능: 명시적으로 기술해야만 에이전트가 알 수 있는 정보 → 생성 후보
-- 탐지 결과에서 **사실**과 **가정**을 구분하여 표시한다.
-- 자동 탐지로 알 수 없는 항목을 명시적으로 나열한다.
-- 기존 AGENTS.md가 있으면 구조와 내용을 분석하여 3단계 생성 시 참고한다.
-- 중첩 CLAUDE.md 후보 목록을 표로 정리한다:
-  | 경로 | 유형 (모노레포 패키지/서브모듈) | 기존 CLAUDE.md 유무 | 생성 권장 여부 |
+**① advisor() 호출 조건**: 1단계 결과에서 모노레포 5+ 패키지, 서브모듈 3+ 개, 또는 기존 CLAUDE.md가 복잡한 구조인 경우 → advisor()로 분석 전략 검증.
 
 ---
 
-## 2단계: 인터뷰 — Think Before Coding
+## Stage 2: Interview (직접 실행 — 서브에이전트 위임 불가)
 
-1단계 자동 탐지로 알 수 없는 항목만 질문한다. WHAT/WHY/HOW 프레임워크를 따른다.
+1단계 자동 탐지로 알 수 없는 항목만 질문한다:
 
-질문은 다음 범위 내에서 필요한 것만 한다:
+- **WHY**: 프로젝트 목적/역할
+- **WHAT**: 모노레포 패키지 역할, 서브모듈 관계, 외부 서비스 의존성
+- **HOW**: 작업 규칙/워크플로우, 에이전트 반복 실수 여부, 중첩 CLAUDE.md 생성 승인
 
-**WHY (자동 탐지 불가)**:
-- 이 프로젝트의 목적/역할은 무엇인가?
+모호한 항목은 가능한 해석을 제시한 뒤 선택을 요청한다. 1단계 가정을 사용자에게 확인한다.
 
-**WHAT (자동 탐지로 부족한 부분만)**:
-- 모노레포인 경우 각 패키지/앱의 역할
-- 서브모듈이 있는 경우 부모 저장소와의 관계 및 독립 운영 여부
-- 외부 서비스 의존성 (DB, 메시지 큐, 외부 API 등)
+**심층 탐색 (선택)**: AskUserQuestion 대기 중, 대규모 모노레포(5+ 패키지)에서 미해결 질문이 있으면 Explore-Deep 에이전트(model: sonnet)를 백그라운드 스폰. 1단계 결과가 충분하면 스킵.
 
-**HOW (자동 탐지로 부족한 부분만)**:
-- 특별한 작업 규칙/워크플로우, 브랜치 전략, PR/커밋 규칙, 환경 설정 특이사항이 있는가?
-- 에이전트가 반복적으로 실수하는 부분이 있는가? → 코드 구조로 해결 가능한가, 아니면 명시적 지시가 필요한가?
-- 중첩 CLAUDE.md 후보 목록을 보여주고, 각 후보에 대해 생성 여부를 확인한다
+**업데이트 모드**: references/update-mode.md의 U1(감사)과 U2(비교)를 이 단계에서 통합 실행. U2 비교 보고서를 사용자에게 제시하고 업데이트 범위를 확인한다.
 
-추가 원칙:
-- 모호한 항목은 **가능한 해석을 제시한 뒤** 사용자에게 선택을 요청한다.
-- 1단계에서 가정한 내용을 사용자에게 확인한다.
-
-### 심층 탐색 (선택)
-
-AskUserQuestion 발송 후 사용자 응답 대기 중, 1단계 결과에서 해결되지 않은 질문이 있으면 Explore-Deep 에이전트를 백그라운드로 스폰한다. 대규모 모노레포(5개 이상 패키지)나 복잡한 프로젝트에서 패키지 간 관계, 외부 서비스 의존성 등을 심층 분석한다.
-
-스킵 조건이 넓다: 1단계 결과가 충분하거나, 중소규모 프로젝트이거나, 사용자 응답이 빠르게 도착한 경우 건너뛴다.
-상세 프롬프트와 파라미터는 references/subagent-guidelines.md의 "Explore-Deep"을 따른다.
+**② advisor() 호출 조건**: 사용자 답변이 1단계 탐지 결과와 모순되거나, 업데이트 모드에서 드리프트 항목이 10+개인 경우.
 
 ---
 
-## 3단계: 생성 — Simplicity First + Surgical Changes
+## Stage 3: Generation
 
-다섯 가지를 생성한다:
+**참조**: references/stage3-generator.md (A~E 파일별 생성 규칙, 공통 작성 규칙 포함)
 
-공통 작성 규칙:
-- 코드 스니펫은 직접 포함하지 않고 file:line 참조만 사용한다
-- **발견 가능성 테스트**: 모든 줄에 "에이전트가 코드를 읽으면 이것을 알 수 있는가?" 자문한다. 알 수 있으면 포함하지 않는다
-- 자동 생성 금지: LLM이 코드를 요약한 내용을 그대로 포함하지 않는다
+1개 general-purpose 에이전트(model: sonnet)를 스폰하여 파일을 생성한다.
 
-### A. 루트 CLAUDE.md
+**전달할 것**: Stage 1 요약, Stage 2 답변, 대상 파일 목록, 4개 가이드라인 파일의 핵심 원칙(karpathy, osmani, entry-router, SOUL).
 
-생성 원칙:
+**생성 대상 5종**: Root CLAUDE.md, AGENTS.md, contributing-docs/, 중첩 CLAUDE.md, .claude/rules/ — 해당하는 것만 생성.
 
-- 모든 세션, 모든 작업에 적용되는 보편적 내용만 포함한다
-- 목표 줄 수: 100줄 이하. 절대 300줄을 넘기지 않는다
-- 코드 스타일 규칙을 포함하지 않는다 (린터/포매터에 위임)
-- AGENTS.md만 참조한다 (contributing-docs/를 직접 참조하지 않는다)
-- 1~2단계에서 **확인된 사실만** 포함한다. 추측이나 '있으면 좋을' 항목을 배제한다
-- 지시사항 추가 시 자문한다: **"이것 없이 Claude가 실수하는가?"**
-
-구조:
-
-```markdown
-# 프로젝트 개요
-(WHY: 1-2줄로 프로젝트 목적 — README에 없는 경우만)
-
-# 기술 스택
-(WHAT: 핵심 기술만 나열 — package.json/go.mod 등에서 자명하지 않은 경우만. 자명하면 섹션 생략)
-
-# 개발 명령
-(HOW: 빌드, 테스트, 린트 명령 — README/Makefile에 없는 경우만)
-
-# 작업 규칙
-(HOW: 브랜치, 커밋, PR 등 보편적 규칙)
-
-# 행동 가이드라인
-(발견 불가능한 프로젝트 고유 제약. 예: "DB 마이그레이션 시 반드시 확인 후 실행")
-
-# 참조 문서
-- **[AGENTS.md](./AGENTS.md)** — 발견 불가능한 운영 정보, 상세 가이드
-(중첩 CLAUDE.md가 있는 하위 디렉토리도 나열)
-```
-
-### B. AGENTS.md
-
-agents.md 표준을 따르는 프로젝트 가이드. CLAUDE.md에서 참조하며, contributing-docs/의 상세 문서를 가리킨다.
-
-생성 원칙:
-
-- 모든 AI 에이전트가 활용할 수 있는 보편적 형식
-- contributing-docs/ 참조로 점진적 공개 구현
-- **AGENTS.md를 코드베이스 냄새 목록으로 취급한다**: 각 항목은 이상적으로는 코드/린터/CI로 해결해야 하는 것이다. 코드가 개선되면 항목을 제거한다
-- 기존 AGENTS.md가 있으면 모든 항목에 발견 가능성 테스트를 재적용하여 제거 후보를 식별한다
-
-구조:
-
-- YAML frontmatter (name, description, version, standard)
-- Project Overview: 프로젝트 목적 (README에 없는 경우만)
-- Operational Gotchas: 에이전트가 코드에서 발견할 수 없는 운영상 함정 (외부 시스템 동작, 비자명한 순서 요구사항, 환경별 제약 등)
-- Non-Obvious Conventions: 코드 패턴에서 추론 불가능한 규약 (린터가 강제하지 않는 것만)
-- Build & Test Gotchas: 빌드/테스트의 비자명한 요구사항만 (표준 명령은 제외)
-- Git Workflow: 브랜치 전략, 커밋 규약 (CONTRIBUTING.md에 없는 경우만)
-- Boundaries: Always Do / Ask First / Never Do
-- Contributing Docs 참조 섹션: contributing-docs/ 내 상세 문서 목록
-
-### C. contributing-docs/ 분리 문서
-
-AGENTS.md에서 참조하는 상세 내용을 별도 문서로 생성한다. 다음 중 프로젝트에 해당하는 것만 생성한다:
-
-- `contributing-docs/architecture.md`: 서비스 구조, 통신 패턴, 데이터 흐름
-- `contributing-docs/building_the_project.md`: 상세 빌드/배포 절차
-- `contributing-docs/testing.md`: 테스트 전략, 테스트 데이터 설정
-- `contributing-docs/database.md`: 스키마 구조, 마이그레이션 방법
-- `contributing-docs/conventions.md`: 코드 규약, 네이밍 규칙 (린터로 강제할 수 없는 것만)
-- `contributing-docs/behavioral.md`: 프로젝트 고유 행동 제약 (해당하는 경우만)
-
-각 분리 문서도 간결하게 작성하며, 공통 작성 규칙을 따른다.
-
-### D. 중첩 CLAUDE.md (모노레포 패키지 / 서브모듈)
-
-1단계에서 탐지된 후보 중, 2단계에서 사용자가 승인한 디렉토리에 대해 생성한다.
-
-#### 생성 조건
-
-다음 **모두**를 만족하는 디렉토리에만 생성한다:
-
-- 자체 패키지 매니저 파일이 있거나 git 서브모듈이다
-- 루트 CLAUDE.md와 다른 기술 스택, 빌드 명령, 또는 작업 규칙이 필요하다
-- 사용자가 2단계에서 생성을 승인했다
-
-#### 생성 원칙
-
-Section A의 원칙을 상속하되, 추가로:
-
-- **범위 한정**: 해당 디렉토리 안의 컨텍스트만 다룬다
-- **중복 금지**: 상위 CLAUDE.md에 있는 내용을 반복하지 않는다. 차이점만 기술한다
-- **상위 참조**: 공통 규칙은 상위 CLAUDE.md를 구체적 경로로 참조한다
-- **목표 줄 수**: 50줄 이하. 절대 100줄을 넘기지 않는다
-- **자기 완결적 제목**: `# CLAUDE.md — {패키지/서브모듈 이름}`으로 시작한다
-
-#### 구조
-
-```markdown
-# CLAUDE.md — {이름}
-
-(1줄: 이 디렉토리의 목적/역할)
-
-## 기술 스택
-(상위와 다른 부분만. 동일하면 섹션 생략)
-
-## 개발 명령
-(이 디렉토리 고유의 빌드/테스트/린트 명령)
-
-## 작업 규칙
-(상위와 다른 규칙이 있는 경우만. 없으면 생략)
-
-## 참조 문서
-- **[../CLAUDE.md](../CLAUDE.md)** — 프로젝트 공통 규칙
-(하위에 AGENTS.md가 있으면 참조, 없으면 생략)
-```
-
-#### 참조 경로 규칙
-
-- 상위 CLAUDE.md: 항상 상대 경로 (`../CLAUDE.md`)
-- 서브모듈: 부모 저장소 CLAUDE.md를 URL 또는 상대 경로로 참조
-- 형제 디렉토리: 직접 참조하지 않는다 (상위를 경유)
-
-### E. .claude/rules/ 규칙 파일
-
-Claude Code가 매 세션 자동 주입하는 경로 스코핑 규칙 파일. contributing-docs/가 인간 개발자용 상세 문서라면, rules/는 Claude Code 전용 행동 규칙이다.
-
-#### 생성 조건
-
-1~2단계에서 다음 중 **하나 이상** 발견 시에만 생성한다:
-
-1. **경로 스코핑 필요**: 특정 디렉토리에서만 적용되는 규칙이 존재
-2. **CLAUDE.md 분량 초과**: 100줄을 넘길 것으로 예상되어 보편적이지 않은 규칙을 분리
-3. **독립적 관심사 3+**: 서로 무관한 규칙 그룹이 3개 이상 식별
-
-#### 생성 원칙
-
-- **경로 스코핑 우선**: globs 지정 가능한 규칙은 반드시 globs를 명시
-- **alwaysApply 최소화**: 모든 세션에 필요한 규칙은 CLAUDE.md 우선. rules/에서 `alwaysApply: true`는 CLAUDE.md 분량 초과 시에만
-- **파일당 하나의 관심사**: 여러 관심사를 한 파일에 섞지 않음
-- **파일명**: `{관심사}.md` (예: `api-conventions.md`, `testing.md`, `database-safety.md`)
-- **크기 제한**: 파일당 50줄 이하
-- **발견 가능성 테스트**: 공통 작성 규칙 상속
-
-#### 파일 형식
-
-```markdown
----
-description: (이 규칙의 한 줄 설명)
-globs: ["src/api/**/*.ts"]    # 선택: 경로 스코핑
-alwaysApply: false            # true면 모든 세션에 항상 로드
----
-
-(규칙 내용 — 발견 불가능한 정보만)
-```
-
-#### contributing-docs/와의 역할 구분
-
-| 구분 | contributing-docs/ | rules/ |
-|------|-------------------|--------|
-| 대상 | 모든 AI 에이전트 + 인간 개발자 | Claude Code 전용 |
-| 로드 방식 | AGENTS.md에서 참조, 필요 시 읽기 | 매 세션 자동 주입 |
-| 경로 스코핑 | 불가 | globs로 가능 |
-| 내용 | 상세 문서 (architecture, testing 등) | 짧은 행동 규칙 |
+**업데이트 모드**: references/update-mode.md의 U3(적용)을 실행. Edit 도구로 외과적 수정만. 전체 재생성하지 않는다.
 
 ---
 
-## U1단계: 기존 파일 감사 (업데이트 모드)
+## Stage 4: Verification
 
-대상 디렉토리에서 기존 생성 파일의 현재 상태를 파악한다.
+**참조**: references/stage4-verifier.md (10항목 체크리스트, 안티패턴, Reviewer 프롬프트 포함)
 
-### 절차
+3단계 파이프라인:
 
-1. 기존 파일 탐지 (Glob/Read):
-   - Root CLAUDE.md: 줄 수, 섹션 목록 (`#`/`##` 헤더 파싱), 참조 경로 유효성
-   - AGENTS.md: frontmatter 필드, 섹션 목록, contributing-docs/ 참조 유효성, Boundaries 유무
-   - contributing-docs/: 파일 목록, 각 파일 줄 수, AGENTS.md에서의 참조 여부
-   - 중첩 CLAUDE.md: 위치, 줄 수, 상위 참조 경로 유효성, 상위 CLAUDE.md와의 내용 중복
-   - .claude/rules/: 파일 목록, 각 파일의 description/globs/alwaysApply, CLAUDE.md와의 내용 중복
+1. **Verifier**: 10항목 체크리스트를 줄 단위 적용 (model: sonnet)
+2. **Iterative Fix**: 탈락 항목을 수정하고 재검증 (최대 2회 반복)
+3. **Reviewer**: 생성물이 CLAUDE.md 1개를 넘어서면, 맹검 독립 검증 에이전트(model: sonnet) 스폰. 1~2단계 결과를 전달하지 않는다.
 
-2. 감사 결과를 사용자에게 요약 테이블로 보여준다:
+검증 결과를 사용자에게 보고한다. 탈락 항목은 줄과 사유를 함께 표시.
 
-| 파일 | 줄 수 | 상태 | 비고 |
-|------|-------|------|------|
-| CLAUDE.md | N줄 | 존재 | 섹션 N개 |
-| ... | ... | ... | ... |
-
-3. 파일이 하나도 없으면 "기존 파일이 없습니다. 생성 모드로 전환하시겠습니까?"를 AskUserQuestion으로 제안하고 중단한다.
-
-### 병렬화
-
-1단계(프로젝트 재분석)의 Explore 에이전트와 U1 파일 읽기를 병렬로 실행할 수 있다. 단, 대상 파일이 3개 이하인 경우 직접 읽는 것이 효율적이다.
+**③ advisor() 호출 조건**: Reviewer가 FAIL 판정을 내리고, 주 에이전트의 수정으로도 2회 반복 후 PASS되지 않는 경우.
 
 ---
 
-## U2단계: 드리프트 비교 (업데이트 모드)
+## Advisor Escalation Summary
 
-1단계(재분석) 결과와 U1(감사) 결과를 대조하여 3축으로 비교한다.
+| # | When | Trigger |
+|---|------|---------|
+| ① | Stage 1 완료 후 | 모노레포 5+ 패키지, 서브모듈 3+, 또는 복잡한 기존 CLAUDE.md |
+| ② | Stage 2 중 | 사용자 답변 ↔ 탐지 결과 모순, 또는 업데이트 드리프트 10+ |
+| ③ | Stage 4 중 | Reviewer FAIL 후 2회 반복 수정으로도 PASS 불가 |
 
-### 축 1: 코드베이스 드리프트
-
-현재 코드베이스 상태(1단계 결과)와 기존 문서 내용을 비교한다:
-
-| 파일 유형 | 비교 대상 | 드리프트 기준 |
-|-----------|-----------|---------------|
-| Root CLAUDE.md | 기술 스택 vs 실제 설정 파일 | 기술 추가/제거/버전 변경 |
-| Root CLAUDE.md | 개발 명령 vs 실제 scripts/Makefile | 명령 변경/추가/제거 |
-| AGENTS.md | Operational Gotchas vs 현재 코드 | 해결된 gotcha 잔존, 새 gotcha 필요 |
-| contributing-docs/ | 각 문서 내용 vs 실제 구조/설정 | 구조/전략 변경 |
-| 중첩 CLAUDE.md | 해당 디렉토리 기술/명령 vs 문서 | 하위 디렉토리 변경 |
-| .claude/rules/ | globs 패턴 vs 실제 파일 경로 | 스코핑 대상 경로 부재 |
-
-### 축 2: 생성 원칙 재적용
-
-기존 파일의 모든 줄에 3단계 생성 철학을 재적용한다:
-
-- **발견 가능성 테스트**: 코드 개선으로 이제 발견 가능해진 항목 식별
-- **분량 제약**: Root CLAUDE.md 100줄 초과, 중첩 CLAUDE.md 50줄 초과 여부
-- **진부화 위험**: 특정 버전/도구명/의존성이 현재와 불일치
-- **중복 검사**: 파일 간 내용 중복 (CLAUDE.md ↔ rules/, 상위 ↔ 중첩, AGENTS.md ↔ contributing-docs/)
-
-### 축 3: 구조 정합성
-
-파일 간 참조 관계의 유효성을 검사한다:
-
-- CLAUDE.md → AGENTS.md 참조 경로 유효
-- AGENTS.md → contributing-docs/ 참조와 실제 파일 일치
-- 중첩 CLAUDE.md → 상위 참조 경로 올바름
-- .claude/rules/ globs가 실제 존재하는 경로를 가리킴
-
-### 비교 보고서
-
-비교 결과를 카테고리별로 정리하여 사용자에게 제시한다:
-
-```
-## 드리프트 비교 결과
-
-### 변경 필요 (Change Required)
-| # | 파일 | 항목 | 사유 | 권장 조치 |
-
-### 삭제 권장 (Remove Recommended)
-| # | 파일 | 항목 | 사유 |
-
-### 추가 후보 (Add Candidate)
-| # | 파일 | 항목 | 사유 |
-
-### 유지 (No Change)
-(변경 불필요 항목 수만 요약)
-```
-
-이후 AskUserQuestion으로 업데이트 범위를 확인한다: "위 항목 중 어떤 것을 적용하시겠습니까?" (전체/선택/파일별)
-
----
-
-## U3단계: 적용 (업데이트 모드)
-
-사용자가 승인한 범위에 따라 Edit 도구로 수정한다.
-
-### 적용 원칙
-
-- **Surgical Changes**: 변경이 필요한 줄만 수정한다. 전체 재생성하지 않는다
-- **적용 순서**: 참조 관계의 하류(leaf)부터 수정한다:
-  1. contributing-docs/ 개별 파일
-  2. .claude/rules/ 개별 파일
-  3. 중첩 CLAUDE.md
-  4. AGENTS.md (contributing-docs/ 참조 갱신 포함)
-  5. Root CLAUDE.md (AGENTS.md 참조 갱신 포함)
-- **각 파일 수정 전**: 변경 내용을 사용자에게 보여주고 확인을 받는다
-- **파일 삭제**: 불필요해진 파일은 삭제 제안만 하고 사용자 승인 후 실행
-- **파일 추가**: 새로 필요한 파일은 3단계 생성 원칙을 따라 작성
-
-완료 후 4단계(검증)로 진행한다.
-
----
-
-## 4단계: 검증 — Goal-Driven Execution
-
-생성 모드와 업데이트 모드 모두 이 단계를 거친다.
-
-생성된/수정된 CLAUDE.md와 AGENTS.md에 대해 다음 체크리스트를 줄 단위로 적용한다:
-
-### 업데이트 모드 추가 체크
-
-업데이트 모드인 경우 아래 항목을 추가로 확인한다:
-
-- 수정하지 않은 줄이 의도치 않게 변경되지 않았는가?
-- 참조 경로가 수정 후에도 유효한가?
-- 파일 간 정합성이 유지되는가? (U2 축 3 재확인)
-
-### 공통 체크리스트
-
-1. **보편성/필수성/중복**: 모든 작업에 적용되는가? 없으면 실수하는가? 코드를 읽으면 자명한가? → 아니면 삭제 또는 AGENTS.md/contributing-docs/로 이동
-2. **린터 역할**: 코드 스타일 규칙인가? → 삭제하고 린터/Hook으로 대체 권장
-3. **추측 배제**: 1~2단계에서 확인되지 않은 내용이 포함되는가? → 있으면 삭제
-4. **검증 가능성**: 각 지시사항을 따랐는지 판별 가능한가? → 아니면 구체화
-5. **분량 제약**: 100줄 이하, 개별 지시사항 50개 이하인가? → 초과하면 통합 또는 삭제
-6. **계층/범위**: CLAUDE.md가 contributing-docs/를 직접 참조하는가? AGENTS.md가 Claude 전용 내용만 담는가? 중첩 CLAUDE.md가 자기 디렉토리 밖을 포함하거나 상위 내용을 반복하는가? rules/ 파일이 CLAUDE.md와 내용 중복이 있는가? globs 지정 가능한 규칙이 alwaysApply: true인가? rules/ 파일이 contributing-docs/와 역할이 겹치는가? 경로 스코핑 없는 alwaysApply: true 규칙이 CLAUDE.md로 이동 가능한가? → 있으면 이동/삭제 또는 상위 참조로 대체
-7. **참조 정합성**: 중첩 CLAUDE.md의 상위 참조 경로가 올바른가? → 상대 경로 검증
-8. **발견 가능성**: 에이전트가 코드를 읽으면 알 수 있는 내용인가? → 있으면 삭제
-9. **진부화 위험**: 특정 버전, 도구명, 의존성을 포함하여 6개월 내 부정확해질 수 있는가? → 위험하면 삭제 또는 유통기한 주석
-10. **정적 지시 문제**: 모든 작업 유형에 동일하게 적용되는 무조건적 지시인가? → 조건부로 변경 가능하면 조건 명시
-
-안티패턴 경고 — 다음이 발견되면 사용자에게 경고한다:
-- 자동 생성 내용 포함: LLM이 코드를 요약한 내용이 그대로 들어가 있다
-- 정보 중복: README, CONTRIBUTING.md, CI 설정에 이미 있는 내용이 반복된다
-- 진부한 내용: 현재 코드베이스와 일치하지 않는 기술/의존성/패턴을 기술한다
-
-자기 테스트 질문:
-- "시니어 엔지니어가 이 CLAUDE.md를 보고 '과하다'고 할까?"
-- "CLAUDE.md → AGENTS.md → contributing-docs/ 계층과 CLAUDE.md → .claude/rules/ 경로가 명확하게 분리되어 있는가?"
-- "중첩 CLAUDE.md를 제거해도 상위 CLAUDE.md만으로 해당 디렉토리 작업이 충분한가?" → 충분하면 중첩 파일 삭제 권장
-- "중첩 CLAUDE.md 간에 내용이 서로 모순되는가?"
-- "이 줄을 삭제해도 에이전트가 코드를 읽으면 같은 결론에 도달하는가?" → 도달하면 삭제
-- "이 항목을 코드/린터/CI로 해결할 수 있는가?" → 가능하면 코드 수정 권장, 항목 제거
-
-### 독립 검증 (선택)
-
-생성물이 단일 CLAUDE.md를 넘어서는 경우(AGENTS.md, contributing-docs/, 중첩 CLAUDE.md 포함), general-purpose Reviewer 에이전트를 스폰하여 맹검 검증을 수행한다.
-
-**전달할 것**: 생성된 파일 내용만.
-**전달하지 않을 것**: 1~2단계 분석 결과, 인터뷰 답변, 내부 추론 — 독립적 판단을 보장하기 위해 제외한다.
-
-Reviewer는 발견 가능성, 진부화 위험, 중복, 계층 위반, 크기, 실행 가능성을 기준으로 각 줄을 평가한다. 결과는 PASS/FAIL 보고서로 반환되며, 주 에이전트가 이를 반영하여 최종본을 정제한다.
-
-스킵 조건: 빠른 생성 요청 시 또는 생성 파일이 CLAUDE.md 1개뿐인 경우 건너뛴다.
-상세 프롬프트와 파라미터는 references/subagent-guidelines.md의 "Reviewer"를 따른다.
-
-검증 결과를 사용자에게 보고한다. 탈락 항목이 있으면 해당 줄과 사유를 함께 표시하고, 정제된 최종본을 제시한다.
-
----
-
-## LLM 컨텍스트 원칙
-
-- LLM은 인컨텍스트 학습자다. 기존 코드 패턴을 검색하면 스타일을 자연스럽게 따라가므로, 스타일 규칙을 CLAUDE.md에 포함할 필요가 없다.
-- Claude Code 시스템 프롬프트가 이미 ~50개 지시사항을 포함하며, 보편적이지 않은 내용이 많을수록 전체가 무시될 확률이 높아진다.
-- 상위 레벨(CLAUDE.md)의 오류는 하위(계획 → 코드)로 기하급수적으로 증폭된다.
-- LLM은 명확한 목표가 있을 때 반복 실행에 탁월하다 (references/karpathy-guidelines.md). 지시사항을 **검증 가능한 목표**로 작성해야 Claude가 자율적으로 올바른 결과에 도달한다.
-- **성능 연구**: 자동 생성 컨텍스트 → 성공률 -2~3%, 비용 +20%. 수동 작성 gotcha → 성공률 +4% (ETH Zurich). 모든 줄의 존재를 정당화해야 한다.
-- **유지보수 우선**: 에이전트 반복 실패 시, 먼저 코드 구조 개선을 시도한다. AGENTS.md 항목 추가는 코드 수정 불가 시 최후 수단이다.
-- **진부화의 해악**: 오래된 컨텍스트 파일은 파일이 없는 것보다 성능이 나쁘다.
+**advisor()를 호출하지 않는 경우**: 단순 프로젝트 생성, 파일 1~2개만 대상, 검증 1회차 PASS, 사용자가 명확한 지시를 준 경우.
