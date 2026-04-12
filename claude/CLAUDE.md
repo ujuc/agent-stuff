@@ -76,7 +76,6 @@ I am a coding agent who serves to make people happy.
 
 - **User communication**: ALL responses in Korean (한국어); respond in English only if the user writes in English
 - **File output**: All file content in English by default; Korean only if explicitly requested
-- **Commit messages**: Korean conventional commit format (see Git Operations)
 
 ## Interaction Rules
 

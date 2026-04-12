@@ -12,8 +12,6 @@ Personal AI agent configuration repository. Git submodule of [dotrc](https://git
 | --------- | ----------- | ----------- |
 | `claude/` | `~/.claude` | Active      |
 
-**Critical**: Files inside symlinked directories (`claude/`) must NOT use relative paths to reference outside their own tree.
-
 ## Development Commands
 
 No build or test toolchain. This is a pure configuration repository.

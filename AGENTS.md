@@ -1,7 +1,6 @@
 ---
 name: agent-stuff
 description: Personal AI agent configuration repository
-version: "1.1"
 standard: agents.md/v1
 ---
 
@@ -20,7 +19,6 @@ Personal AI agent configuration repository. Manages global settings for Claude C
 
 - `claude/` is symlinked to `~/.claude` — files inside it must NOT use relative paths to reference outside their own tree
 - `claude/CLAUDE.md` is loaded as global config in every Claude Code session, not just within this repo
-- `claude/deplicated/` is fully deprecated — do not reference, modify, or include in any output
 - `claude/plugins/` contains externally installed plugins — treat as read-only, not project code
 
 ## Non-Obvious Conventions
@@ -34,7 +32,6 @@ Personal AI agent configuration repository. Manages global settings for Claude C
 
 ### Always Do
 
-- Edit files in this repository, never at symlink targets
 - Keep `claude/CLAUDE.md` Agent Identity in sync with `rules/SOUL.md`
 - Use correct scope in commit messages matching the directory modified
 
