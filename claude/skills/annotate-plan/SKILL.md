@@ -1,8 +1,8 @@
 ---
 name: annotate-plan
 description: "Create implementation plans with annotation cycle support. Phase A generates initial plan with parallel agents. Phase B processes user inline annotations iteratively. Triggers: 구현 계획 작성, 플랜 만들어줘, annotate-plan, /annotate-plan"
-model: opus
-allowed-tools: Read, Write, Glob, Grep, Bash, Agent
+model: sonnet
+allowed-tools: Read, Write, Glob, Grep, Bash, Agent, advisor
 ---
 
 # Annotate Plan — Annotation Cycle Planning
@@ -87,6 +87,15 @@ For each detected annotation:
 ### 4. Cycle Limit
 - After 6 cycles, suggest: "6 annotation cycles complete. Consider moving to implementation with `/implement-plan`."
 - This is a suggestion, not a hard stop
+
+## Advisor Escalation
+
+This skill runs on sonnet by default. At the decision points below, call `advisor()` to borrow higher-tier reasoning:
+
+- **Phase A Step 3 — before writing Risk Assessment & Open Questions**: after merging outputs from plan-drafter and reference-finder, when it is unclear which risks are load-bearing or which items should be left as Open Questions.
+- **Phase B Step 2 — annotation interpretation**: when a user's blockquote / NOTE / TODO is ambiguous, or when it is unclear whether the change should cut across multiple sections or remain a localized edit.
+
+How to call: invoke `advisor()` with no parameters. The full current conversation context (plan file content and annotations) is automatically forwarded to the higher-tier model. Use this only when **the plan's direction itself needs a structural check** — not for simple Q&A.
 
 ## Constraints
 - **Do NOT implement code** during this skill

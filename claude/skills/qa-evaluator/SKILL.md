@@ -1,8 +1,8 @@
 ---
 name: qa-evaluator
 description: "Chrome 통합으로 실행 중인 웹앱을 실제 사용자처럼 탐색하여 버그, 기능 누락, UX 문제를 발견한다. QA 테스트, 웹앱 테스트, qa-evaluator, 앱 검증해줘, test the running app, evaluate my build, find bugs 요청 시 사용한다."
-model: opus
-allowed-tools: Read, Glob, Grep, Bash(curl:*)
+model: sonnet
+allowed-tools: Read, Glob, Grep, Bash(curl:*), advisor
 ---
 
 # QA Evaluator
@@ -125,6 +125,15 @@ These rules are non-negotiable:
 ### Recommendations for Generator
 - Prioritized list of fixes
 ```
+
+## Advisor Escalation
+
+This skill runs on sonnet by default. At the decision points below, call `advisor()` to borrow higher-tier reasoning:
+
+- **Steps 4-5 — borderline scoring**: when any of the 4 criteria (Product Depth / Functionality / Visual Design / Code Quality) lands near 5, making PASS/FAIL wobble. "When in doubt, FAIL" remains the baseline, but check whether a false negative would unnecessarily block the project.
+- **When severity classification is ambiguous**: when it matters whether a bug is labeled Critical vs Major, because that choice sets the next iteration's priority order.
+
+How to call: invoke `advisor()` with no parameters. The full current conversation context (Chrome exploration results, issue list) is automatically forwarded to the higher-tier model. Use this as a calibration check against leniency bias — while preserving the evaluator's adversarial stance.
 
 ## Gotchas
 

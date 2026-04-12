@@ -1,8 +1,8 @@
 ---
 name: frontend-design-evaluator
 description: "프론트엔드 디자인 결과물을 Design Quality, Originality, Craft, Functionality 4가지 기준으로 평가하고 개선 피드백을 생성한다. 디자인 평가, UI 리뷰, frontend-design-evaluator, 디자인 검수해줘, evaluate this design, rate my frontend, AI slop check 요청 시 사용한다."
-model: opus
-allowed-tools: Read, Edit, Glob, Grep
+model: sonnet
+allowed-tools: Read, Edit, Glob, Grep, advisor
 ---
 
 # Frontend Design Evaluator
@@ -148,6 +148,16 @@ Include an iteration directive in the feedback:
 2. <second priority>
 3. <third priority>
 ```
+
+## Advisor Escalation
+
+This skill runs on sonnet by default. At the decision points below, call `advisor()` to borrow higher-tier reasoning:
+
+- **Step 3 — AI Slop Detection borderline**: right before deciding whether 2-3 detected anti-patterns should cap the Originality score at 4. A wrong call sends the Generator in the wrong direction.
+- **Iteration Strategy selection**: when deciding whether the current round should instruct refine / pivot / polish — especially when scores are stagnant or declining and a pivot is not obviously correct.
+- **When the weighted average hovers near the PASS threshold (6.5-7.0)**: judgments near 7 decide the next round's execution mode, so a single calibration call is worth it.
+
+How to call: invoke `advisor()` with no parameters. The full current conversation context (live page exploration results, previous iteration score trend) is automatically forwarded to the higher-tier model. Use this as an inflation guard.
 
 ## Gotchas
 

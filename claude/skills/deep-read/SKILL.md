@@ -1,8 +1,8 @@
 ---
 name: deep-read
 description: "Deeply analyze a codebase area and produce structured research documents. Spawns 3 parallel Explore agents for structure, data flow, and risk analysis. Triggers: 코드 분석해줘, 깊이 읽어봐, deep-read, /deep-read"
-model: opus
-allowed-tools: Read, Glob, Grep, Bash, Agent
+model: sonnet
+allowed-tools: Read, Glob, Grep, Bash, Agent, advisor
 ---
 
 # Deep Read — Codebase Research
@@ -68,6 +68,15 @@ After all 3 agents complete, read `.partial/` files and merge into `.research/re
 ### 4. Cleanup
 - Delete `.research/.partial/` directory
 - Output: "`.research/research-{topic}.md` has been created. Please review it for accuracy before proceeding to planning."
+
+## Advisor Escalation
+
+This skill runs on sonnet by default. At the decision points below, call `advisor()` to borrow higher-tier reasoning:
+
+- **Before Step 3 merge**: when the 3 Explore agents (structure / dataflow / risk) report contradictory findings, or when synthesizing the Architecture Overview is ambiguous.
+- **When risk-explorer reports a Critical-level risk**: to judge whether that risk is load-bearing and how firmly to state it in the "Gotchas & Risks" section.
+
+How to call: invoke `advisor()` with no parameters. The full current conversation context (including the `.partial/` outputs from all three agents) is automatically forwarded to the higher-tier model. Use this only when **the merge direction itself needs a structural check** — not for simple Q&A.
 
 ## Constraints
 - **NO code modifications** — observation and documentation only

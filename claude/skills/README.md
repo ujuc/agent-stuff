@@ -4,18 +4,18 @@
 
 | Skill | Purpose | Model |
 |-------|---------|-------|
-| annotate-plan | Implementation plan with annotation cycles | opus |
+| annotate-plan | Implementation plan with annotation cycles | sonnet + advisor |
 | autoresearch | Autonomous skill optimizer via eval loops | opus |
 | commit | Korean Conventional Commits | sonnet |
-| deep-read | Deep codebase analysis with parallel agents | opus |
-| frontend-design-evaluator | GAN-style frontend design quality evaluation | opus |
+| deep-read | Deep codebase analysis with parallel agents | sonnet + advisor |
+| frontend-design-evaluator | GAN-style frontend design quality evaluation | sonnet + advisor |
 | gemma | Local Gemma model query via Ollama (auto-detects latest version) | sonnet |
 | generate-claude-md | CLAUDE.md/AGENTS.md generator | opus |
 | generate-skills | Skill generator | opus |
 | implement-plan | Plan executor with continuous verification | sonnet |
-| skill-improver | Test-driven skill improvement loop | opus |
+| skill-improver | Test-driven skill improvement loop | sonnet + advisor |
 | multi-agent-orchestrator | Planner-Generator-Evaluator pipeline | opus |
-| qa-evaluator | Web app QA testing via Chrome | opus |
+| qa-evaluator | Web app QA testing via Chrome | sonnet + advisor |
 | spec-planner | Prompt-to-spec expansion | opus |
 | sprint-contract-negotiator | Done-criteria negotiation protocol | opus |
 

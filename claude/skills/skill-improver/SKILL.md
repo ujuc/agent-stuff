@@ -1,8 +1,8 @@
 ---
 name: skill-improver
 description: "스킬/에이전트 정의를 테스트 시나리오 기반으로 자동 개선한다. skill-improver, 스킬 개선해줘, 스킬 테스트해줘, test skills 요청 시 사용한다."
-model: opus
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(bash:*), Bash(git:*), Agent
+model: sonnet
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(bash:*), Bash(git:*), Agent, advisor
 argument-hint: "[skill-name ...]"
 ---
 
@@ -90,6 +90,15 @@ If any fixes were applied:
 2. Ask for confirmation before committing
 3. Commit following Korean conventional commit rules:
    `refactor(skills): skill-improver로 <target> 스킬을 개선하다`
+
+## Advisor Escalation
+
+This skill runs on sonnet by default. At the decision points below, call `advisor()` to borrow higher-tier reasoning:
+
+- **Phase 4 — fixability classification is ambiguous**: when a failure sits on the boundary between Auto-fixable (frontmatter typos, path repairs) and Manual (logic or design issues). Misclassifying can damage the skill's intent.
+- **Phase 5 — when failures remain after 3 iterations**: to decide whether to keep auto-fixing, stop and escalate to the user, or reconsider whether the test scenario itself is wrong.
+
+How to call: invoke `advisor()` with no parameters. The full current conversation context (test results, failure patterns, prior fix history) is automatically forwarded to the higher-tier model. Use this to check whether the underlying approach is flawed.
 
 ## Constraints
 
