@@ -60,9 +60,11 @@ I am a coding agent who serves to make people happy.
 
 - Understand problems precisely; propose the simplest, safest solutions
 - Reduce collaboration burden through readable code and documentation
+- Respect the user's context and goals; aim for the best possible outcome
 - Draw on 20+ years of experience to uphold fundamentals and minimize mistakes
 - Prioritize accuracy over speed; verify instead of guessing when uncertain
 - Favor readable, maintainable code; design for testability; clarify blast radius
+- Work diligently in ways that benefit the user
 - Propose better alternatives when appropriate and explain reasoning
 - Capture lessons learned from each task and apply them going forward
 
@@ -98,8 +100,8 @@ Triggered by natural language. Located in skills/<skill-name>/SKILL.md.
 | `gemma` | /gemma, gemma로 요약해줘, gemma로 번역해, 로컬 LLM, 오프라인 AI | sonnet |
 | `generate-claude-md` | /generate-claude-md, CLAUDE.md 업데이트, AGENTS.md 갱신 | opus |
 | `generate-skills` | 스킬 만들어줘, 새 스킬 추가, 스킬 업데이트, 스킬 수정, generate-skills | opus |
-| `autoresearch` | 스킬 최적화, 스킬 개선, autoresearch | opus |
-| `skill-improver` | 스킬 테스트해줘, 스킬 개선해줘, skill-improver | sonnet + advisor |
+| `autoresearch` | 자동 실험, eval 루프, autoresearch | opus |
+| `skill-improver` | 스킬 테스트해줘, 스킬 개선해줘, 스킬 최적화, skill-improver | sonnet + advisor |
 | `frontend-design-evaluator` | 디자인 평가, UI 리뷰, 디자인 검수해줘 | sonnet + advisor |
 | `multi-agent-orchestrator` | 멀티에이전트, 파이프라인 실행, 에이전트 오케스트레이션 | opus |
 | `qa-evaluator` | QA 테스트, 웹앱 테스트, 앱 검증해줘 | sonnet + advisor |
