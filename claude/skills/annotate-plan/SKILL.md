@@ -1,6 +1,6 @@
 ---
 name: annotate-plan
-description: "Create implementation plans with annotation cycle support. Phase A generates initial plan with parallel agents. Phase B processes user inline annotations iteratively. Triggers: 구현 계획 작성, 플랜 만들어줘, annotate-plan, /annotate-plan"
+description: "병렬 에이전트로 구현 계획을 생성하고, 사용자 인라인 주석을 반복 처리하여 플랜을 개선한다. 구현 계획 작성, 플랜 만들어줘, annotate-plan, /annotate-plan 요청 시 사용한다."
 model: sonnet
 allowed-tools: Read, Write, Glob, Grep, Bash, Agent, advisor
 ---
@@ -21,7 +21,7 @@ Create an implementation plan at `.plans/plan-{feature}.md` and support iterativ
 | Agent | Type | Role |
 |-------|------|------|
 | **plan-drafter** | `Plan` (subagent_type) | Draft implementation plan from research + context |
-| **reference-finder** | `Explore` (subagent_type) | Find reusable patterns, utilities, and reference implementations in the codebase. Output to `.plans/.references/{feature}.md` |
+| **reference-finder** | `reference-finder` (subagent_type) | Find reusable patterns, utilities, and reference implementations in the codebase. Output to `.plans/.references/{feature}.md` |
 
 The reference-finder agent follows `~/.claude/agents/reference-finder.md` standards.
 
