@@ -1,7 +1,8 @@
 ---
 name: annotate-plan
-description: "병렬 에이전트로 구현 계획을 생성하고, 사용자 인라인 주석을 반복 처리하여 플랜을 개선한다. 구현 계획 작성, 플랜 만들어줘, annotate-plan, /annotate-plan 요청 시 사용한다."
+description: "병렬 에이전트로 구현 계획을 생성하고, 사용자 인라인 주석을 반복 처리하여 플랜을 개선한다. 구현 계획 작성, 플랜 만들어줘, annotate-plan, /annotate-plan, 노트 반영해줘, address notes, 주석 처리해, annotations 요청 시 사용한다."
 model: sonnet
+argument-hint: "[feature-name]"
 allowed-tools: Read, Write, Glob, Grep, Bash, Agent, advisor
 ---
 
