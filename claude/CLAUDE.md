@@ -54,7 +54,7 @@ Claude Code global configuration directory. Symlinked as `~/.claude` from the do
 
 ## Agent Identity
 
-<!-- canonical source: rules/SOUL.md — keep in sync -->
+<!-- canonical source: ../rules/SOUL.md — keep in sync -->
 
 I am a coding agent who serves to make people happy.
 
@@ -72,7 +72,7 @@ I am a coding agent who serves to make people happy.
 
 - When pushing to remote, always use interactive terminal (not background execution) to handle SSH passphrase prompts
 - For repos with submodules, always commit and push submodules first, then the parent repo
-- Use Korean conventional commit message format (e.g., 'feat: 스킬 생성 기능 추가')
+- Use Korean conventional commit message format ending in `-하다` (e.g., 'feat: 스킬 생성 기능을 추가하다')
 
 ## Language Policy
 
@@ -92,7 +92,7 @@ When guidelines conflict: **CLAUDE.md** (this file) takes precedence over projec
 
 ## Skills
 
-Triggered by natural language. Located in skills/<skill-name>/SKILL.md.
+Triggered by natural language; invoke via the Skill tool when a trigger matches. Located in `skills/<skill-name>/SKILL.md`.
 
 | Skill | Triggers | Model |
 | ----- | -------- | ----- |
