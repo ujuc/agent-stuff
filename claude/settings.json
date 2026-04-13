@@ -68,7 +68,6 @@
     "superpowers@claude-plugins-official": true,
     "everything-claude-code@everything-claude-code": true,
     "claude-hud@claude-hud": true,
-    "commit-commands@claude-plugins-official": true,
     "code-review@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
     "feature-dev@claude-plugins-official": true,
@@ -120,8 +119,8 @@
   "spinnerTipsEnabled": false,
   "alwaysThinkingEnabled": true,
   "effortLevel": "high",
+  "advisorModel": "opus",
   "autoUpdatesChannel": "latest",
   "skipAutoPermissionPrompt": true,
-  "teammateMode": "auto",
-  "advisorModel": "opus"
+  "teammateMode": "auto"
 }
