@@ -1,7 +1,7 @@
 # Git Commit Message Guide
 
-> Synthesized from [mitsuhiko/agent-stuff](references/mitsuhiko-commit.md) and
-> [antigravity-awesome-skills (Sentry)](references/antigravity-commit.md),
+> Synthesized from [mitsuhiko/agent-stuff](https://github.com/mitsuhiko/agent-stuff/blob/main/skills/commit/SKILL.md)
+> and [antigravity-awesome-skills (Sentry-style)](https://github.com/sickn33/antigravity-awesome-skills/blob/main/skills/commit/SKILL.md),
 > adapted for Korean Conventional Commits with `-하다` endings.
 
 ## Principles

@@ -13,10 +13,8 @@ allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git a
 
 `<type>(<scope>): <한국어 제목 -하다>`
 
-- **type** (필수): feat, fix, docs, style, refactor, test, chore
-- **scope** (선택): 프로젝트 CLAUDE.md에 정의된 scope를 따른다
-- **제목** (필수): 한국어, `-하다` 종결 어미, 50자 이내, 마침표 없음
-- **본문** (선택): 변경 의도가 불명확할 때만 포함한다. why > what > how 우선순위, 72자 줄바꿈
+- **scope**: 프로젝트 CLAUDE.md에 정의된 scope를 따른다.
+- 제목·본문 작성 규칙(허용 type, 길이 제한, 본문 우선순위 등)은 `references/gitmessage.md`를 따른다.
 
 ## 절차
 
@@ -124,63 +122,6 @@ EOF
 
 ## Gemma 위임 (선택)
 
-매우 큰 변경에서는 커밋 **본문** 작성 전에 로컬 Gemma로 diff를 1차 요약할 수 있다. 제목(`<type>(<scope>): <한국어 제목>`)은 여전히 Claude가 작성한다. Gemma는 본문의 사실 나열을 가볍게 돕는 역할만 한다. Gemma 호출 규약·폴백 규칙·결과 표시 원칙은 `../gemma/references/delegation-guide.md`를 따른다.
+매우 큰 변경(`git diff --cached --shortstat` ≥ 500줄, 변경 파일 ≥ 10개, 또는 사용자가 `큰 diff`/`요약해서 커밋`/`gemma로 정리` 같은 힌트를 준 경우)에서는 본문 작성 전에 로컬 Gemma로 diff를 1차 요약할 수 있다. 제목·최종 본문은 여전히 Claude가 작성·검토한다.
 
-### 트리거 조건
-
-다음 조건 중 하나 이상이면 위임을 고려한다:
-
-- `git diff --cached --shortstat`가 500줄 이상 변경을 보고
-- 변경 파일 수가 10개 이상
-- 사용자가 `큰 diff`, `요약해서 커밋`, `gemma로 정리` 같은 힌트를 제공
-
-작은 변경에서는 Claude가 직접 본문을 작성하는 편이 더 빠르고 정확하므로 이 단계를 건너뛴다.
-
-### 호출 방식
-
-스테이징 완료 후, commit 명령(7단계) 전에 한 번 호출한다. 아래 패턴은 두 가지 흔한 함정을 미리 피한다:
-
-- **Quoted heredoc 함정**: `<<'EOF'`는 내부의 `$()` command substitution을 literal로 취급한다. 따라서 `$(git diff --cached)`를 quoted heredoc 안에 넣으면 실제 diff가 아니라 문자열 `$(git diff --cached)` 가 gemma에 전달된다. diff를 먼저 변수로 캡처하고 double-quoted string으로 보간한다.
-- **zsh noclobber 함정**: `set -o noclobber`가 켜진 zsh에서 고정 경로로 `2>/tmp/foo.log`를 반복하면 두 번째 호출부터 `file exists`로 실패한다. PID 기반 이름 + `rm -f` 선행으로 회피한다.
-
-```bash
-# 로그 파일 — zsh noclobber 회피
-LOG=/tmp/gemma-commit-$$.log
-rm -f "$LOG"
-
-# 스테이지된 diff를 변수로 먼저 캡처 (quoted heredoc 함정 회피)
-DIFF=$(git diff --cached)
-
-# 프롬프트 조립 — double-quoted string 안의 $DIFF 는 값으로 보간되지만
-# diff 내부의 $·백틱 등은 재해석되지 않는다
-PROMPT="다음 git diff를 5개 이하의 글머리 기호로 요약해줘. 각 변경의 *의도*에 집중하고, 코드 인용은 하지 마. 한국어로 출력해.
-
----
-$DIFF"
-
-# 호출 + 조용한 폴백
-gemma_summary=$(GEMMA_TIMEOUT=300 bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh "$PROMPT" 2>"$LOG") || gemma_summary=""
-```
-
-- stdout은 `$gemma_summary`로 캡처, stderr는 로그 파일로 분리
-- `|| gemma_summary=""`가 폴백 트리거 — query.sh가 non-zero 종료 시 빈 문자열
-- 큰 diff는 기본 120초를 초과할 수 있으므로 `GEMMA_TIMEOUT=300` 같은 값으로 여유를 준다
-
-### 폴백 규칙
-
-**Gemma 가용성은 전제가 아니다.** Ollama가 꺼져 있거나 gemma 모델이 설치돼 있지 않거나 타임아웃이 나도 commit 절차 자체는 정상 진행돼야 한다:
-
-1. `$gemma_summary`가 비어 있으면 gemma 단계를 건너뛰고 Claude가 직접 본문을 작성한다
-2. 사용자에게는 세션당 한 번만 간단히 알린다 (예: `note: gemma 사전 요약을 건너뛰었습니다 — Ollama 미가동`)
-3. 이 때문에 커밋이 실패하면 안 된다 — gemma 실패는 에러가 아니라 **정상 경로**다
-
-### 결과 사용
-
-1. `$gemma_summary`를 얻었어도 그대로 본문에 붙여넣지 말고 Claude가 읽고 **정확성을 검토**한다
-2. 커밋 본문 작성 시 참고용 초안으로만 사용 — 최종 본문은 Claude가 책임진다
-3. Conventional Commits 형식, 한국어 `-하다` 종결 규칙은 여전히 Claude가 적용한다
-4. 사용자에게 커밋 diff를 설명할 때, gemma가 요약한 부분은 라벨을 붙여 구분한다 (예: `gemma 사전 요약에 따르면: ...`). 제목과 최종 커밋 메시지는 Claude의 voice로 유지한다
-
-## 참고
-
-커밋 메시지 상세 규칙은 references/gitmessage.md를 따른다.
+호출 패턴, 폴백 규칙, 결과 사용법은 `references/gemma-delegation.md`를 따른다.
