@@ -76,6 +76,9 @@ Triggered when user says: "노트 반영해줘", "address notes", "주석 처리
 - Also scan for patterns: `> ` blockquotes, `NOTE:`, `TODO:`, `FIXME:`, `<!-- ... -->` comments
 
 ### 2. Process Each Annotation
+
+See `references/annotation-guide.md` for the four annotation formats (blockquote, NOTE/TODO/FIXME, HTML comment, direct edit) and the six feedback-type categories used to classify the user's intent.
+
 For each detected annotation:
 1. Quote the annotation
 2. Explain how it will be addressed
@@ -96,7 +99,7 @@ This skill runs on sonnet by default. At the decision points below, call `adviso
 - **Phase A Step 3 — before writing Risk Assessment & Open Questions**: after merging outputs from plan-drafter and reference-finder, when it is unclear which risks are load-bearing or which items should be left as Open Questions.
 - **Phase B Step 2 — annotation interpretation**: when a user's blockquote / NOTE / TODO is ambiguous, or when it is unclear whether the change should cut across multiple sections or remain a localized edit.
 
-How to call: invoke `advisor()` with no parameters. The full current conversation context (plan file content and annotations) is automatically forwarded to the higher-tier model. Use this only when **the plan's direction itself needs a structural check** — not for simple Q&A.
+Use only when **the plan's direction itself needs a structural check** — not for simple Q&A.
 
 ## Constraints
 - **Do NOT implement code** during this skill
