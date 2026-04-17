@@ -1,182 +1,60 @@
 # 스킬 검토 체크리스트
 
-> Review 모드에서 참조하는 상세 검증 기준.
+> 자동 검증(`scripts/validate-skill.sh`)이 잡지 못하는 의미·트리거 검토만 다룬다. 형식 규칙(kebab-case, 길이, 예약 접두사 등)은 자동 검증으로 처리되니 여기서 다시 적지 않는다.
+
+상세 사양은 다음을 참조한다:
+
+- frontmatter 필드: `references/frontmatter-spec.md`
+- description 작성법·예시: `references/description-examples.md`
+- 폴더 구조 규칙: `references/skill-structure.md`
 
 ---
 
-## 구조 요구사항
+## 트리거 튜닝
 
-### 폴더 및 파일명
+### 과소 트리거 (스킬이 로드되지 않음)
 
-- 폴더명: `kebab-case` (예: `my-skill`, `notion-project-setup`)
-- 파일명: 반드시 `SKILL.md` (대소문자 구분, 변형 불가)
-- `README.md` 포함 금지 (스킬 폴더 내부)
-
-### YAML Frontmatter
-
-권장 필드:
-
-~~~yaml
----
-name: skill-name-in-kebab-case
-description: 무엇을 한다. 언제 사용한다.
----
-~~~
-
-- `name`: 생략 시 디렉토리명 사용 (max 64자, kebab-case)
-- `description`: 생략 시 마크다운 첫 문단 사용 (max 1024자)
-
-선택 필드:
-
-~~~yaml
-disable-model-invocation: true   # 수동 호출 전용
-user-invocable: false            # / 메뉴 숨김 (배경 지식용)
-model: opus                      # 실행 모델
-effort: max                      # 실행 노력 수준
-context: fork                    # 서브에이전트 격리 실행
-agent: Explore                   # context: fork 시 에이전트 타입
-allowed-tools: Read, Grep, Glob  # 허용 도구 제한
-argument-hint: "[issue-number]"  # 자동완성 힌트
-hooks:                           # 스킬 라이프사이클 훅
-  - event: on_skill_start
-    command: echo "started"
-~~~
-
----
-
-## description 작성 기준
-
-### 반드시 포함해야 하는 것
-
-1. **WHAT**: 이 스킬이 무엇을 하는가
-2. **WHEN**: 어떤 상황/요청에서 사용하는가 (트리거 문구 포함)
-
-### 좋은 예시
-
-~~~
-Analyzes Figma design files and generates developer handoff documentation.
-Use when user uploads .fig files, asks for "design specs", "component documentation",
-or "design-to-code handoff".
-~~~
-
-~~~
-스프린트 계획, 태스크 생성, 상태 추적 등 Linear 프로젝트 워크플로우를 관리한다.
-"스프린트", "Linear 태스크", "프로젝트 계획", "티켓 생성" 언급 시 사용한다.
-~~~
-
-### 나쁜 예시
-
-~~~
-# 너무 모호함
-Helps with projects.
-
-# 트리거 없음
-Creates sophisticated multi-page documentation systems.
-
-# 기술적 내부 용어만 있음
-Implements the Project entity model with hierarchical relationships.
-~~~
-
-### 제한 사항
-
-- 1024자 이하
-- XML 태그(`< >`) 사용 금지
-- `claude`, `anthropic` 접두사 스킬명 금지
-
----
-
-## 트리거 과잉/과소 대응
-
-### 과소 트리거 (로드가 안 됨)
-
-신호:
-- 스킬이 자동으로 로드되지 않음
-- 사용자가 수동으로 스킬을 호출해야 함
+증상:
+- 사용자가 관련 요청을 해도 스킬이 자동 로드되지 않음
+- 매번 수동으로 `/skill-name`을 입력해야 함
 
 해결:
-- description에 트리거 문구 추가
-- 사용자가 실제로 말할 법한 표현으로 구체화
+- description에 사용자가 **실제로 말할 법한 표현** 추가
+- 동의어, 줄임말, 구어체 표현 포함
+- 예: "PR 만들어줘", "풀리퀘 생성", "pull request"
 
 ### 과잉 트리거 (무관한 요청에도 로드됨)
 
-신호:
-- 무관한 작업에 스킬이 로드됨
+증상:
+- 관련 없는 작업에도 스킬이 로드됨
 - 사용자가 스킬을 비활성화함
 
 해결:
-- 부정 트리거 추가: "Do NOT use for simple data exploration"
-- description을 더 구체적으로 범위 제한
+- description에 부정 트리거 추가: "Do NOT use for simple data exploration"
+- 범위를 더 구체적으로 제한
+- 지나치게 일반적인 단어 제거 (예: "help", "manage")
 
 ---
 
-## 지시사항 품질 기준
+## 의미 검토 체크리스트
 
-### 구체성
+자동 검증은 형식만 본다. 다음은 사람의 판단이 필요한 항목이다.
 
-좋은 예:
-~~~
-`python scripts/validate.py --input {filename}` 실행.
-실패 시 일반 원인:
-- 필수 필드 누락 (CSV에 추가 필요)
-- 날짜 형식 오류 (YYYY-MM-DD 사용)
-~~~
+### description
 
-나쁜 예:
-~~~
-진행 전에 데이터를 검증하세요.
-~~~
+- [ ] WHAT(무엇을 하는가)이 명시되어 있는가
+- [ ] WHEN(언제 사용하는가)이 명시되어 있는가
+- [ ] 사용자가 실제로 쓸 법한 트리거 문구가 들어 있는가
+- [ ] 너무 일반적인 단어("help", "manage")로 시작해 과잉 트리거 위험이 없는가
 
-### 에러 처리 포함 여부
+### 본문 지시사항
 
-~~~markdown
-## 에러 처리
+- [ ] 각 단계가 실행 가능한 명령·기준으로 구체화되었는가
+- [ ] 실패 시나리오와 대응 방법이 포함되었는가
+- [ ] 입력/출력 예시가 있는가
+- [ ] 사용하는 도구(Read, Bash, AskUserQuestion 등)가 명시되었는가
 
-| 오류 | 원인 | 해결 |
-|------|------|------|
-| Connection refused | MCP 서버 미실행 | Settings > Extensions 확인 |
-| Invalid API key | 키 만료 또는 권한 없음 | 키 재발급 후 재연결 |
-~~~
+### 구조
 
-### 크기 제한
-
-- SKILL.md 본문: 5,000단어 이하 권장
-- 상세 문서는 `references/` 폴더로 분리
-- 분리 구조 예시:
-
-~~~
-my-skill/
-├── SKILL.md
-└── references/
-    ├── api-guide.md
-    └── examples/
-~~~
-
----
-
-## 최종 검증 체크리스트
-
-작성 전:
-- [ ] 2-3개 구체적 사용 사례 정의
-- [ ] 필요 도구 파악 (내장 또는 MCP)
-
-작성 중:
-- [ ] 폴더명 kebab-case
-- [ ] SKILL.md 정확한 파일명
-- [ ] YAML frontmatter `---` 구분자
-- [ ] `name`: kebab-case, 공백/대문자 없음
-- [ ] `description`: WHAT + WHEN 포함
-- [ ] XML 태그 없음
-- [ ] 지시사항 구체적이고 실행 가능
-- [ ] 에러 처리 포함
-- [ ] 예시 포함
-
-작성 후 (선택):
-- [ ] 이진 eval 기준이 3-6개 정의되었는가 (eval-guide.md 참조)
-
-업로드 전:
-- [ ] 명백한 요청에 트리거 확인
-- [ ] 무관한 요청에 비트리거 확인
-- [ ] 기능 테스트 통과
-- [ ] name 64자 이하
-- [ ] name에 연속 하이픈(`--`) 없음
-- [ ] SKILL.md 본문 500줄 이하 (초과 시 references/ 분리)
+- [ ] 모든 `references/` 경로가 실제 존재하는 파일을 가리키는가
+- [ ] 본문이 500줄을 넘으면 `references/`로 분리할 후보가 있는가
