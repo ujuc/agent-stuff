@@ -112,4 +112,29 @@ Triggered by natural language; invoke via the Skill tool when a trigger matches.
 | `implement-plan` | 구현 시작, 플랜 실행해, implement-plan | sonnet |
 | `prompting-assist` | 프롬프트 개선해줘, 이 프롬프트 리뷰, 프롬프팅 팁, /prompting | sonnet |
 
+## Semantics (Local Policy)
+
+Overrides for how `$GYEOL_HOME/memory/semantics/` is maintained in this environment. This block lives **outside** the `<!-- gyeol:begin -->` / `<!-- gyeol:end -->` markers so gyeol self-update cannot overwrite it.
+
+### Tool-based maintenance (prefer in-session tools over scripts)
+
+gyeol's `MEMORY_SYSTEM.md` documents `scripts/fetch-source.py` and `scripts/build-index.py` for archiving sources and regenerating indices. In this environment, **do not run those scripts and do not create replacement scripts**. Use the tools already available in the current session instead:
+
+- **Archive a source**: call `WebFetch` on the reference's `url`, then `Write` the resulting Markdown to `$GYEOL_HOME/memory/semantics/source/{id}-{slug}.source.md`. If the page blocks `WebFetch`, ask the user to paste a capture or drop a PDF in `source/manual/`.
+- **Maintain `_index.md` and `_tags.md`**: treat these as human-maintained artifacts. Use `Edit` (or `Write` on first creation) to add or remove a row whenever a reference is added or removed. Keep the row shape consistent with existing entries.
+- **Add a new reference**: read `_index.md` to find the next available id, `Write` the `summary/{id}-{slug}.md` file, archive the source via `WebFetch` + `Write` as above, then `Edit` `_index.md` and `_tags.md`. Update `_topics/` if applicable.
+- **PDF sources**: if a PDF is required and cannot be rendered in-session, place the original under `source/manual/{id}-{slug}.pdf` and note the manual capture in the reference's frontmatter.
+
+Rationale: the current Python scripts target a legacy `.memory/` path that does not match the documented `memory/` structure, and their dependencies (`trafilatura`, `pymupdf4llm`) are not guaranteed to be installed. In-session tools are always available and operate on the correct path.
+
+### Upstream check (60-day cadence)
+
+In addition to the gyeol-managed session routine above (items 1–6), run this local check on every session start.
+
+7. **Semantics upstream check.** Read `$GYEOL_HOME/.last_semantics_scan`. If the file does not exist or its recorded date is more than 7 days ago:
+   1. Glob `$GYEOL_HOME/memory/semantics/summary/*.md` and read each file's frontmatter. Treat any file where `last_upstream_check + upstream_check_interval_days < today` as expired. `upstream_check_interval_days` defaults to 60 when unset; references without `url` are skipped.
+   2. If one or more files are expired, surface a short, non-blocking notice to the user listing each expired reference's `id` and `title`, and ask whether to check them now. Do not auto-fetch without consent.
+   3. On consent, for each selected reference: `WebFetch` the `url`, diff against the existing summary, update `Key Points` / `Detailed Notes` if meaningful changes are detected, and set `last_upstream_check` to today's date in the frontmatter. Follow the tool-based maintenance rules above — do not invoke the Python scripts.
+   4. Whether any refresh happened or not, write today's date (YYYY-MM-DD) to `$GYEOL_HOME/.last_semantics_scan`.
+
 @RTK.md
