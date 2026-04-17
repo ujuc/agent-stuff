@@ -99,7 +99,7 @@ scripts/init-skill.py를 실행하여 템플릿 구조를 생성한다:
 python3 agents/claude/skills/generate-skills/scripts/init-skill.py <스킬이름> --path <대상경로>
 ```
 
-초기화 후 불필요한 예시 파일을 삭제하고 3~4단계에서 내용을 채운다.
+기본은 `SKILL.md`만 생성한다. Tier 3 리소스가 필요하면 `--with-references`, `--with-scripts`, `--with-assets` 플래그를 추가한다. 이후 3~4단계에서 내용을 채운다.
 
 ### 수동 생성 (init-skill.py 사용 불가 시)
 
@@ -152,15 +152,7 @@ references/frontmatter-spec.md와 references/description-examples.md를 참조�
    - `argument-hint`: 자동완성 시 표시할 인자 힌트 (예: `[issue-number]`)
    - `hooks`: 스킬 라이프사이클에 연결할 훅
 
-### 자기 검증
-
-- `name`이 존재하면: kebab-case 정규식 `^[a-z0-9]+(-[a-z0-9]+)*$`에 매칭하는가
-- `name`이 존재하면: 64자 이하인가
-- `description`이 존재하면: 1024자 이하인가
-- `description`이 존재하면: XML 태그가 없는가
-- `description`이 존재하면: WHAT과 WHEN이 모두 포함되어 있는가
-- `context`가 설정되면: 값이 `fork`인가
-- `agent`가 설정되면: `context: fork`도 함께 설정되어 있는가
+기계적 검증(kebab-case, 길이, 예약 접두사 등)은 5단계의 `validate-skill.sh`에서 자동 처리한다. 여기서는 의미 검증만 한다: description에 WHAT과 WHEN이 모두 포함되었는가.
 
 ---
 
@@ -270,23 +262,14 @@ references/eval-guide.md를 참조하여 3-6개의 yes/no 체크를 SKILL.md 하
 
 스킬이 최소 구조(SKILL.md만)이거나, 사용자가 빠른 생성을 요청한 경우 건너뛴다.
 
-### 수동 검증
+### 트리거 검증 (자동 검증으로 잡을 수 없음)
 
-references/review-checklist.md의 최종 검증 체크리스트를 적용한다:
+자동 검증은 형식만 본다. 트리거 정확도는 사람이 본다.
 
-**작성 전 확인:**
-- [ ] 2-3개 구체적 사용 사례가 정의되었는가
-- [ ] 필요 도구가 파악되었는가
+- 사용자가 실제로 쓸 법한 표현이 description에 들어 있는가 (과소 트리거 방지)
+- description이 너무 일반적인 단어("help", "manage")로 시작해 무관한 요청에도 매칭될 위험은 없는가 (과잉 트리거 방지)
 
-**작성 중 확인:**
-- [ ] YAML frontmatter가 올바른가 (자동 검증으로 확인)
-- [ ] 지시사항이 구체적이고 실행 가능한가
-- [ ] 에러 처리가 포함되었는가
-- [ ] 예시가 포함되었는가
-
-**작성 후 확인:**
-- [ ] 명백한 요청에 트리거가 작동하는가 (description 검토)
-- [ ] 무관한 요청에 트리거가 작동하지 않는가 (과잉 트리거 검토)
+판단이 필요하면 references/review-checklist.md의 트리거 튜닝 가이드를 참조한다.
 
 ### 등록
 
