@@ -35,21 +35,21 @@ description: |
 
 TODO: One-line description of what this skill does.
 
-$ARGUMENTS 가 주어지면 해당 경로/이름을 대상으로 한다. 없으면 사용자에게 확인한다.
+If $ARGUMENTS is provided, treat it as the target path / name. Otherwise, ask the user.
 
-## 1단계: TODO
+## Step 1: TODO
 
 TODO: Describe the first step.
 
 ---
 
-## 2단계: TODO
+## Step 2: TODO
 
 TODO: Describe the second step.
 
 ---
 
-## 검증
+## Validation
 
 TODO: Describe how to verify the output.
 

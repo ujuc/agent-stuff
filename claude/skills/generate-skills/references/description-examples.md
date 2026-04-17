@@ -1,27 +1,27 @@
-# description 작성 예시 모음
+# `description` writing guide
 
-> SKILL.md frontmatter의 `description` 필드 작성법과 예시.
-
----
-
-## WHAT + WHEN 공식
-
-description은 두 가지를 반드시 포함해야 한다:
-
-1. **WHAT**: 이 스킬이 **무엇을** 하는가
-2. **WHEN**: **어떤 상황/요청**에서 사용하는가
-
-```
-[WHAT 문장]. [WHEN 문장].
-```
-
-시스템은 description을 사용자 입력과 매칭하여 스킬을 자동 로드한다. description의 품질이 트리거 정확도를 결정한다.
+> How to write the `description` field in SKILL.md frontmatter, with examples.
 
 ---
 
-## 좋은 예시
+## The WHAT + WHEN formula
 
-### 영어
+`description` must include two things:
+
+1. **WHAT**: what the skill does.
+2. **WHEN**: in what situations / requests it should be used.
+
+```
+[WHAT sentence]. [WHEN sentence].
+```
+
+The system matches `description` against user input to auto-load the skill. Description quality determines trigger accuracy.
+
+---
+
+## Good examples
+
+### English
 
 ```yaml
 description: >-
@@ -44,7 +44,9 @@ description: >-
   "TDD", "test first", or "red-green-refactor".
 ```
 
-### 한국어
+### Korean
+
+Korean descriptions are kept verbatim because trigger phrases are language-specific.
 
 ```yaml
 description: >-
@@ -66,53 +68,53 @@ description: >-
 
 ---
 
-## 나쁜 예시 → 수정 예시
+## Bad → fixed
 
-### 너무 모호함
+### Too vague
 
 ```yaml
-# 나쁨: 무엇을 하는지, 언제 사용하는지 알 수 없음
+# Bad: doesn't say what it does or when to use it
 description: Helps with projects.
 
-# 수정: WHAT + WHEN 명시
+# Fix: state WHAT + WHEN
 description: >-
   Creates project scaffolding with recommended directory structure and configs.
   Use when starting a new project or asking to "set up a project".
 ```
 
-### 트리거 없음
+### Missing trigger
 
 ```yaml
-# 나쁨: WHAT만 있고 WHEN이 없음
+# Bad: WHAT only, no WHEN
 description: Creates sophisticated multi-page documentation systems.
 
-# 수정: WHEN(트리거 문구) 추가
+# Fix: add WHEN (trigger phrases)
 description: >-
   Creates multi-page documentation from source code and comments.
   Use when user asks for "generate docs", "API documentation",
   or "document this project".
 ```
 
-### 기술적 내부 용어만 사용
+### Internal jargon only
 
 ```yaml
-# 나쁨: 사용자가 쓸 법한 표현이 아님
+# Bad: not phrasing the user would actually say
 description: Implements the Project entity model with hierarchical relationships.
 
-# 수정: 사용자 관점의 표현으로 변경
+# Fix: rewrite from the user's perspective
 description: >-
   Sets up project hierarchy with parent-child relationships and permissions.
   Use when user asks to "organize projects", "create project structure",
   or "set up project permissions".
 ```
 
-### XML 태그 포함
+### Contains XML tags
 
 ```yaml
-# 나쁨: XML 태그 사용 금지
+# Bad: XML tags are forbidden
 description: Use for <important>project setup</important> tasks.
 
-# 수정: 태그 제거
+# Fix: drop the tags
 description: >-
   Handles project setup tasks including directory creation and config files.
   Use when user asks to "set up" or "initialize" a project.
@@ -120,12 +122,12 @@ description: >-
 
 ---
 
-## 길이 최적화 팁
+## Length tips
 
-- **최대**: 1024자 (초과 시 잘림)
-- **권장**: 100~300자 (핵심만 전달)
-- 불필요한 수식어 제거: "sophisticated", "comprehensive", "advanced" 등
-- 구체적 트리거 문구를 우선 배치
-- YAML 여러 줄 문법(`>-`) 사용 시 가독성 향상
+- **Hard max**: 1024 characters (truncated above this).
+- **Recommended**: 100–300 characters (just the essentials).
+- Drop empty modifiers: "sophisticated", "comprehensive", "advanced", ...
+- Front-load concrete trigger phrases.
+- Use YAML folded scalar (`>-`) for readability when the description is multi-line.
 
-> 트리거 과소·과잉 대응은 references/review-checklist.md의 "트리거 튜닝" 섹션 참조.
+> For trigger over- and under-trigger remediation, see the "Trigger tuning" section in `references/review-checklist.md`.

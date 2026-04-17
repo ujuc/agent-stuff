@@ -1,143 +1,143 @@
-# 스킬 패턴 가이드
+# Skill structural patterns
 
-> 5가지 스킬 구조 패턴과 선택 기준.
-
----
-
-## 패턴 선택 가이드
-
-| 패턴 | 적합한 상황 | 사용자 상호작용 | 자유도 |
-|------|------------|----------------|--------|
-| 선형 워크플로우 | 정해진 순서대로 실행하는 작업 | 낮음 | 낮음~중간 |
-| 인터뷰 기반 | 요구사항이 유동적이거나 사용자 맥락이 필요한 작업 | 높음 | 높음 |
-| 도구 오케스트레이션 | 여러 도구/API를 조합하는 작업 | 중간 | 중간 |
-| 템플릿 채우기 | 정형화된 출력물을 생성하는 작업 | 낮음 | 낮음 |
-| 검증·리뷰 | 기존 산출물의 품질을 점검하는 작업 | 중간 | 중간 |
+> Five structural patterns for skills, plus selection guidance.
 
 ---
 
-## 1. 선형 워크플로우
+## Pattern selector
 
-순서가 정해진 단계를 차례로 실행한다.
+| Pattern | Best fit | User interaction | Freedom |
+|---------|----------|------------------|---------|
+| Linear workflow | Tasks executed in a fixed order | Low | Low–medium |
+| Interview-based | Requirements vary; needs user context | High | High |
+| Tool orchestration | Combines several tools / APIs | Medium | Medium |
+| Template fill | Produces a fixed-shape artifact | Low | Low |
+| Validation / review | Quality-checks an existing artifact | Medium | Medium |
 
-### 언제 사용하는가
+---
 
-- 실행 순서가 명확하고 분기가 적은 작업
-- 각 단계의 입력/출력이 다음 단계로 전달되는 파이프라인
-- 예: 빌드 → 테스트 → 배포, 파일 생성 → 검증 → 커밋
+## 1. Linear workflow
 
-### 구조 예시
+Run a fixed sequence of steps in order.
+
+### When to use
+
+- Execution order is clear and there are few branches.
+- Each step's input/output flows into the next (pipeline).
+- Examples: build → test → deploy; create file → validate → commit.
+
+### Skeleton
 
 ```markdown
-## 1단계: 환경 확인
-(의존성 확인, 사전 조건 점검)
+## Step 1: Environment check
+(check dependencies, prerequisites)
 
-## 2단계: 코드 생성
-(핵심 작업 수행)
+## Step 2: Generate code
+(perform the core work)
 
-## 3단계: 검증
-(결과 확인, 테스트 실행)
+## Step 3: Validate
+(check results, run tests)
 
-## 4단계: 정리
-(커밋, 보고)
+## Step 4: Wrap up
+(commit, report)
 ```
 
-### 장단점
+### Trade-offs
 
-- 장점: 예측 가능, 디버깅 용이, 재현성 높음
-- 단점: 유연성 부족, 분기 처리 어려움
+- Pros: predictable, easy to debug, reproducible.
+- Cons: not flexible, branching is awkward.
 
 ---
 
-## 2. 인터뷰 기반
+## 2. Interview-based
 
-사용자와 대화하여 요구사항을 수집한 후 실행한다.
+Talk to the user to gather requirements, then act.
 
-### 언제 사용하는가
+### When to use
 
-- 사용자의 맥락/선호가 결과에 크게 영향을 미치는 작업
-- 요구사항이 모호하거나 여러 선택지가 존재하는 작업
-- 예: 프로젝트 설정, 문서 생성, 설계 결정
+- The user's context / preference materially shapes the result.
+- Requirements are ambiguous or have multiple valid choices.
+- Examples: project setup, doc generation, design decisions.
 
-### 구조 예시
+### Skeleton
 
 ```markdown
-## 1단계: 탐지
-(자동으로 파악 가능한 정보 수집)
+## Step 1: Detect
+(collect what can be inferred automatically)
 
-## 2단계: 인터뷰
-(AskUserQuestion으로 부족한 정보 수집)
-- 질문 1: ...
-- 질문 2: ...
+## Step 2: Interview
+(use AskUserQuestion to gather what's missing)
+- Question 1: ...
+- Question 2: ...
 
-## 3단계: 생성
-(수집한 정보 기반으로 실행)
+## Step 3: Generate
+(act based on collected info)
 
-## 4단계: 검증
-(결과 확인, 사용자 승인)
+## Step 4: Validate
+(check results, get user approval)
 ```
 
-### 장단점
+### Trade-offs
 
-- 장점: 맞춤형 결과, 사용자 만족도 높음
-- 단점: 실행 시간 길어짐, 질문이 과하면 피로감
+- Pros: tailored output, higher user satisfaction.
+- Cons: longer runtime; too many questions cause fatigue.
 
 ---
 
-## 3. 도구 오케스트레이션
+## 3. Tool orchestration
 
-여러 도구(내장 도구, MCP 서버, 외부 CLI)를 조합하여 복합 작업을 수행한다.
+Combine several tools (built-ins, MCP servers, external CLIs) into a compound task.
 
-### 언제 사용하는가
+### When to use
 
-- 단일 도구로는 해결할 수 없는 복합 작업
-- 여러 시스템 간 데이터를 연동하는 작업
-- 예: API 호출 → 데이터 변환 → 파일 생성, Git + 이슈 트래커 연동
+- A single tool cannot solve the task.
+- Data flows between several systems.
+- Examples: API call → transform → write file; Git + issue tracker integration.
 
-### 구조 예시
+### Skeleton
 
 ```markdown
-## 사전 조건
-(필요 도구/서버 확인, 연결 상태 점검)
+## Prerequisites
+(verify required tools / servers, check connectivity)
 
-## 워크플로우
-1. [도구 A]에서 데이터 조회
-2. 데이터 변환/가공
-3. [도구 B]에 결과 전달
-4. 결과 확인
+## Workflow
+1. Query data from [tool A]
+2. Transform
+3. Push result to [tool B]
+4. Verify
 
-## 에러 처리
-| 오류 | 원인 | 해결 |
-|------|------|------|
-| Connection refused | 서버 미실행 | ... |
+## Error handling
+| Error | Cause | Resolution |
+|-------|-------|------------|
+| Connection refused | Server not running | ... |
 ```
 
-### 장단점
+### Trade-offs
 
-- 장점: 강력한 자동화, 복합 작업 처리
-- 단점: 의존성 많음, 에러 처리 복잡, 디버깅 어려움
+- Pros: powerful automation, handles compound work.
+- Cons: many dependencies, complex error handling, hard to debug.
 
 ---
 
-## 4. 템플릿 채우기
+## 4. Template fill
 
-정형화된 틀에 변수를 채워 산출물을 생성한다.
+Produce an artifact by substituting variables into a fixed template.
 
-### 언제 사용하는가
+### When to use
 
-- 출력 형식이 일정하고 반복적인 작업
-- 보일러플레이트 생성
-- 예: PR 템플릿, 설정 파일, 문서 골격
+- Output shape is consistent and repetitive.
+- Boilerplate generation.
+- Examples: PR template, config files, doc skeletons.
 
-### 구조 예시
+### Skeleton
 
 ```markdown
-## 입력 변수
-- `$PROJECT_NAME`: 프로젝트 이름
-- `$AUTHOR`: 작성자
-- `$TECH_STACK`: 기술 스택
+## Input variables
+- `$PROJECT_NAME`: project name
+- `$AUTHOR`: author
+- `$TECH_STACK`: tech stack
 
-## 템플릿
+## Template
 
 \```
 # $PROJECT_NAME
@@ -146,110 +146,110 @@ Author: $AUTHOR
 Stack: $TECH_STACK
 \```
 
-## 생성 규칙
-(변수 치환 규칙, 조건부 섹션 포함/제외 기준)
+## Generation rules
+(substitution rules, conditional inclusion criteria)
 ```
 
-### 장단점
+### Trade-offs
 
-- 장점: 일관된 출력, 빠른 실행, 유지보수 용이
-- 단점: 유연성 제한, 복잡한 로직 표현 어려움
+- Pros: consistent output, fast, easy to maintain.
+- Cons: limited flexibility, hard to express complex logic.
 
 ---
 
-## 5. 검증·리뷰
+## 5. Validation / review
 
-기존 산출물을 기준에 따라 점검하고 개선점을 제시한다.
+Check an existing artifact against criteria and surface improvements.
 
-### 언제 사용하는가
+### When to use
 
-- 품질 게이트 역할이 필요한 작업
-- 체크리스트 기반 검토
-- 예: 코드 리뷰, 문서 검증, 설정 감사
+- Acts as a quality gate.
+- Checklist-driven review.
+- Examples: code review, doc validation, config audit.
 
-### 구조 예시
+### Skeleton
 
 ```markdown
-## 검증 대상
-(대상 파일/디렉토리 식별)
+## Subject
+(identify target file/directory)
 
-## 검증 기준
-### 기준 1: 구조 검사
-- [ ] 항목 A
-- [ ] 항목 B
+## Criteria
+### Criterion 1: structure
+- [ ] Item A
+- [ ] Item B
 
-### 기준 2: 내용 검사
-- [ ] 항목 C
+### Criterion 2: content
+- [ ] Item C
 
-## 결과 보고
-(통과/실패 요약, 수정 제안)
+## Report
+(pass/fail summary, suggested fixes)
 
-## 수정 후 재검증
-(실패 항목 수정 후 해당 기준만 재실행)
+## Re-validation
+(after fixing failed items, re-run only those criteria)
 ```
 
-### 장단점
+### Trade-offs
 
-- 장점: 품질 보장, 재현 가능한 검증, 자동화 용이
-- 단점: 기준 작성에 시간 소요, 과도한 검증은 생산성 저하
+- Pros: enforces quality, reproducible, easy to automate.
+- Cons: criteria take time to write; over-validation hurts productivity.
 
 ---
 
-## 6. 워크플로우 구성 패턴
+## 6. Workflow composition patterns
 
-복잡한 스킬에서 단계 간 흐름을 설계하는 두 가지 방식.
+Two ways to design step-to-step flow inside a complex skill.
 
-### 순차적 워크플로우 (Sequential)
+### Sequential workflow
 
-실행 순서가 명확하고 각 단계가 이전 단계의 결과에 의존할 때 사용한다.
+Use when execution order is clear and each step depends on the previous step's output.
 
-**원칙:**
-- 개요를 먼저 제공하고 상세 단계를 따른다
-- 각 단계의 입력/출력을 명확히 정의한다
-- 의존 관계를 명시한다 ("2단계 완료 후 진행")
+**Principles:**
+- Provide an overview before detailed steps.
+- Define each step's input / output explicitly.
+- State dependencies ("only after Step 2 completes").
 
 ```markdown
-## 1단계: 환경 확인
-(선행 조건 점검)
+## Step 1: Environment check
+(prerequisites)
 
-## 2단계: 생성
-(핵심 작업 — 1단계 성공 필수)
+## Step 2: Generate
+(core work — requires Step 1 success)
 
-## 3단계: 검증
-(결과 확인 — 2단계 출력물 필요)
+## Step 3: Validate
+(needs Step 2 output)
 ```
 
-### 조건부 워크플로우 (Conditional)
+### Conditional workflow
 
-사용자 입력이나 환경 상태에 따라 다른 경로를 택할 때 사용한다.
+Use when the path depends on user input or environment state.
 
-**원칙:**
-- 분기 로직을 명시적으로 안내한다
-- if/else 분기를 2-3개 이내로 유지한다
-- 각 분기의 결과가 동일한 목적지로 수렴하도록 설계한다
+**Principles:**
+- Make branching logic explicit.
+- Keep if/else branches to 2–3 max.
+- Make all branches converge on the same goal.
 
 ```markdown
-## 환경 감지
+## Detect environment
 
-- 설정 파일이 있으면 → "업데이트 모드"로 진행
-- 설정 파일이 없으면 → "신규 생성 모드"로 진행
+- Config file exists → "update mode"
+- Config file missing → "fresh-create mode"
 
-### 업데이트 모드
-(기존 설정 유지, 변경 사항만 적용)
+### Update mode
+(keep existing config, apply changes only)
 
-### 신규 생성 모드
-(기본값으로 전체 생성)
+### Fresh-create mode
+(create everything with defaults)
 ```
 
 ---
 
-## 패턴 조합
+## Combining patterns
 
-복잡한 스킬은 여러 패턴을 조합할 수 있다:
+Complex skills often combine patterns:
 
-- **인터뷰 + 선형**: 요구사항 수집 후 순차 실행 (예: `generate-claude-md`)
-- **선형 + 검증**: 생성 후 품질 검증 (예: `generate-skills`)
-- **도구 오케스트레이션 + 검증**: 자동화 실행 후 결과 검증
-- **순차 + 조건부**: 정해진 흐름 안에서 상황에 따라 분기 (예: 설정 파일 있으면 업데이트, 없으면 신규 생성)
+- **Interview + linear**: collect requirements, then run a fixed sequence (e.g., `generate-claude-md`).
+- **Linear + validation**: generate, then quality-check (e.g., `generate-skills`).
+- **Tool orchestration + validation**: run automation, then verify the result.
+- **Sequential + conditional**: a fixed flow that branches based on situation (e.g., update if config exists, create otherwise).
 
-조합 시 각 패턴의 경계를 단계로 명확히 구분한다.
+When combining, separate each pattern boundary with explicit step headings.
