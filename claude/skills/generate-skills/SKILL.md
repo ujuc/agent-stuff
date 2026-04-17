@@ -32,6 +32,17 @@ Principles that guide every step. See `references/design-principles.md` for the 
 
 ---
 
+## Language policy
+
+Apply this to every skill created or updated through this workflow.
+
+- **`description` field → Korean.** This is the only part the user sees. Korean trigger phrases are also matched against `$ARGUMENTS` and the user's natural utterances, so Korean wording is functional, not just stylistic.
+- **SKILL.md body, references/, scripts/, init templates → English.** This content is read by the LLM. English is more token-efficient and avoids translation drift in instructional prose.
+- **Keep Korean verbatim where it has functional value:** trigger keywords used for `$ARGUMENTS` matching (e.g., `업데이트`, `수정`), Korean usage examples in description-writing guides, Korean Conventional Commits examples, and any text the user is expected to read (e.g., user-facing summary blocks defined inside a skill).
+- **When updating a legacy skill** that has Korean prose in the body or references, translate the prose to English while preserving the items above.
+
+---
+
 ## Step 0: Spec sanity check (before anything else)
 
 The official skills doc changes often. Verify it before generating.
