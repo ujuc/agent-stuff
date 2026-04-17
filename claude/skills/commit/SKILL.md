@@ -7,121 +7,123 @@ allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git a
 
 # Git Commit
 
-프로젝트의 한국어 Conventional Commits 규칙에 따라 커밋을 생성한다.
+Generate commits per the project's Korean Conventional Commits convention.
 
-## 형식
+## Format
 
 `<type>(<scope>): <한국어 제목 -하다>`
 
-- **scope**: 프로젝트 CLAUDE.md에 정의된 scope를 따른다.
-- 제목·본문 작성 규칙(허용 type, 길이 제한, 본문 우선순위 등)은 `references/gitmessage.md`를 따른다.
+- **scope**: follow the scopes defined in the project's CLAUDE.md.
+- Subject and body rules (allowed types, length limits, body priority, etc.) follow `references/gitmessage.md`.
 
-## 절차
+## Procedure
 
-### 0. 서브모듈 변경 감지
+### Step 0. Detect submodule changes
 
-1. `git status`로 서브모듈 변경 여부를 확인한다 (modified content, new commits)
-2. 변경된 서브모듈이 있으면 **서브모듈 내부를 먼저** 처리한다:
-   - `git -C <submodule> status`와 `git -C <submodule> diff`로 변경 내용 파악
-   - 서브모듈 내부에서 스테이징 → 커밋 (아래 1~7단계와 동일한 규칙 적용)
-   - 사용자가 push를 요청한 경우 서브모듈부터 push
-3. 서브모듈 처리가 끝나면 부모 저장소로 돌아와 서브모듈 포인터를 포함하여 진행한다
+1. Run `git status` and check whether any submodule is reported as modified (modified content, new commits).
+2. If a submodule has changes, **process the submodule first**:
+   - Inspect with `git -C <submodule> status` and `git -C <submodule> diff`.
+   - Stage and commit inside the submodule (apply the same rules as Steps 1–7 below).
+   - If the user asked for a push, push the submodule first.
+3. Once the submodule is done, return to the parent repo and proceed including the updated submodule pointer.
 
-### 1~7. 부모 저장소 커밋
+### Steps 1–7. Parent repo commit
 
-1. 사용자 인자에서 파일 경로나 지시사항을 확인한다
-2. `git status`와 `git diff`로 변경사항을 파악한다
-3. `git log --oneline -20`으로 최근 커밋 스타일과 scope를 확인한다
-4. 스테이징할 파일이 불명확하면 사용자에게 확인한다
-5. 해당 파일만 `git add`로 스테이징한다
-6. 구조적 변경이 감지되면 문서 증분 업데이트를 수행한다 (아래 "문서 업데이트" 참조)
-7. heredoc으로 커밋한다:
+1. Read the user's arguments for file paths or instructions.
+2. Inspect changes with `git status` and `git diff`.
+3. Run `git log --oneline -20` to learn the recent commit style and scope vocabulary.
+4. If which files to stage is unclear, ask the user.
+5. Stage only the intended files with `git add`.
+6. If structural changes are detected, run an incremental doc update (see "Doc updates" below).
+7. Commit using a heredoc:
 
 ```bash
 git commit -m "$(cat <<'EOF'
 <type>(<scope>): <한국어 제목>
 
-<본문 — 필요한 경우만>
+<body — only when needed>
 EOF
 )"
 ```
 
-## 문서 업데이트
+## Doc updates
 
-스테이징 완료 후, 아래 조건에 따라 프로젝트 문서를 증분 수정한다.
+After staging, conditionally apply incremental edits to project documentation.
 
-### 트리거 조건 (하나라도 해당하면 수행)
+### Triggers (apply if any holds)
 
-1. 파일/디렉토리 추가 또는 삭제
-2. 새 scope 후보 등장 (새 최상위 디렉토리)
-3. 외부 도구 의존성 추가
+1. File or directory added/removed.
+2. New scope candidate (a new top-level directory).
+3. External tool dependency added.
 
-### 적용 제외 (수행하지 않음)
+### Skip conditions
 
-- 기존 파일 내용만 변경 (구조 변경 없음)
-- 서브모듈 포인터 업데이트
-- style, refactor 타입의 내부 변경
-- 프로젝트 루트에 AGENTS.md/CLAUDE.md가 없는 경우
+- Content-only changes to existing files (no structural change).
+- Submodule pointer updates.
+- `style` or `refactor` type internal changes.
+- The project root has no AGENTS.md or CLAUDE.md.
 
-### 수행 절차
+### Procedure
 
-1. Glob으로 프로젝트 루트에 AGENTS.md, CLAUDE.md 존재를 확인한다
-2. 없으면 문서 업데이트를 건너뛴다
-3. Read로 해당 문서의 관련 섹션을 확인한다 (아래 섹션 매핑 참조)
-4. 변경이 필요하면 사용자에게 수정 내용을 설명하고 승인을 받는다
-5. Edit로 해당 섹션만 증분 수정한다
-6. 수정된 문서를 `git add`로 스테이징한다
+1. Use Glob to confirm AGENTS.md / CLAUDE.md exists at project root.
+2. If absent, skip doc updates.
+3. Read the relevant section (see section mapping below).
+4. If a change is needed, describe the edit to the user and get approval.
+5. Use Edit to apply the incremental change to that section only.
+6. Stage the modified doc with `git add`.
 
-### 섹션 매핑
+### Section mapping
 
 **AGENTS.md**:
 
-| 트리거 | 수정 대상 섹션 |
-| ------ | -------------- |
-| 파일/디렉토리 추가·삭제 | Repository Structure (트리 다이어그램) |
-| 주요 파일 추가 | Key Files 테이블 |
-| 새 최상위 디렉토리 추가 | Scopes 테이블 |
+| Trigger | Section to edit |
+| ------- | --------------- |
+| File / directory add or remove | Repository Structure (tree diagram) |
+| Significant file added | Key Files table |
+| New top-level directory | Scopes table |
 
-**CLAUDE.md**: 새 scope 후보 시 Scopes 목록 (AGENTS.md와 동기화 필요 시만)
+**CLAUDE.md**: Scopes list — only when a new scope candidate appears and CLAUDE.md needs to stay in sync with AGENTS.md.
 
-**README.md**: 외부 도구 의존성 추가 시 설치/의존성 섹션만
+**README.md**: Installation / Dependencies section — only when an external tool dependency is added.
 
-### 발견 가능성 원칙
+### Discoverability principle
 
-코드나 파일을 읽으면 알 수 있는 정보는 문서에 넣지 않는다. 문서에는 **목적, 배포 대상, 관계**만 기술한다.
+Don't put information that can be derived by reading code or files into the docs. Docs hold **purpose, deployment target, and relationships** only.
 
-## Push (선택)
+## Push (optional)
 
-사용자가 push를 함께 요청한 경우 (`커밋하고 푸시해줘`, `commit and push` 등):
+If the user explicitly asks to push as part of the request (`커밋하고 푸시해줘`, `commit and push`, ...):
 
-1. **반드시 foreground에서 실행**한다 (SSH passphrase 프롬프트 대응)
-2. 서브모듈이 있으면 서브모듈 push를 먼저 완료한 뒤 부모 저장소를 push한다
-3. push 실패 시:
-   - SSH 관련 에러 → `ssh-add` 실행을 사용자에게 제안한다
-   - 기타 에러 → 에러 메시지를 그대로 전달한다
-4. push를 명시적으로 요청하지 않았으면 push하지 않는다
+1. **Run in the foreground** (so the SSH passphrase prompt actually reaches the user).
+2. If submodules exist, push the submodule first, then the parent repo.
+3. On push failure:
+   - SSH-related error → suggest the user run `ssh-add`.
+   - Other errors → relay the error message verbatim.
+4. Do NOT push when push wasn't explicitly requested.
 
-## 요약
+## Summary
 
-커밋(및 push) 완료 후 간결한 요약을 출력한다:
+After commit (and push, if any), output a concise summary:
 
 ```
 커밋 완료:
-- [서브모듈명] <commit message> (push 여부)
-- [부모 저장소] <commit message> (push 여부)
+- [submodule] <commit message> (push y/n)
+- [parent] <commit message> (push y/n)
 파일 N개 변경, +X/-Y줄
 ```
 
-## 금지 사항
+The summary block is shown to the user, so the labels stay in Korean.
 
-- Co-Authored-By를 추가하지 않는다 (시스템이 자동 처리)
-- 사용자 확인 없이 파일을 스테이징하지 않는다
-- 서브모듈 내부의 문서를 수정하지 않는다
-- 새 문서 파일을 생성하지 않는다 (기존 문서의 증분 수정만 수행)
-- push를 명시적으로 요청받지 않았으면 push하지 않는다
+## Prohibitions
 
-## Gemma 위임 (선택)
+- Do NOT add `Co-Authored-By` (the system handles this).
+- Do NOT stage files without user confirmation.
+- Do NOT modify docs inside a submodule.
+- Do NOT create new doc files (incremental edits to existing docs only).
+- Do NOT push unless explicitly requested.
 
-매우 큰 변경(`git diff --cached --shortstat` ≥ 500줄, 변경 파일 ≥ 10개, 또는 사용자가 `큰 diff`/`요약해서 커밋`/`gemma로 정리` 같은 힌트를 준 경우)에서는 본문 작성 전에 로컬 Gemma로 diff를 1차 요약할 수 있다. 제목·최종 본문은 여전히 Claude가 작성·검토한다.
+## Gemma delegation (optional)
 
-호출 패턴, 폴백 규칙, 결과 사용법은 `references/gemma-delegation.md`를 따른다.
+For very large changes (`git diff --cached --shortstat` ≥ 500 lines, ≥ 10 files changed, or the user gives a hint like `큰 diff` / `요약해서 커밋` / `gemma로 정리`), the body draft can be pre-summarized via local Gemma. The subject and the final body are still authored and reviewed by Claude.
+
+Call pattern, fallback rules, and result usage follow `references/gemma-delegation.md`.
