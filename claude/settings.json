@@ -22,7 +22,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/rtk-rewrite.sh"
+            "command": "rtk hook claude"
           }
         ]
       }
@@ -122,5 +122,6 @@
   "advisorModel": "opus",
   "autoUpdatesChannel": "latest",
   "skipAutoPermissionPrompt": true,
-  "teammateMode": "auto"
+  "teammateMode": "auto",
+  "tui": "fullscreen"
 }
