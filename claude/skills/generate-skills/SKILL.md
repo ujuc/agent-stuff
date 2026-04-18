@@ -295,3 +295,64 @@ Once validation passes, add a row to the Skills table in the appropriate CLAUDE.
 ### Distribution (optional)
 
 For team-wide distribution, see `references/distribution-guide.md` — repo check-in vs. plugin marketplace, composing skills, and measuring usage.
+
+---
+
+## Gotchas
+
+Skill-specific pitfalls that validator automation cannot catch. Update this section whenever a new edge case is discovered.
+
+1. **`disable-model-invocation: true` with natural-language triggers in `description`.**
+   When this flag is set, Claude cannot auto-load the skill from `description`. Trigger phrases still work only because the parent CLAUDE.md's Skills table explicitly lists them, letting Claude invoke via the `Skill` tool. If you remove the CLAUDE.md row, the skill becomes `/name`-only.
+
+2. **Reference paths are relative to SKILL.md, not the invocation cwd.**
+   `references/<name>.md` in SKILL.md always resolves relative to the skill directory. Avoid `../` paths — if you need content from outside the skill tree, copy it into `references/` so the skill stays self-contained.
+
+3. **`context: fork` drops conversation history.**
+   The forked subagent sees only the SKILL.md body as its prompt — no prior messages, no user context. Any skill using `context: fork` must be self-sufficient (no "as discussed above" assumptions).
+
+4. **Step 0 `WebFetch` is a single point of staleness.**
+   When the Claude Code docs page is unreachable (network, rate limit, layout change), the workflow falls back to the local `references/frontmatter-spec.md`. The metadata block at the top of that file (`last_upstream_check`) is the only signal of how stale the spec might be.
+
+5. **Cargo first-build cost is user-visible.**
+   The first invocation of `scripts/validate-skill` or `scripts/init-skill` compiles the Rust workspace (~6–30s). Subsequent runs are near-instant. Users unfamiliar with Rust may interpret the initial pause as a hang — surface this in progress messages if the skill is invoked in an unattended context.
+
+---
+
+## Eval Criteria
+
+Five binary checks that should pass for any skill produced (or updated) by this workflow. The `autoresearch` skill can reuse these when optimizing autonomously.
+
+```
+EVAL 1: Frontmatter completeness
+  Question: Does SKILL.md contain both `name` and `description` fields,
+            each non-empty?
+  Pass: Both present with content.
+  Fail: Either missing or empty string.
+
+EVAL 2: Reference path integrity
+  Question: Do all `references/<path>` mentions in SKILL.md resolve
+            to files that exist on disk?
+  Pass: Every referenced path is an existing file.
+  Fail: Any referenced path is broken.
+
+EVAL 3: Description structure
+  Question: Does `description` (or `description` + `when_to_use`
+            together) contain both WHAT (what the skill does) and
+            WHEN (concrete trigger phrases the user might say)?
+  Pass: Both elements clearly present, no pure-generic leaders
+        like "help" or "manage".
+  Fail: Missing WHAT or WHEN, or the phrasing is purely generic.
+
+EVAL 4: Body size budget
+  Question: Is the SKILL.md body (everything after the closing `---`)
+            at most 500 lines?
+  Pass: ≤ 500 lines.
+  Fail: > 500 lines — split detail into `references/` files.
+
+EVAL 5: Validator pass
+  Question: Does `bash scripts/validate-skill <skill-dir>` exit with
+            status 0 and no `✗` findings?
+  Pass: Exit 0, no error-severity lines.
+  Fail: Exit non-zero, or any `✗` finding.
+```
