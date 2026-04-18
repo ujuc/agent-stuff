@@ -1,6 +1,7 @@
 ---
 name: generate-claude-md
-description: "CLAUDE.md, AGENTS.md, contributing-docs/, .claude/rules/ 파일을 가이드 원칙에 따라 생성하거나 업데이트한다. /generate-claude-md, CLAUDE.md 업데이트, AGENTS.md 갱신 요청 시 사용한다."
+description: 프로젝트용 CLAUDE.md, AGENTS.md, contributing-docs/, .claude/rules/ 파일을 발견 불가능 정보 원칙에 따라 생성하거나 업데이트한다.
+when_to_use: "문서 생성/갱신 요청일 때. 트리거: '/generate-claude-md', 'CLAUDE.md 업데이트', 'AGENTS.md 갱신', 'rules 생성', 'contributing-docs 추가', 'update CLAUDE.md', 'refresh AGENTS.md'. 단일 파일 편집은 Edit 도구를 직접 쓰고 이 스킬을 호출하지 않는다."
 model: opus
 allowed-tools: Read, Write, Edit, Glob, Grep, Agent, advisor
 ---
@@ -9,106 +10,106 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Agent, advisor
 
 ## Mode Detection
 
-$ARGUMENTS를 분석하여 모드를 결정한다:
+Inspect `$ARGUMENTS` and pick a branch:
 
-- **업데이트 모드**: "업데이트", "수정", "갱신", "update", "refresh" 포함 시
-  → Stage 1(재분석) → U1(감사) → U2(비교) → U3(적용) → Stage 4(검증)
-- **생성 모드**: 그 외
+- **Update mode**: `$ARGUMENTS` contains any of `업데이트`, `수정`, `갱신`, `update`, `refresh`
+  → Stage 1 (re-analysis) → U1 (audit) → U2 (compare) → U3 (apply) → Stage 4 (verification)
+- **Generate mode**: anything else
   → Stage 1 → Stage 2 → Stage 3 → Stage 4
 
 ### Target Identification
 
-| Keyword | Target |
-|---------|--------|
-| "CLAUDE.md" (단독) | Root CLAUDE.md만 |
-| "AGENTS.md" | AGENTS.md + contributing-docs/ |
-| "rules" | .claude/rules/만 |
-| 키워드 없이 "업데이트" | 5종 전체 |
+| Keyword in `$ARGUMENTS` | Target |
+|-------------------------|--------|
+| `CLAUDE.md` alone | Root CLAUDE.md only |
+| `AGENTS.md` | AGENTS.md + contributing-docs/ |
+| `rules` | `.claude/rules/` only |
+| `업데이트` with no specific file name | All 5 file types |
 
-$ARGUMENTS가 없으면 현재 작업 디렉토리를 대상으로 생성 모드.
+If `$ARGUMENTS` is empty, run in generate mode against the current working directory.
 
 ---
 
 ## Generation Philosophy
 
-이 스킬 전체를 관통하는 원칙이다.
+Principles that govern every stage of this skill.
 
-**설계 원칙** (references/karpathy-guidelines.md): 생각 후 행동 / 단순함 우선 / 외과적 정밀함 / 목표 기반 실행
+**Design principles** (references/karpathy-guidelines.md): think before acting, simplicity first, surgical precision, goal-driven execution.
 
-**콘텐츠 원칙** (references/osmani-guidelines.md): 발견 불가능한 정보만 포함. AGENTS.md는 코드로 해결하지 못한 문제의 진단 목록이다.
+**Content principles** (references/osmani-guidelines.md): include only undiscoverable information. AGENTS.md is a diagnostic list of problems that code has not yet solved.
 
-**성능 근거**: 자동 생성 컨텍스트 → 성공률 -2~3%, 비용 +20%. 수동 작성 gotcha → 성공률 +4% (ETH Zurich). 모든 줄은 존재 이유를 증명해야 한다.
+**Performance evidence**: auto-generated context → success rate −2–3%, cost +20%. Human-written gotchas → success rate +4% (ETH Zurich). Every line must justify its existence.
 
-**거버넌스 원칙** (references/entry-router-guidelines.md): 자율 에이전트 안전장치가 필요한 경우, Entry Router 패턴의 CORE 규칙을 AGENTS.md Boundaries와 CLAUDE.md 행동 가이드라인에 반영한다.
+**Governance principle** (references/entry-router-guidelines.md): when autonomous-agent safeguards are required, reflect the Entry Router CORE rules in AGENTS.md Boundaries and CLAUDE.md behavioral guidelines.
 
-**영혼** (references/SOUL.md): 에이전트 정체성과 태도의 기저.
+**Soul** (references/SOUL.md): the foundation of agent identity and attitude. This is a static seed copy used when generating project files — not a pointer to `$GYEOL_HOME/SOUL.md`.
 
-**LLM 컨텍스트**: LLM은 인컨텍스트 학습자 — 코드 패턴을 검색하면 스타일을 따라가므로 스타일 규칙 불필요. 상위 레벨 오류는 하류로 기하급수적 증폭. 지시사항을 검증 가능한 목표로 작성한다.
+**LLM context**: LLMs are in-context learners. Retrieving code patterns is enough to follow style, so style rules are unnecessary. High-level errors compound geometrically downstream. Write instructions as verifiable success criteria.
 
 ---
 
 ## Stage 1: Project Analysis
 
-**참조**: references/stage1-analyzer.md (전체 절차, 에이전트 프롬프트 포함)
+**Reference**: references/stage1-analyzer.md (full procedure, including agent prompts).
 
-대상 디렉토리에서 패키지/빌드/테스트/린트 설정, 저장소 구조(모노레포/서브모듈), 문서/CI 구성, 기존 `.claude/rules/`를 자동 탐지한다.
+Detect package/build/test/lint config, repository structure (monorepo/submodule), documentation/CI layout, and existing `.claude/rules/` in the target directory.
 
-**복잡도 판정**: 설정 파일 3종 이상, 모노레포, 서브모듈 존재 시 → 복잡 프로젝트.
+**Complexity judgment**: 3+ config file types, monorepo, or submodules present → complex project.
 
-- **복잡 프로젝트**: 3개 Explore 에이전트(model: sonnet) 스폰 — Explore-Config, Explore-Structure, Explore-Docs
-- **단순 프로젝트**: 서브에이전트 없이 직접 탐지
+- **Complex project**: spawn 3 Explore agents (`model: sonnet`) — Explore-Config, Explore-Structure, Explore-Docs
+- **Simple project**: detect directly, no subagent
 
-탐지 결과를 발견 가능/불가능으로 분류하여 사용자에게 보여준다. 사실과 가정을 구분 표시한다.
+Classify findings as discoverable vs. undiscoverable and present them to the user. Distinguish facts from assumptions.
 
-**① advisor() 호출 조건**: 1단계 결과에서 모노레포 5+ 패키지, 서브모듈 3+ 개, 또는 기존 CLAUDE.md가 복잡한 구조인 경우 → advisor()로 분석 전략 검증.
+**advisor() call condition ①**: Stage 1 reveals a monorepo with 5+ packages, 3+ submodules, or an existing CLAUDE.md with complex structure → call advisor() to validate the analysis strategy.
 
 ---
 
-## Stage 2: Interview (직접 실행 — 서브에이전트 위임 불가)
+## Stage 2: Interview (run directly — cannot delegate to subagents)
 
-1단계 자동 탐지로 알 수 없는 항목만 질문한다:
+Ask only about items Stage 1 could not resolve:
 
-- **WHY**: 프로젝트 목적/역할
-- **WHAT**: 모노레포 패키지 역할, 서브모듈 관계, 외부 서비스 의존성
-- **HOW**: 작업 규칙/워크플로우, 에이전트 반복 실수 여부, 중첩 CLAUDE.md 생성 승인
+- **WHY**: project purpose / role
+- **WHAT**: monorepo package roles, submodule relationships, external service dependencies
+- **HOW**: work rules / workflow, whether agents make repeated mistakes, approval for generating nested CLAUDE.md files
 
-모호한 항목은 가능한 해석을 제시한 뒤 선택을 요청한다. 1단계 가정을 사용자에게 확인한다.
+For ambiguous items, present candidate interpretations and ask the user to choose. Confirm Stage 1 assumptions with the user.
 
-**심층 탐색 (선택)**: AskUserQuestion 대기 중, 대규모 모노레포(5+ 패키지)에서 미해결 질문이 있으면 Explore-Deep 에이전트(model: sonnet)를 백그라운드 스폰. 1단계 결과가 충분하면 스킵.
+**Deep exploration (optional)**: while `AskUserQuestion` is pending and the project is a large monorepo (5+ packages) with unresolved questions, spawn an Explore-Deep agent (`model: sonnet`) in the background. Skip when Stage 1 results are sufficient.
 
-**업데이트 모드**: references/update-mode.md의 U1(감사)과 U2(비교)를 이 단계에서 통합 실행. U2 비교 보고서를 사용자에게 제시하고 업데이트 범위를 확인한다.
+**Update mode**: integrate U1 (audit) and U2 (compare) from references/update-mode.md into this stage. Present the U2 comparison report and confirm the update scope with the user.
 
-**② advisor() 호출 조건**: 사용자 답변이 1단계 탐지 결과와 모순되거나, 업데이트 모드에서 드리프트 항목이 10+개인 경우.
+**advisor() call condition ②**: the user's answers contradict Stage 1 detection, or update mode surfaces 10+ drift items.
 
 ---
 
 ## Stage 3: Generation
 
-**참조**: references/stage3-generator.md (A~E 파일별 생성 규칙, 공통 작성 규칙 포함)
+**Reference**: references/stage3-generator.md (per-file rules A–E, common writing rules).
 
-1개 general-purpose 에이전트(model: sonnet)를 스폰하여 파일을 생성한다.
+Spawn a single general-purpose agent (`model: sonnet`) to generate files.
 
-**전달할 것**: Stage 1 요약, Stage 2 답변, 대상 파일 목록, 4개 가이드라인 파일의 핵심 원칙(karpathy, osmani, entry-router, SOUL).
+**What to pass**: Stage 1 summary, Stage 2 answers, target file list, and the core principles from the four guideline files (karpathy, osmani, entry-router, SOUL).
 
-**생성 대상 5종**: Root CLAUDE.md, AGENTS.md, contributing-docs/, 중첩 CLAUDE.md, .claude/rules/ — 해당하는 것만 생성.
+**5 generation targets**: Root CLAUDE.md, AGENTS.md, contributing-docs/, nested CLAUDE.md, `.claude/rules/`. Generate only the applicable ones.
 
-**업데이트 모드**: references/update-mode.md의 U3(적용)을 실행. Edit 도구로 외과적 수정만. 전체 재생성하지 않는다.
+**Update mode**: run U3 (apply) from references/update-mode.md. Use the Edit tool for surgical modifications only — never regenerate entire files.
 
 ---
 
 ## Stage 4: Verification
 
-**참조**: references/stage4-verifier.md (10항목 체크리스트, 안티패턴, Reviewer 프롬프트 포함)
+**Reference**: references/stage4-verifier.md (10-item checklist, anti-patterns, Reviewer prompt).
 
-3단계 파이프라인:
+Three-phase pipeline:
 
-1. **Verifier**: 10항목 체크리스트를 줄 단위 적용 (model: sonnet)
-2. **Iterative Fix**: 탈락 항목을 수정하고 재검증 (최대 2회 반복)
-3. **Reviewer**: 생성물이 CLAUDE.md 1개를 넘어서면, 맹검 독립 검증 에이전트(model: sonnet) 스폰. 1~2단계 결과를 전달하지 않는다.
+1. **Verifier**: apply the 10-item checklist line by line (`model: sonnet`)
+2. **Iterative Fix**: fix failing items and re-verify (up to 2 iterations)
+3. **Reviewer**: if the output exceeds a single CLAUDE.md, spawn a blind independent review agent (`model: sonnet`). Do not pass Phase 1/2 results to it.
 
-검증 결과를 사용자에게 보고한다. 탈락 항목은 줄과 사유를 함께 표시.
+Report verification results to the user. For failing items, quote the line and the reason.
 
-**③ advisor() 호출 조건**: Reviewer가 FAIL 판정을 내리고, 주 에이전트의 수정으로도 2회 반복 후 PASS되지 않는 경우.
+**advisor() call condition ③**: Reviewer returns FAIL and 2 orchestrator fix iterations still cannot reach PASS.
 
 ---
 
@@ -116,8 +117,73 @@ $ARGUMENTS가 없으면 현재 작업 디렉토리를 대상으로 생성 모드
 
 | # | When | Trigger |
 |---|------|---------|
-| ① | Stage 1 완료 후 | 모노레포 5+ 패키지, 서브모듈 3+, 또는 복잡한 기존 CLAUDE.md |
-| ② | Stage 2 중 | 사용자 답변 ↔ 탐지 결과 모순, 또는 업데이트 드리프트 10+ |
-| ③ | Stage 4 중 | Reviewer FAIL 후 2회 반복 수정으로도 PASS 불가 |
+| ① | After Stage 1 | Monorepo 5+ packages, 3+ submodules, or complex existing CLAUDE.md |
+| ② | During Stage 2 | User answer ↔ detection mismatch, or 10+ drift items in update mode |
+| ③ | During Stage 4 | Reviewer FAIL followed by 2 fix iterations still not PASS |
 
-**advisor()를 호출하지 않는 경우**: 단순 프로젝트 생성, 파일 1~2개만 대상, 검증 1회차 PASS, 사용자가 명확한 지시를 준 경우.
+**When not to call advisor()**: simple project generation, 1–2 target files, verification passes on the first iteration, or the user gave unambiguous instructions.
+
+---
+
+## Gotchas
+
+Skill-specific pitfalls that automation cannot catch. Update whenever a new edge case is discovered.
+
+1. **Stage 2 cannot be delegated to a subagent.** It requires `AskUserQuestion`, which only runs in the main orchestrator context. Explore-Deep can overlap with the user's typing, but the question flow itself must stay in the main agent.
+
+2. **`references/SOUL.md` is a static seed copy, not the live identity file.** The user's identity lives at `$GYEOL_HOME/SOUL.md`. The copy bundled here is a frozen snapshot so generation is reproducible across environments. Do not substitute `$GYEOL_HOME/SOUL.md` at runtime.
+
+3. **Blind Reviewer must receive no orchestrator context.** If Phase 1 or Phase 2 output leaks into the Reviewer prompt, the review stops being independent and the FAIL filter loses its value. Only generated file contents should be passed in.
+
+4. **`model: opus` is an orchestrator hint, not a subagent default.** Agents spawned in Stage 1, 3, and 4 explicitly request `model: sonnet` to control cost. Do not assume a single model applies throughout the pipeline.
+
+5. **`disable-model-invocation` is intentionally unset.** The skill is invasive (writes/edits several project files). Because it is registered in CLAUDE.md's Skills table, auto-invocation can still fire from vague user phrasing. If false positives become a problem, flip this flag on and rely on `/generate-claude-md` plus the Skills-table triggers.
+
+6. **advisor() takes no parameters; the entire transcript is forwarded.** Calling it before Stage 1 results are visible is premature. Prefer calling it right after orchestrator-internal reasoning has crystallized.
+
+7. **Update mode assumes existing files were generated by this skill.** Hand-crafted CLAUDE.md files with unusual structures may register as drift when they are intentional. Confirm with the user before removing sections that look "redundant" but carry project-specific meaning.
+
+---
+
+## Eval Criteria
+
+Five binary checks for any generation or update run. Autoresearch may reuse these when optimizing autonomously.
+
+```
+EVAL 1: Mode routing
+  Question: Does the run pick the correct branch (generate vs. update)
+            based on $ARGUMENTS keywords, and identify the right target files?
+  Pass: Chosen mode matches user intent; generated/modified file list
+        matches declared targets.
+  Fail: Wrong branch, or target file list drifts from stated intent.
+
+EVAL 2: Discoverability discipline
+  Question: Every line in the generated/modified output passes the
+            "Can an agent discover this by reading the code?" test.
+  Pass: No discoverable content included in CLAUDE.md, AGENTS.md,
+        contributing-docs/, or rules/.
+  Fail: One or more lines restate facts readable from package.json,
+        source tree, or standard linter rules.
+
+EVAL 3: Size budgets
+  Question: Root CLAUDE.md ≤ 100 lines (hard 300), nested CLAUDE.md
+            ≤ 50 lines (hard 100), individual rule file ≤ 50 lines.
+  Pass: Produced files stay within soft limits, or within hard limits
+        with a user-approved rationale.
+  Fail: Any file exceeds the hard limit without user approval.
+
+EVAL 4: Reference integrity
+  Question: All cross-file references (CLAUDE.md → AGENTS.md,
+            AGENTS.md → contributing-docs/, nested → parent,
+            rules/ globs) resolve to existing paths.
+  Pass: Every reference is a live path.
+  Fail: Any reference is broken or a glob targets non-existent paths.
+
+EVAL 5: Blind reviewer
+  Question: When output is more than a single root CLAUDE.md, does
+            Phase 3 Reviewer return PASS on all 7 criteria (or all
+            FAILs are resolved in subsequent iterations)?
+  Pass: Final Reviewer run returns PASS, or initial FAILs were resolved
+        before the final output.
+  Fail: Unresolved Reviewer FAILs at skill completion.
+```
