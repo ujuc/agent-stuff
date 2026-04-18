@@ -1,21 +1,29 @@
 ---
 name: qa-evaluator
-description: "Chrome 통합으로 실행 중인 웹앱을 실제 사용자처럼 탐색하여 버그, 기능 누락, UX 문제를 발견한다. QA 테스트, 웹앱 테스트, qa-evaluator, 앱 검증해줘, test the running app, evaluate my build, find bugs 요청 시 사용한다."
+description: "Chrome 통합으로 실행 중인 웹앱을 실제 사용자처럼 탐색하여 버그, 기능 누락, UX 문제를 발견한다."
+when_to_use: "QA 테스트, 웹앱 테스트, qa-evaluator, 앱 검증해줘, test the running app, evaluate my build, find bugs 요청 시 사용한다. multi-agent-orchestrator의 Evaluator 단계에서도 호출된다."
 model: sonnet
-allowed-tools: Read, Glob, Grep, Bash(curl:*), advisor
+allowed-tools: Read Glob Grep Bash advisor
 ---
 
 # QA Evaluator
 
 Evaluate a running web application by browsing it like a real user. Discover bugs, missing features, and UX issues through hands-on exploration with Chrome integration.
 
-## Prerequisite
+## Prerequisite: live Chrome access
 
-Chrome integration **must** be active before running this skill.
+Chrome browser tools are MCP **deferred tools**. They are NOT callable until loaded.
 
-- If launched with `--chrome` flag: ready to go.
-- If not: instruct the user to run `/chrome` or restart with `--chrome`.
-- Do **not** proceed without Chrome access. There is no fallback.
+Before starting the evaluation:
+
+1. Load the tools with `ToolSearch` (comma-joined list):
+   ```
+   select:mcp__claude-in-chrome__tabs_context_mcp,mcp__claude-in-chrome__tabs_create_mcp,mcp__claude-in-chrome__navigate,mcp__claude-in-chrome__read_page,mcp__claude-in-chrome__get_page_text,mcp__claude-in-chrome__find,mcp__claude-in-chrome__form_input,mcp__claude-in-chrome__javascript_tool,mcp__claude-in-chrome__read_console_messages,mcp__claude-in-chrome__read_network_requests,mcp__claude-in-chrome__resize_window,mcp__claude-in-chrome__gif_creator
+   ```
+2. Call `tabs_context_mcp` first to discover existing tabs. Only reuse a tab if the user explicitly asks; otherwise create a new one via `tabs_create_mcp`.
+3. If the extension is unresponsive or returns errors twice in a row, stop and ask the user to switch browsers or restart the extension.
+
+Do **not** proceed without Chrome access. `curl` alone cannot evaluate UX, console errors, or runtime behavior.
 
 ## Core Principle: Evaluator-Generator Separation
 
@@ -44,13 +52,14 @@ Confirm a 200 (or appropriate) response. If the app is not reachable, stop and r
 
 Systematically explore the application:
 
-- **Main workflows first**: Navigate the primary user journeys end-to-end.
-- **Inputs**: Fill forms with valid data, then invalid data, then edge cases (empty, extremely long, special characters).
+- **Main workflows first**: Navigate the primary user journeys end-to-end (`navigate`, `read_page`).
+- **Inputs**: Fill forms with valid data, then invalid data, then edge cases — empty, extremely long, special characters (`form_input`, `find`).
 - **Navigation**: Click every link, button, and interactive element. Verify routing.
 - **State transitions**: Log in/out, create/edit/delete entities, test undo behavior.
 - **Error states**: Trigger 404s, submit malformed data, disconnect network scenarios.
-- **Responsive**: Resize viewport if applicable.
-- **Screenshots**: Capture evidence for every issue found.
+- **Responsive**: Resize viewport to 375px / 768px / 1440px (`resize_window`).
+- **Runtime signals**: Collect `read_console_messages` and `read_network_requests` during every key action — these drive the Code Quality score.
+- **Evidence**: Capture a screenshot or `gif_creator` clip per issue. Use GIF for multi-step, animation, or race-condition bugs; screenshot otherwise.
 
 See [references/chrome-patterns.md](references/chrome-patterns.md) for detailed Chrome interaction patterns.
 
@@ -89,14 +98,19 @@ These rules are non-negotiable:
 
 ## Output Format
 
-```
-## QA Evaluation Report
+Write the report to stdout by default. When invoked through `multi-agent-orchestrator`, also write it to `.harness/evaluation-report.md` using the orchestrator's standard header (Agent, Timestamp, Phase, Round):
 
+```
+# QA Evaluation Report
+
+**Agent**: qa-evaluator
+**Timestamp**: <ISO 8601>
+**Phase**: evaluating
+**Round**: <N>
 **App URL**: <url>
-**Date**: <date>
 **Sprint/Spec**: <reference or "none">
 
-### Scores
+## Scores
 
 | Criterion       | Score | Verdict |
 | --------------- | ----- | ------- |
@@ -107,24 +121,26 @@ These rules are non-negotiable:
 
 **Overall**: PASS / FAIL
 
-### What Works (brief)
+## What Works (brief)
 - ...
 
-### Issues Found
+## Issues Found
 
-#### [FAIL] <Criterion> — <Short description>
+### [FAIL] <Criterion> — <Short description>
 **Severity**: Critical / Major / Minor
 **Steps to reproduce**: ...
 **Expected**: ...
 **Actual**: ...
 **Location**: <filename:line or component name>
-**Evidence**: <screenshot reference>
+**Evidence**: <screenshot / GIF reference>
 
 (repeat for each issue)
 
-### Recommendations for Generator
+## Recommendations for Generator
 - Prioritized list of fixes
 ```
+
+When running standalone (no orchestrator), omit the Agent/Phase/Round header fields and print only the report body.
 
 ## Advisor Escalation
 
@@ -142,4 +158,7 @@ How to call: invoke `advisor()` with no parameters. The full current conversatio
 - **SPA routing**: Single-page apps may return 200 for all routes. Check that the actual content renders, not just that the HTTP response succeeds.
 - **API-only endpoints**: Use `curl` directly for API testing. Chrome is for UI evaluation.
 - **Flaky state**: If a test fails intermittently, reproduce it 3 times before reporting. Note flakiness in the report.
+- **Dialog trap**: `alert()`, `confirm()`, `prompt()` block the extension. Avoid clicking elements that trigger them; if unavoidable, use `javascript_tool` to auto-dismiss or warn the user first. A stuck session requires manual dismissal in the browser.
+- **Tab reuse**: Never reuse tab IDs from a previous session. Call `tabs_context_mcp` at the start; create a new tab unless the user explicitly points at an existing one.
+- **Bail-out rule**: If Chrome tool calls fail or the extension is unresponsive after 2–3 attempts, stop and ask the user. Do not retry the same failing action.
 - **Do not fix anything.** The evaluator's job is to report. If tempted to suggest a one-line fix, include it in recommendations but do not apply it.
