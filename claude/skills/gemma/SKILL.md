@@ -2,7 +2,7 @@
 name: gemma
 description: "로컬 LM Studio와 Google AI Studio(Gemini API)를 통해 Gemma 모델에 프롬프트를 전달한다. variant별 자동 라우팅(e2b/e4b→로컬, 26b/31b→원격)과 LM Studio 미가용 시 Gemini 폴백을 지원한다. gemma, gemma4, gemma로 요약해줘, gemma로 번역해, lm studio로 돌려줘, gemini api로 보내줘, 로컬 LLM, 오프라인 AI, 로컬로 처리해, API 키, 클라우드로 돌려줘, Gemma 호출 요청 시 사용한다. 민감 정보 오프라인 처리, 긴 컨텍스트 요약, 다국어 번역, 초안 생성 등에 적합."
 model: sonnet
-allowed-tools: Bash(rtk:*), Bash(bash:*), Bash(lms:*), Bash(op:*), Bash(curl:*), Bash(brew:*)
+allowed-tools: Bash(rtk:*), Bash(bash:*), Bash(lms:*), Bash(op:*), Bash(brew:*)
 argument-hint: "[--local|--cloud] [variant] prompt"
 ---
 
@@ -11,6 +11,12 @@ argument-hint: "[--local|--cloud] [variant] prompt"
 Dispatch a prompt to Gemma via local LM Studio (OpenAI-compatible API) or
 Google AI Studio / Gemini API. Variant selects the backend by default, with
 automatic fallback to the remote API when LM Studio is unavailable.
+
+The routing, HTTP calls, and 1Password integration are implemented in Rust
+under `tools/gemma/` (Cargo workspace). The `scripts/*.sh` files are thin
+launchers that `cargo run` the `gemma` binary — same CLI surface, same stderr
+`info:`/`warn:`/`error:` format, same exit codes as the previous bash
+scripts.
 
 ## How to invoke
 
@@ -79,11 +85,16 @@ Override with `GEMMA_GEMINI_MODEL=<id>` for a specific model.
 
 ## Setup (first run)
 
-On first invocation in a fresh environment, `query.sh` will trigger
-`scripts/ensure-deps.sh` to install missing tools via `brew`:
+**Rust toolchain is required.** Launchers defer to `cargo run`; install via
+<https://rustup.rs>. The first invocation compiles the `gemma` binary
+(release profile, ~6–30s); subsequent runs are instant via Cargo's
+incremental cache. `curl`/`jq` are no longer needed — the Rust build links
+its own TLS stack (rustls) and JSON handling.
 
-- `curl`, `jq` (formulae)
-- `lm-studio` cask (for local path)
+On first invocation, `scripts/query.sh` still calls `ensure-deps.sh` if a
+backend dependency is missing:
+
+- `lm-studio` cask (for local path — `lms` CLI ships inside the cask)
 - `1password-cli` cask (for remote path — API key lives in 1Password)
 
 Prompt-less install: `GEMMA_AUTO_INSTALL=1`.
@@ -94,7 +105,8 @@ After install, you still need to:
    run `lms server start` and `lms load <model>`. Details in
    `references/backends.md`.
 2. **1Password**: store the API key at `op://key/gemini-key/credential`
-   (override via `GEMMA_OP_REFERENCE`), ensure `op whoami` succeeds.
+   (override via `GEMMA_OP_REFERENCE`), ensure `op account list` returns
+   your account (Touch ID integration auto-signs).
 
 ## Procedure
 
@@ -146,13 +158,14 @@ Better left to Claude:
 
 | Exit | Cause | Hint |
 |------|-------|------|
-| 2    | `curl` / `jq` missing | `ensure-deps.sh` auto-runs; accept install or `GEMMA_AUTO_INSTALL=1` |
+| 2    | `brew` missing, or `ensure-deps` install declined | Install Homebrew from <https://brew.sh> or re-run with `GEMMA_AUTO_INSTALL=1` |
 | 3    | LM Studio unavailable and fallback disabled | `lms server start && lms load <model>` |
-| 3    | 1Password not signed in | `eval "$(op signin)"` |
+| 3    | 1Password not signed in / no account registered | `op account add`, or `eval "$(op signin)"` |
 | 4    | 1Password item not readable | Check `GEMMA_OP_REFERENCE`, vault/item/field |
 | 5    | Gemini HTTP failure | Check key validity / rate limits / network |
 | 6    | Malformed Gemini response | Stderr prints raw body; usually a 401/429 text error |
 | 64   | Usage error | Empty prompt or unknown flag |
+| 127  | `cargo` not found | Install Rust via <https://rustup.rs> |
 
 ## References
 
