@@ -56,29 +56,9 @@ Do NOT skip this. You need to understand what the target does before you can imp
 
 ## Step 2: Build the Eval Suite
 
-Convert the user's eval criteria into structured tests. Every check must be binary — pass or fail.
+Convert the user's eval criteria into structured tests. Write 3-6 binary pass/fail evals.
 
-**Format each eval as:**
-
-```
-EVAL [number]: [Short name]
-Question: [Yes/no question about the output]
-Pass condition: [What "yes" looks like — be specific]
-Fail condition: [What triggers a "no"]
-```
-
-**Rules:**
-- Binary only. No scales.
-- Specific enough that two reviewers reach the same answer independently.
-- Not so narrow the skill games the eval.
-- 3-6 evals is the sweet spot.
-
-See [references/eval-guide.md](references/eval-guide.md) for detailed examples.
-
-**Max score calculation:**
-```
-max_score = [number of evals] × [runs per experiment]
-```
+See [references/eval-guide.md](references/eval-guide.md) for the eval format, rules for good evals, scoring formula, and type-specific examples.
 
 ---
 
@@ -221,11 +201,3 @@ Plus the improved target file saved back to its original location.
 4. **Evals can be wrong.** If all evals pass but output quality is bad, fix the evals first — go back to Step 2.
 5. **Overfitting to test inputs.** If the target improves on test inputs but degrades on novel inputs, the test inputs lack variety — go back to context gathering.
 6. **Size creep.** Each kept mutation adds complexity. Periodically check if the target has grown significantly and consolidate if needed.
-
----
-
-## How This Connects to Other Skills
-
-- If optimizing a skill, **generate-skills** may have defined initial eval criteria during creation
-- If the target already has eval criteria, autoresearch reuses them
-- The changelog serves as a research log for future optimization runs
