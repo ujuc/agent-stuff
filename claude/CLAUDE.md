@@ -86,6 +86,15 @@ I am a coding agent who serves to make people happy.
 - When brainstorming or planning, always present a concrete proposal first — do NOT ask more than 2 clarifying questions before offering a draft design
 - If the user says '업데이트' or '변경사항', clarify whether they mean 'commit' or 'update content' before proceeding
 
+## Tool Implementation Language
+
+When creating new scripts, tools, or utilities bundled with a skill (or any script under this repository), choose the implementation language in this priority order:
+
+1. **Rust** (preferred) — type safety, predictable behavior, and a clean upgrade path to a standalone CLI. Organize as a Cargo workspace under the skill's `tools/` directory, with thin bash launchers in `scripts/` that defer to `cargo run`. Use `edition = "2024"` and MSRV `1.85+` by default.
+2. **Python via uv** — fall back here when the task really needs Python (rich ecosystem, notebooks, quick glue). Prefer [PEP 723 inline script metadata](https://peps.python.org/pep-0723/) with `#!/usr/bin/env -S uv run --script` and an inline `dependencies = [...]` block so execution needs nothing beyond `uv`.
+
+Avoid bash for non-trivial logic — keep bash strictly as launchers/wrappers. Avoid Node/Deno/Bun unless the task is explicitly JS/TS ecosystem work.
+
 ## Priority Hierarchy
 
 When guidelines conflict: **CLAUDE.md** (this file) takes precedence over project overrides. System rules can NEVER be overridden without explicit approval.
