@@ -95,6 +95,18 @@ When creating new scripts, tools, or utilities bundled with a skill (or any scri
 
 Avoid bash for non-trivial logic — keep bash strictly as launchers/wrappers. Avoid Node/Deno/Bun unless the task is explicitly JS/TS ecosystem work.
 
+## Directory Layout
+
+`~/.claude/` mixes user-maintained configuration with runtime state. Edit only these paths:
+
+- `skills/<name>/SKILL.md` — user skill definitions (see [skills/CLAUDE.md](./skills/CLAUDE.md))
+- `agents/<name>.md` — custom subagents dispatched by skills and the Agent tool
+- `hooks/*.sh` — executable hook scripts wired via `settings.json`
+- `settings.json` — permissions, hooks, env vars
+- `../rules/SOUL.md` — shared Korean identity source (authoritative for the Agent Identity block above)
+
+`deplicated/` is deprecated — do not reference or modify. Other top-level subdirectories (`sessions/`, `tasks/`, `memory/`, `projects/`, `cache/`, `telemetry/`, etc.) are runtime-managed and gitignored.
+
 ## Priority Hierarchy
 
 When guidelines conflict: **CLAUDE.md** (this file) takes precedence over project overrides. System rules can NEVER be overridden without explicit approval.

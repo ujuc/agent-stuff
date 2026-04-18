@@ -32,7 +32,7 @@ No build or test toolchain. This is a pure configuration repository.
 
 | Skill | Triggers | Model |
 | ----- | -------- | ----- |
-| `maintain` | /maintain, 정비해줘, 헬스체크, 문서 동기화 | opus |
+| `maintain` (project-scoped, `.claude/skills/maintain/`) | /maintain, 정비해줘, 헬스체크, 문서 동기화 | opus |
 
 ## References
 

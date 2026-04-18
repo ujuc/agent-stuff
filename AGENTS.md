@@ -21,7 +21,7 @@ agent-stuff/
 │   ├── deplicated/          # Deprecated — do not reference or modify
 │   ├── hooks/               # Claude Code hook scripts (rtk-rewrite, polyglot-typecheck, etc.)
 │   ├── plugins/             # Externally installed plugins — treat as read-only
-│   ├── skills/              # Global skill definitions (14 skills, each with SKILL.md)
+│   ├── skills/              # Global skill definitions (15 skills, each with SKILL.md)
 │   ├── CLAUDE.md            # Global Claude Code configuration (loaded in every session)
 │   ├── RTK.md               # RTK (Rust Token Killer) reference
 │   ├── mcp.json             # MCP server configuration
@@ -44,8 +44,8 @@ agent-stuff/
 | `rules/SOUL.md` | Canonical shared mission and values (Korean). Source of truth for Agent Identity. |
 | `claude/CLAUDE.md` | Global Claude Code configuration — loaded in every session, not just this repo. |
 | `claude/settings.json` | Global Claude Code settings (model, permissions, hooks, statusline, etc.). |
-| `claude/mcp.json` | MCP (Model Context Protocol) server configuration. |
-| `claude/skills/` | Global skill definitions — 14 skills, each in `<name>/SKILL.md` with optional `references/`. |
+| `claude/mcp.json` | MCP (Model Context Protocol) server configuration. Empty by default — servers are typically added via Claude Code UI, not committed here. |
+| `claude/skills/` | Global skill definitions — 15 skills, each in `<name>/SKILL.md` with optional `references/` and `scripts/` / `tools/`. |
 | `.claude/agents/` | Project-scoped agents for repository maintenance (health-checker, doc-syncer, skill-engineer). |
 | `.claude/skills/maintain/` | Project-scoped orchestrator skill that dispatches maintenance agents. |
 | `docs/` | Design specs and implementation plans for repository changes. |
@@ -60,6 +60,7 @@ agent-stuff/
 ## Non-Obvious Conventions
 
 - Commit scopes map to directories: `claude` → `claude/`, `rules` → `rules/`, `skills` → skill definitions
+- Agent/skill scope split: `.claude/<type>/` is project-scoped (visible only inside this repo), `claude/<type>/` is global (symlinked to `~/.claude/`) — place repo-maintenance agents in `.claude/agents/`, reusable ones in `claude/agents/`
 - Agent Identity in `claude/CLAUDE.md` must stay in sync with `rules/SOUL.md` (marked with `<!-- canonical source -->` comment)
 - Add `.gitkeep` when creating new placeholder directories
 - Add `.gitignore` entries for agent runtime files
