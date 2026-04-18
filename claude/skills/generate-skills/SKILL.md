@@ -203,6 +203,7 @@ Pick instruction specificity per the freedom guide in `references/design-princip
 - Every `references/` path resolves to a real file.
 - Instructions are verifiable (no fuzzy phrasing).
 - No filler (no linter-style preaching, no speculation, no over-explaining).
+- **Redundancy audit**: the body must not restate rules already enforced by dispatched agent definitions, sibling skills, or standard LLM knowledge. Run the audit in `references/redundancy-check.md` whenever the body references an agent file, overlaps with an existing skill, or exceeds 150 lines.
 
 ---
 
@@ -227,6 +228,7 @@ Using the freshly verified `references/frontmatter-spec.md` from Step 0:
 3. **New fields worth adopting**: suggest `context`, `agent`, `effort`, `allowed-tools` etc. when they would help.
 4. **`description` quality**: WHAT + WHEN coverage, trigger phrasing.
 5. **Structural health**: SKILL.md line count (500-line ceiling), whether content should be split into `references/`.
+6. **Redundancy audit**: detect body content that duplicates dispatched agent definitions, sibling skills, or standard LLM knowledge. Follow `references/redundancy-check.md`. Typical findings: constraints mirrored between skill and agent, prompt templates restating agent rules, generic markdown conventions.
 
 Summarize the comparison for the user and get approval for the update scope.
 
