@@ -29,7 +29,20 @@ mode = $ARGUMENTS or "health"
 valid modes: health, docs, skill, full
 ```
 
-If `$ARGUMENTS` does not match a valid mode, treat the entire argument as a task description and route to the most relevant agent.
+If `$ARGUMENTS` does not match a valid mode, treat the full string as a
+free-form task and route using this keyword table (case-insensitive,
+substring match). Pick the first agent whose keyword list hits; fall back
+to `health-checker` when nothing matches (read-only, side-effect free).
+
+| Agent | Trigger keywords |
+|-------|------------------|
+| `health-checker` | `구조`, `헬스`, `점검`, `검증`, `structure`, `health`, `audit repo`, `validate` |
+| `doc-syncer` | `문서`, `동기화`, `CLAUDE.md`, `AGENTS.md`, `SOUL.md`, `docs`, `sync`, `readme` |
+| `skill-engineer` | `스킬`, `skill`, `frontmatter`, `description`, `audit skill`, `생성`, `최적화` |
+
+When the free-form request clearly involves multiple concerns (e.g.,
+"스킬 audit 후 문서까지 맞춰줘"), escalate to `full` mode instead of
+picking a single agent.
 
 ### 2. Dispatch Agents
 
