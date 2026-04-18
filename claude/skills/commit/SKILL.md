@@ -41,12 +41,12 @@ All `Bash` calls from this skill pass through the global `PreToolUse:Bash` hook 
 1. Read the user's arguments for file paths or instructions.
 2. Inspect changes with `git status`, then `git diff --stat` to see file-level scope. Run full `git diff` only for files whose body you actually need to understand — this keeps token usage bounded on large change sets.
 3. Run `git log --oneline -10` to learn the recent commit style and scope vocabulary. Increase to `-20` only when the last 10 commits look atypical.
-4. If which files to stage is unclear, ask the user.
+4. **Staging scope**: if the user passed file paths, stage those. If no hints were given and `git status` shows a coherent set (all changes belong to the same logical unit), proceed. If unrelated changes are mixed in — or the intended subset is ambiguous — ask before staging.
 5. Stage only the intended files with `git add`.
 6. If structural changes are detected, run an incremental doc update (see "Doc updates" below).
 7. **Draft the message, then self-check before committing.** Apply all three checks in order — failing any one means rewrite the draft:
 
-   1. **Subject length ≤ 50 characters** (including `<type>(<scope>):` prefix). Measure by Unicode character count, not bytes.
+   1. **Subject length ≤ 50 characters** (including `<type>(<scope>):` prefix). Verify with `printf '%s' '<subject>' | wc -m` — Unicode character count, not bytes. `echo -n` is unreliable across shells; always use `printf '%s'`.
    2. **Body required?** Follow the policy below. If the change requires a body and the draft has none, add a Why / How block. If the change is trivial and the draft has a body, consider removing it.
    3. **Imperative test**: read `이 커밋이 적용되면 [제목]` out loud. If it does not read as a natural command, rewrite the subject.
 
@@ -142,7 +142,7 @@ The summary block is shown to the user, so the labels stay in Korean.
 ## Prohibitions
 
 - Do NOT add `Co-Authored-By` (the system handles this).
-- Do NOT stage files without user confirmation.
+- Do NOT stage files when the intended set is ambiguous — ask first instead of guessing.
 - Do NOT modify docs inside a submodule.
 - Do NOT create new doc files (incremental edits to existing docs only).
 - Do NOT push unless explicitly requested.

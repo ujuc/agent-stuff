@@ -184,5 +184,10 @@ Why:
 ### Chore — trivial (body optional)
 
 ```
-chore(agents): 서브모듈 포인터를 업데이트하다
+chore: .gitignore에 빌드 캐시 경로를 추가하다
 ```
+
+Note: submodule pointer updates (`chore(agents): ...`) are **not** trivial —
+the pointer movement always reflects real changes inside the submodule, so a
+one-line body describing what and why is required. See the body requirement
+policy in `SKILL.md`.
