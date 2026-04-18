@@ -1,6 +1,7 @@
 ---
 name: spec-planner
-description: "1-4문장 프롬프트를 상세 제품 스펙으로 확장한다. 스펙 작성, 요구사항 확장, spec-planner, 기획서 만들어줘, plan this app, expand this idea, create a product spec 요청 시 사용한다."
+description: "1-4문장 프롬프트를 상세 제품 스펙으로 확장한다. 범위는 야심차게, 구현 디테일은 Generator에게 위임한다."
+when_to_use: "스펙 작성, 요구사항 확장, spec-planner, 기획서 만들어줘, 제품 기획 시작, plan this app, expand this idea, create a product spec"
 model: opus
 allowed-tools: Read, Write, Glob, Grep
 ---
@@ -103,8 +104,9 @@ User Stories:
 8. Recommend a technical stack (high-level only)
 9. Break features into 3-5 sprints ordered by implementation dependency and user value
 10. Scan for AI integration opportunities and note them explicitly
-11. Write the spec to `spec.md` in the project root
-12. Report summary to user: feature count, sprint count, key design decisions
+11. Self-evaluate the draft against [references/grading-criteria.md](references/grading-criteria.md) — revise any section that scores Weak or below before writing to disk
+12. Write the spec to `spec.md` in the project root
+13. Report summary to user: feature count, sprint count, key design decisions, and self-eval grades
 
 ## Quality Criteria
 
@@ -136,3 +138,39 @@ The spec says "users can collaboratively edit documents in real-time" — it doe
 - **Visual design direction is not a mockup.** Describe the feel ("dark theme, pixel-art inspired, 8-bit color palette with neon accents") rather than exact layouts.
 - **Technical stack recommendations must include rationale.** "Use React" is insufficient. "React + Canvas API for the tile editor — React handles UI chrome while Canvas handles performant grid rendering" gives the Generator useful context without constraining implementation.
 - **User stories must have the value clause.** "As a user, I want to save my map" is incomplete. "As a user, I want to save my map, so that I can continue editing in a future session" explains the WHY.
+
+## Eval Criteria
+
+Binary (yes/no) checks applied to every spec before delivery. Full rubric in [references/grading-criteria.md](references/grading-criteria.md).
+
+```
+EVAL 1: Feature breadth
+  Question: Does the spec list at least 8 features, including non-obvious
+            capabilities beyond the literal input prompt?
+  Pass: 8+ features with breadth beyond the input.
+  Fail: Fewer than 8, or only mirrors the input.
+
+EVAL 2: User-story value clauses
+  Question: Does every feature have at least one user story with an
+            explicit "so that [value]" clause?
+  Pass: All features include value clauses.
+  Fail: Any feature is missing the value clause.
+
+EVAL 3: Implementation freedom
+  Question: Is the spec body free of DB schemas, API routes, framework-
+            specific code patterns, or library prescriptions without alternatives?
+  Pass: Only user-facing behavior + high-level stack rationale.
+  Fail: Any implementation detail leaked.
+
+EVAL 4: AI integration considered
+  Question: Does the spec include an AI Integration Opportunities section
+            (or explicit "not applicable" rationale for this product)?
+  Pass: Section exists with specifics, or explicit N/A with reason.
+  Fail: No AI consideration at all for a product where it clearly fits.
+
+EVAL 5: Sprint ordering rationale
+  Question: Does the Sprint Plan include a rationale explaining why the
+            features are ordered this way (dependency chain, user value)?
+  Pass: Rationale paragraph present.
+  Fail: Only a bare sprint table with no ordering justification.
+```
