@@ -69,26 +69,7 @@ Hold images, diagrams, PDFs, and other binary/media files.
 
 ## Progressive disclosure
 
-A skill splits content across three tiers. Don't make the agent load everything at once.
-
-### Tier 1: Metadata (always loaded)
-
-- Frontmatter `name` + `description` only.
-- Used by the system for trigger detection.
-- Target: ~100 words or fewer.
-
-### Tier 2: SKILL.md body (loaded on trigger)
-
-- Core workflow and instructions.
-- Hard limit: **5,000 words / 500 lines**.
-- Over the limit → move into Tier 3.
-
-### Tier 3: Bundled resources (loaded on demand)
-
-- `references/` for detailed rules, examples, checklists.
-- `scripts/` for automation / validation.
-- `assets/` for images, diagrams, PDFs.
-- No size limit.
+Three-tier content model (metadata → SKILL.md body → bundled resources). The canonical explanation lives in `design-principles.md` §3; don't restate it here — see that file for tier boundaries and size limits.
 
 ---
 

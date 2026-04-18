@@ -300,11 +300,22 @@ When in doubt, follow the trigger-tuning guide in `references/review-checklist.m
 
 ### Registration
 
-Once validation passes, add a row to the Skills table in the appropriate CLAUDE.md:
+Once validation passes, add a row to the Skills table in the appropriate CLAUDE.md. Use the `register-skill` launcher — it is idempotent, so re-running after an already-registered skill is a no-op:
 
-```markdown
-| `skill-name` | trigger phrases | model |
+```bash
+bash agents/claude/skills/generate-skills/scripts/register-skill \
+  <path-to-CLAUDE.md> \
+  --name <skill-name> \
+  --triggers "<trigger phrases>" \
+  --model <sonnet|opus|haiku>
 ```
+
+Choose the target CLAUDE.md carefully:
+
+- `agents/claude/CLAUDE.md` — user-level Claude Code skills registered for the whole environment.
+- `agents/claude/skills/CLAUDE.md` — scope-specific rules that only apply when Claude is operating inside the `skills/` directory.
+
+Most new skills belong in the first one. Manual edit is still valid if you need non-trivial layout changes the launcher can't produce.
 
 ### Distribution (optional)
 

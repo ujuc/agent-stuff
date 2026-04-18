@@ -52,7 +52,7 @@ Report as a brief summary: skill count, similar skills (name + one-line purpose)
 **Agent parameters**:
 - `subagent_type`: `Explore`
 - `description`: "Survey existing skills"
-- `run_in_background`: `true` (runs during AskUserQuestion wait)
+- `run_in_background`: `true` — the subagent runs independently; consume its summary only *after* AskUserQuestion returns and before starting Step 2.
 
 ---
 
