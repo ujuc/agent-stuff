@@ -3,7 +3,7 @@ name: annotate-plan
 description: "병렬 에이전트로 구현 계획을 생성하고, 사용자 인라인 주석을 반복 처리하여 플랜을 개선한다. 구현 계획 작성, 플랜 만들어줘, annotate-plan, /annotate-plan, 노트 반영해줘, address notes, 주석 처리해, annotations 요청 시 사용한다."
 model: sonnet
 argument-hint: "[feature-name]"
-allowed-tools: Read, Write, Glob, Grep, Bash, Agent, advisor
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, advisor
 ---
 
 # Annotate Plan — Annotation Cycle Planning
@@ -13,22 +13,37 @@ Create an implementation plan at `.plans/plan-{feature}.md` and support iterativ
 ## Phase A — Initial Plan Generation
 
 ### 1. Gather Context
-- Load `.research/research-*.md` if exists (deep-read output)
-- Check for `spec.md`, `.sprint/contract.md` (harness artifacts)
-- Parse `$ARGUMENTS` for feature name and requirements
+- Parse `$ARGUMENTS` for feature name; derive `{feature}` as kebab-case slug.
+- Load `.research/research-*.md` if present (deep-read output).
+- Check for `spec.md`, `.sprint/contract.md` (harness artifacts).
+- If no research and no spec exist, surface this to the user before dispatching agents — the plan quality will be weaker.
 
 ### 2. Launch 2 Parallel Agents
 
-| Agent | Type | Role |
-|-------|------|------|
-| **plan-drafter** | `Plan` (subagent_type) | Draft implementation plan from research + context |
-| **reference-finder** | `reference-finder` (subagent_type) | Find reusable patterns, utilities, and reference implementations in the codebase. Output to `.plans/.references/{feature}.md` |
+Spawn BOTH agents in a **single message** with two `Agent` tool calls. Sequential dispatch doubles wall-clock time for no benefit.
 
-The reference-finder agent follows `~/.claude/agents/reference-finder.md` standards.
+| Agent | `subagent_type` | Focus | Output path |
+|-------|-----------------|-------|-------------|
+| **plan-drafter** | `Plan` (built-in) | Draft implementation plan sections: Goal, Approach, File Changes, Dependencies, Risks, Open Questions | `.plans/.partial/plan.md` |
+| **reference-finder** | `reference-finder` | Find reusable patterns/utilities/tests; emit `file:line` citations | `.plans/.partial/references.md` |
+
+Agent prompt template (adapt per role):
+```
+Feature: {feature name}
+Requirements: {from $ARGUMENTS / spec.md}
+Research context: {paste or reference .research/research-*.md path}
+Focus: {role description}
+Output: {partial path}
+Required sections: {see table}
+```
+
+Reference-finder output format and citation rules live in `~/.claude/agents/reference-finder.md`; do not restate them.
+
+Wait for both agents to finish. Verify each partial exists and is non-empty before merging — if either is missing, re-dispatch that one role rather than merging with a hole.
 
 ### 3. Merge and Write Plan
 
-Combine both agent outputs into `.plans/plan-{feature}.md`:
+Combine the partials into `.plans/plan-{feature}.md`:
 
 ```markdown
 # Plan: {feature}
@@ -60,48 +75,95 @@ Combine both agent outputs into `.plans/plan-{feature}.md`:
 ## Todo
 - [ ] Item 1
 - [ ] Item 2
-...
 ```
 
-### 4. Save Baseline
-- Copy plan to `.plans/.plan-{feature}.md.prev` (annotation detection baseline)
-- Output: "`.plans/plan-{feature}.md` has been created. Review it and add inline notes, then say 'address notes' to start an annotation cycle."
+### 4. Save Baseline and Cleanup
+- Copy plan to `.plans/.plan-{feature}.md.prev` (annotation diff baseline).
+- Initialize cycle counter: write `0` to `.plans/.plan-{feature}.cycle`.
+- Delete `.plans/.partial/` directory.
+- Output: ``` `.plans/plan-{feature}.md` has been created. Review it and add inline notes, then say 'address notes' to start an annotation cycle. ```
 
 ## Phase B — Annotation Cycle
 
-Triggered when user says: "노트 반영해줘", "address notes", "주석 처리해", "annotations"
+Triggered when user says: "노트 반영해줘", "address notes", "주석 처리해", "annotations".
 
 ### 1. Detect Annotations
-- Diff `.prev` file against current plan to find user additions
-- Also scan for patterns: `> ` blockquotes, `NOTE:`, `TODO:`, `FIXME:`, `<!-- ... -->` comments
+
+- Diff `.plans/.plan-{feature}.md.prev` against the current plan to find user additions/edits.
+- Scan for explicit markers: `> ` blockquotes, `NOTE:`, `TODO:`, `FIXME:`, `<!-- ... -->`.
+- Treat unrelated whitespace-only diffs as noise; ignore them.
+
+See `references/annotation-guide.md` for the four annotation formats and six feedback-type categories.
 
 ### 2. Process Each Annotation
 
-See `references/annotation-guide.md` for the four annotation formats (blockquote, NOTE/TODO/FIXME, HTML comment, direct edit) and the six feedback-type categories used to classify the user's intent.
-
 For each detected annotation:
-1. Quote the annotation
-2. Explain how it will be addressed
-3. Update the plan accordingly
+1. Quote the annotation verbatim (with its surrounding section).
+2. Classify the feedback type (per annotation-guide.md).
+3. State how it will be addressed — which sections change, whether it is a local patch or a structural revision.
+4. Apply the change with `Edit` (preserve unrelated sections; do not rewrite the whole plan).
 
-### 3. Update Baseline
-- Overwrite `.prev` with current plan
-- Track cycle count
+### 3. Update Baseline and Counter
+
+- Overwrite `.plans/.plan-{feature}.md.prev` with the current plan.
+- Increment the cycle counter in `.plans/.plan-{feature}.cycle`.
 
 ### 4. Cycle Limit
-- After 6 cycles, suggest: "6 annotation cycles complete. Consider moving to implementation with `/implement-plan`."
-- This is a suggestion, not a hard stop
+
+After the counter reaches 6, surface: "6 annotation cycles complete. Consider moving to implementation with `/implement-plan`." This is a suggestion, not a hard stop — continue if the user explicitly asks.
 
 ## Advisor Escalation
 
-This skill runs on sonnet by default. At the decision points below, call `advisor()` to borrow higher-tier reasoning:
+Sonnet is the default. Call `advisor()` (no parameters — the full context forwards automatically) only at these decision points:
 
-- **Phase A Step 3 — before writing Risk Assessment & Open Questions**: after merging outputs from plan-drafter and reference-finder, when it is unclear which risks are load-bearing or which items should be left as Open Questions.
-- **Phase B Step 2 — annotation interpretation**: when a user's blockquote / NOTE / TODO is ambiguous, or when it is unclear whether the change should cut across multiple sections or remain a localized edit.
+- **Phase A pre-merge**: plan-drafter and reference-finder disagree on a load-bearing fact (e.g., chosen library, existing helper availability), or Risk Assessment synthesis is ambiguous.
+- **Phase B annotation interpretation**: an annotation is ambiguous, or it is unclear whether the change spans multiple sections versus a localized edit.
 
-Use only when **the plan's direction itself needs a structural check** — not for simple Q&A.
+Do not call advisor for routine progress updates or for simple Q&A.
 
 ## Constraints
-- **Do NOT implement code** during this skill
-- The plan is a **shared mutable document** — Claude writes, user annotates, Claude incorporates
-- Always wait for user confirmation before proceeding to implementation
+
+- **Do NOT implement code** during this skill. Hand off to `implement-plan` only after the user stops annotating.
+- The plan is a **shared mutable document** — Claude writes, the user annotates, Claude incorporates.
+- Always wait for user confirmation before proceeding to implementation.
+- Create `.plans/` and `.plans/.partial/` if missing. Never commit `.plans/.partial/`.
+
+## Gotchas
+
+1. **Sequential agent dispatch halves throughput.** Both `Agent` tool calls must sit in the same assistant message — placing them in separate turns serializes them. Verify in your own output before submitting.
+2. **`.prev` baseline drift after manual edits.** If the user edits the plan between cycles without triggering `address notes`, the next diff against `.prev` will surface pre-existing edits as new annotations. When you detect a suspiciously large diff, ask the user to confirm what is new versus carry-over.
+3. **Cycle counter absent on resume.** When a session is resumed, `.plans/.plan-{feature}.cycle` may be missing if Phase A ran in a different checkout. Recreate with `0` on first `address notes` call instead of erroring.
+4. **Annotations inside code blocks.** `NOTE:` / `TODO:` / `FIXME:` markers are valid inside Markdown code blocks too — these are almost never user annotations, they are snippets Claude itself produced. Skip annotations found inside fenced blocks unless the user explicitly points to them.
+5. **Plan bloat across cycles.** Every cycle tends to grow the plan. After cycle 3, suggest trimming stale sections (rejected approaches, resolved open questions) to keep the document focused.
+
+## Eval Criteria
+
+```
+EVAL 1: Both partials written
+  Question: After Phase A Step 2, do `.plans/.partial/plan.md` and
+            `.plans/.partial/references.md` both exist and have >0 bytes?
+  Pass: Both exist, non-empty.
+  Fail: Either missing or zero-byte.
+
+EVAL 2: Plan section completeness
+  Question: Does the final `.plans/plan-{feature}.md` contain all nine
+            headings in the Phase A Step 3 template (Goal, Approach,
+            Reference Implementations, File Changes, Code Snippets,
+            Dependencies & Ordering, Risk Assessment, Open Questions,
+            Todo)?
+  Pass: All nine headings present.
+  Fail: Any heading missing.
+
+EVAL 3: Baseline and counter initialized
+  Question: After Phase A Step 4, do `.plans/.plan-{feature}.md.prev`
+            and `.plans/.plan-{feature}.cycle` (containing `0`) both
+            exist?
+  Pass: Both exist with correct contents.
+  Fail: Either missing, or cycle file does not contain `0`.
+
+EVAL 4: Annotation round-trip
+  Question: After a Phase B cycle, is the cycle counter incremented by
+            exactly 1 and is `.prev` identical to the post-cycle plan?
+  Pass: Counter +1, `.prev` byte-matches the current plan.
+  Fail: Counter off, or `.prev` still shows pre-cycle state.
+```
