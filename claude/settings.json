@@ -121,7 +121,8 @@
   "effortLevel": "high",
   "advisorModel": "opus",
   "autoUpdatesChannel": "latest",
+  "tui": "fullscreen",
   "skipAutoPermissionPrompt": true,
-  "teammateMode": "auto",
-  "tui": "fullscreen"
+  "useAutoModeDuringPlan": true,
+  "teammateMode": "auto"
 }
