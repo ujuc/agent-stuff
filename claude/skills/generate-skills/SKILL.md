@@ -45,15 +45,25 @@ Apply this to every skill created or updated through this workflow.
 
 ## Step 0: Spec sanity check (before anything else)
 
-The official skills doc changes often. Verify it before generating.
+The official skills doc changes often. Verify it before generating, but only
+re-fetch when the local copy is actually stale — `references/frontmatter-spec.md`
+carries its own freshness metadata in YAML frontmatter.
 
 ### Procedure
 
-1. WebFetch `https://code.claude.com/docs/en/skills`.
-2. Extract the field list from the Frontmatter reference section.
-3. Diff against the "Field Reference" section in `references/frontmatter-spec.md`.
-4. **If changes are detected**: update `references/frontmatter-spec.md`, then proceed to Step 1.
-5. **If unchanged**: proceed to Step 1.
+1. Read the YAML frontmatter at the top of `references/frontmatter-spec.md`:
+   - `source_url` — upstream URL to fetch
+   - `last_upstream_check` — YYYY-MM-DD of the last verified check
+   - `check_interval_days` — cadence threshold (defaults to 14 when missing)
+2. Compute `today - last_upstream_check`:
+   - **Within interval** → proceed to Step 1 without fetching.
+   - **Beyond interval** → continue to step 3.
+3. WebFetch `source_url` and extract the Frontmatter reference section.
+4. Diff against the "Field Reference" section in `references/frontmatter-spec.md`.
+5. **If changes are detected**: update both the field content and
+   `last_upstream_check` (set to today's date). Surface the diff to the user
+   if the change set is non-trivial before rewriting.
+6. **If unchanged**: just bump `last_upstream_check` to today's date.
 
 ### What to compare
 
@@ -63,8 +73,12 @@ The official skills doc changes often. Verify it before generating.
 
 ### Notes
 
-- If WebFetch fails (network error etc.), keep the existing `references/frontmatter-spec.md` and proceed to Step 1.
-- If the upstream change set is large, summarize it for the user and confirm before rewriting the local copy.
+- If WebFetch fails (network error, rate limit, page layout change), keep the
+  existing `references/frontmatter-spec.md` **and** `last_upstream_check`
+  untouched, then proceed to Step 1 with a short notice to the user that the
+  local spec may be stale.
+- If the upstream change set is large, summarize it for the user and confirm
+  before rewriting the local copy.
 
 ---
 

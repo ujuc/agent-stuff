@@ -1,7 +1,17 @@
+---
+source_url: https://code.claude.com/docs/en/skills
+last_upstream_check: 2026-04-18
+check_interval_days: 14
+---
+
 # YAML Frontmatter Field Specification
 
 > Field rules and validation criteria for YAML frontmatter at the top of SKILL.md.
 > Source: https://code.claude.com/docs/en/skills#frontmatter-reference
+>
+> Freshness is tracked by the YAML block above; `generate-skills` Step 0 reads
+> `last_upstream_check` and only re-fetches when `today - last_upstream_check >
+> check_interval_days`.
 
 ---
 
