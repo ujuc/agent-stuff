@@ -97,7 +97,7 @@ Triggered by natural language; invoke via the Skill tool when a trigger matches.
 | Skill | Triggers | Model |
 | ----- | -------- | ----- |
 | `commit` | /commit, 커밋해줘, 변경사항 커밋 | sonnet |
-| `gemma` | /gemma, gemma로 요약해줘, gemma로 번역해, 로컬 LLM, 오프라인 AI | sonnet |
+| `gemma` | /gemma, gemma로 요약해줘, lm studio, gemini api, 로컬 LLM, 오프라인 AI, 클라우드로 돌려줘 | sonnet |
 | `generate-claude-md` | /generate-claude-md, CLAUDE.md 업데이트, AGENTS.md 갱신 | opus |
 | `generate-skills` | 스킬 만들어줘, 새 스킬 추가, 스킬 업데이트, 스킬 수정, generate-skills | opus |
 | `autoresearch` | 자동 실험, eval 루프, autoresearch | opus |
