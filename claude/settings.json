@@ -118,7 +118,7 @@
   "language": "korean",
   "spinnerTipsEnabled": false,
   "alwaysThinkingEnabled": true,
-  "effortLevel": "high",
+  "effortLevel": "xhigh",
   "advisorModel": "opus",
   "autoUpdatesChannel": "latest",
   "tui": "fullscreen",
