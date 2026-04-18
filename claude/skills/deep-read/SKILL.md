@@ -12,26 +12,30 @@ Deeply analyze a code area and produce a structured research document at `.resea
 
 ## Workflow
 
-### 1. Determine Target
-- Parse `$ARGUMENTS` for the target (directory, module, or feature area)
-- If no target specified, ask the user what to analyze
+### 1. Determine Target and Topic Slug
+- Parse `$ARGUMENTS` for the target (directory, module, or feature area).
+- If no target is given, ask the user what to analyze.
+- Derive `{topic}`: kebab-case slug of the target's final component (e.g., `src/auth` → `auth`, `packages/api/routes` → `api-routes`). If the user supplied a natural-language topic, slugify that instead. Pick a slug that produces a stable, re-runnable filename.
 
 ### 2. Launch 3 Parallel Researcher Agents
 
-Spawn 3 agents simultaneously using `Agent` tool with `subagent_type: "researcher"` and `run_in_background: true`. The researcher agent definition (`~/.claude/agents/researcher.md`) enforces citation rules, exploration depth, and no-modification constraints automatically.
+Spawn 3 agents in a single message using `Agent` with `subagent_type: "researcher"` and `run_in_background: true`. Agent system rules (citations, exploration depth, no modification) live in `~/.claude/agents/researcher.md` and are not restated here.
 
-| Agent | Role | Output |
-|-------|------|--------|
-| **structure-explorer** | File structure, entry points, type/interface mapping | `.research/.partial/structure.md` |
-| **flow-explorer** | Data flow tracing, function call chains, state changes | `.research/.partial/dataflow.md` |
-| **risk-explorer** | External/internal dependencies, vulnerabilities, implicit contracts, tech debt | `.research/.partial/risks.md` |
+| Agent | Focus | Output | Required sections |
+|-------|-------|--------|-------------------|
+| **structure-explorer** | File structure, entry points, type/interface mapping | `.research/.partial/structure.md` | `# Architecture Overview`, `# Key Files & Responsibilities` |
+| **flow-explorer** | Data flow, function call chains, state changes | `.research/.partial/dataflow.md` | `# Data Flow`, `# Call Chains` |
+| **risk-explorer** | External/internal dependencies, vulnerabilities, implicit contracts, tech debt | `.research/.partial/risks.md` | `# Dependencies`, `# Gotchas & Risks` (each risk tagged `[Low|Medium|High|Critical]`) |
 
 Agent prompt template:
 ```
 Focus: {role description}.
 Target: {target path}.
 Output: {output path}.
+Required top-level sections: {from table}.
 ```
+
+Wait for all 3 agents to finish before Step 3. Poll via `TaskList` / `TaskOutput`; do not start merging on partial completion.
 
 ### 3. Merge Results
 
@@ -68,13 +72,50 @@ After all 3 agents complete, read `.partial/` files and merge into `.research/re
 
 ## Advisor Escalation
 
-This skill runs on sonnet by default. At the decision points below, call `advisor()` to borrow higher-tier reasoning:
+Sonnet is the default. Call `advisor()` (no parameters — the full context forwards automatically) only at these decision points:
 
-- **Before Step 3 merge**: when the 3 researcher agents (structure / dataflow / risk) report contradictory findings, or when synthesizing the Architecture Overview is ambiguous.
-- **When risk-explorer reports a Critical-level risk**: to judge whether that risk is load-bearing and how firmly to state it in the "Gotchas & Risks" section.
+- **Pre-merge contradiction**: structure / dataflow / risk partials disagree on the same fact, or the Architecture Overview synthesis is ambiguous.
+- **Critical-severity risk**: risk-explorer flags `[Critical]` and you need a sanity check on how firmly to state it.
 
-How to call: invoke `advisor()` with no parameters. The full current conversation context (including the `.partial/` outputs from all three agents) is automatically forwarded to the higher-tier model. Use this only when **the merge direction itself needs a structural check** — not for simple Q&A.
+Do not call advisor for routine Q&A or progress updates.
 
 ## Constraints
-- **NO code modifications during merge** — observation and documentation only (per-agent rules are enforced by researcher.md)
-- Create `.research/` directory if it does not exist
+- Observation and documentation only. No code modifications during merge. Per-agent rules are enforced by `~/.claude/agents/researcher.md`.
+- Create `.research/` if missing. Never commit `.research/.partial/`.
+
+## Gotchas
+
+1. **Background agents can silently fail.** `run_in_background: true` returns before the subagent writes its output. Always verify each `.partial/*.md` exists and is non-empty before merging — if any is missing, re-dispatch that single role rather than merging with a hole.
+2. **Topic slug collisions overwrite prior research.** Re-running `deep-read src/auth` twice overwrites `.research/research-auth.md`. If the user intends an update-over-time workflow, append a date suffix (`research-auth-2026-04-18.md`) or confirm overwrite.
+3. **Large targets hit subagent context limits.** For directories over ~50 files, instruct each researcher to stream findings to its output file as it goes, not accumulate in memory. Consider narrowing `Target:` to a subfolder per role if an agent reports truncation.
+4. **Merge drift when partials use different heading levels.** The Required sections in the Step 2 table are enforced — if a partial omits `# Architecture Overview`, the merge mapping breaks silently. Grep each partial for the required headings before merging; if any is missing, re-prompt that one agent with stricter instructions.
+
+## Eval Criteria
+
+```
+EVAL 1: All three partials written
+  Question: After Step 2, do `.research/.partial/structure.md`,
+            `.research/.partial/dataflow.md`, and
+            `.research/.partial/risks.md` all exist and have >0 bytes?
+  Pass: All three exist, non-empty.
+  Fail: Any missing or zero-byte.
+
+EVAL 2: Merge completeness
+  Question: Does the final `.research/research-{topic}.md` contain all
+            seven sections listed in the Step 3 template (Architecture
+            Overview, Key Files, Data Flow, Dependencies, Patterns,
+            Gotchas & Risks, Integration Points)?
+  Pass: All seven headings present.
+  Fail: Any heading missing.
+
+EVAL 3: Citation density
+  Question: Do >=80% of factual claims in the merged document cite a
+            `path:line` reference (per researcher.md rules)?
+  Pass: Citation ratio >= 0.8 on a sample of 20 claims.
+  Fail: Ratio below threshold — re-run failing role(s).
+
+EVAL 4: Cleanup
+  Question: Is `.research/.partial/` deleted at the end of Step 4?
+  Pass: Directory does not exist after skill completes.
+  Fail: Directory still present.
+```
