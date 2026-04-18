@@ -146,4 +146,20 @@ In addition to the gyeol-managed session routine above (items 1–6), run this l
    3. On consent, for each selected reference: `WebFetch` the `url`, diff against the existing summary, update `Key Points` / `Detailed Notes` if meaningful changes are detected, and set `last_upstream_check` to today's date in the frontmatter. Follow the tool-based maintenance rules above — do not invoke the Python scripts.
    4. Whether any refresh happened or not, write today's date (YYYY-MM-DD) to `$GYEOL_HOME/.last_semantics_scan`.
 
+## Skills (Local Policy)
+
+Local additions for the skill development workflow. Skills live under `~/.claude/skills/` (user-level) and `.claude/skills/` (project-level). This block lives **outside** the `<!-- gyeol:begin -->` / `<!-- gyeol:end -->` markers so gyeol self-update cannot overwrite it.
+
+### Periodic skill-improver check (7-day cadence)
+
+In addition to the gyeol session routine (items 1–6) and the semantics upstream check (item 7), run this on every session start.
+
+8. **Skill-improver periodic check.** Read `~/.claude/.last_skill_improver_run`. If the file does not exist or its recorded date is more than 7 days ago:
+   1. Glob `~/.claude/skills/*/SKILL.md` and count targets (`N`).
+   2. Surface a short, non-blocking notice: "마지막 skill-improver 실행 후 X일 경과, N개 스킬 점검 가능. 지금 실행할까요?" Do not auto-run without consent.
+   3. On consent, invoke `Skill("skill-improver")` with no arguments (full sweep). **Do NOT write the timestamp here** — skill-improver's Phase 6 writes it only on successful completion. This preserves the "failed runs re-prompt next session" behavior documented in the skill's Gotcha #4.
+   4. On decline (or if the user dismisses the notice), write today's date (YYYY-MM-DD) to `~/.claude/.last_skill_improver_run` so the prompt does not repeat next session.
+
+Rationale: skill-improver is consent-gated by design (commit confirmation in Phase 6), so a passive periodic prompt fits its workflow better than a fully autonomous cron. The 7-day cadence matches gyeol's `.last_update_check` and `.last_semantics_scan` interval.
+
 @RTK.md
