@@ -1,6 +1,6 @@
 ---
 name: implement-plan
-description: "주석이 달린 구현 플랜을 지속적 검증과 함께 실행한다. 순차/병렬(worktree) 실행 모드를 지원한다. 구현 시작, 플랜 실행해, implement-plan, 다 구현해, /implement-plan 요청 시 사용한다."
+description: "주석이 달린 구현 플랜을 지속적 검증·블로커 감지·디버거 연동과 함께 실행한다. 순차/병렬(worktree) 실행 모드를 지원한다. 구현 시작, 플랜 실행해, implement-plan, 다 구현해, /implement-plan 요청 시 사용한다."
 model: sonnet
 argument-hint: "[feature-name]"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent
@@ -9,6 +9,8 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent
 # Implement Plan — Execution Driver
 
 Execute the implementation plan from `.plans/plan-{feature}.md` with continuous verification and progress tracking.
+
+Reads from: `.plans/plan-{feature}.md`, `.plans/.references/{feature}.md`, `.plans/.verify-{slug}.md`, `.plans/.blocker-{slug}.md`, `.plans/.debug-{slug}.md`.
 
 ## Composes with
 
@@ -66,7 +68,7 @@ Implement items in dependency order in the main context. After each item:
    )
    ```
 3. Proceed to the next item immediately. Do not wait.
-4. Before marking the NEXT item `- [x]`, poll the previous verifier's output file. If errors are reported, pause and fix before continuing.
+4. Before marking the NEXT item `- [x]`, poll `.plans/.verify-{prev-slug}.md` until all three lines (`typecheck:`, `lint:`, `tests:`) are present — retry at 1s intervals for up to 60s. Once complete, if any line is FAIL OR `.plans/.blocker-{prev-slug}.md` exists, branch to Step 5a (Blocker / Debug Detection) before continuing.
 
 **Mode B — Parallel worktrees** (2+ independent items):
 
@@ -94,6 +96,26 @@ Implement items in dependency order in the main context. After each item:
 - Always check `.plans/.references/` before writing new code.
 - When the plan says "like X" or references existing code, read that code first and adapt the same patterns.
 - When working in main context (Mode A), follow the same mechanical rules as `~/.claude/agents/implementer.md`.
+
+### 5a. Blocker / Debug Detection
+
+Entered from Step 3 Mode A when the previous verifier is complete AND either a blocker file exists OR any check is FAIL. Runs before Step 5 so that diagnostics inform (or replace) the scope-correction decision.
+
+1. **Blocker path.** If `.plans/.blocker-{prev-slug}.md` exists:
+   - Read the file and display its three sections (`## Problem`, `## Attempts`, `## Proposal`) verbatim to the user.
+   - Direct the user to run `annotate-plan` Phase B (`address notes`) so the blocker feeds the next annotation cycle.
+   - Do NOT continue to the next todo item. Do NOT run debugger (the implementer already determined this is not a diagnosable failure).
+
+2. **Debugger dispatch on verifier FAIL.** Otherwise, if the previous verifier reports FAIL:
+   ```
+   Agent(
+     subagent_type="debugger",
+     prompt="diagnose {item}. Read .plans/.verify-{prev-slug}.md and the affected files. Write findings to .plans/.debug-{prev-slug}.md"
+   )
+   ```
+   Wait for `.plans/.debug-{prev-slug}.md` to appear, then display its four sections (`## Symptom`, `## Hypotheses`, `## Reproduction`, `## Suggested Fix`) to the user. Ask whether to apply the suggested fix inline or proceed to Step 5 (Scope Correction).
+
+3. **Clean path.** If neither file exists and every check is PASS/SKIP, continue to the next item normally — do NOT enter Step 5.
 
 ### 5. Scope Correction
 

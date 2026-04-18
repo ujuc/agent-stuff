@@ -91,6 +91,7 @@ Triggered when user says: "노트 반영해줘", "address notes", "주석 처리
 
 - Diff `.plans/.plan-{feature}.md.prev` against the current plan to find user additions/edits.
 - Scan for explicit markers: `> ` blockquotes, `NOTE:`, `TODO:`, `FIXME:`, `<!-- ... -->`.
+- If `.plans/.blocker-*.md` or `.plans/.debug-*.md` files exist, treat their contents as annotation sources alongside inline diff markers — this lets `implement-plan`'s failure output feed the next annotation cycle. After incorporating, move the consumed files to `.plans/.partial/` so they are not re-read on the next cycle.
 - Treat unrelated whitespace-only diffs as noise; ignore them.
 
 See `references/annotation-guide.md` for the four annotation formats and six feedback-type categories.

@@ -39,7 +39,11 @@ Wait for all 3 agents to finish before Step 3. Poll via `TaskList` / `TaskOutput
 
 ### 3. Merge Results
 
-After all 3 agents complete, read `.partial/` files and merge into `.research/research-{topic}.md`:
+After all 3 agents complete, read `.partial/` files and merge into `.research/research-{topic}.md`.
+
+**PARTIAL markers.** If any partial file contains `<!-- PARTIAL: {reason} -->` (written by `researcher` per its Failure Policy), preserve the marker as a `> PARTIAL: {reason}` blockquote at the top of the corresponding section in the merged document. Also append one line to the `## Gotchas & Risks` section: `> PARTIAL research — {role} could not finish ("{reason}"); rerun that role before planning.` Never silently drop the marker — it is the user's signal that the research is incomplete.
+
+Merge into `.research/research-{topic}.md`:
 
 ```markdown
 # Research: {topic}
@@ -89,6 +93,8 @@ Do not call advisor for routine Q&A or progress updates.
 2. **Topic slug collisions overwrite prior research.** Re-running `deep-read src/auth` twice overwrites `.research/research-auth.md`. If the user intends an update-over-time workflow, append a date suffix (`research-auth-2026-04-18.md`) or confirm overwrite.
 3. **Large targets hit subagent context limits.** For directories over ~50 files, instruct each researcher to stream findings to its output file as it goes, not accumulate in memory. Consider narrowing `Target:` to a subfolder per role if an agent reports truncation.
 4. **Merge drift when partials use different heading levels.** The Required sections in the Step 2 table are enforced — if a partial omits `# Architecture Overview`, the merge mapping breaks silently. Grep each partial for the required headings before merging; if any is missing, re-prompt that one agent with stricter instructions.
+
+5. **PARTIAL markers must survive merging.** `researcher` writes `<!-- PARTIAL: ... -->` at the top of its output when it could not finish. Step 3 preserves this as a `> PARTIAL: ...` blockquote in the merged document. Silently dropping the marker would leave the user with an incomplete research document that looks complete — grep every partial for `PARTIAL` before running Step 4 cleanup.
 
 ## Eval Criteria
 
