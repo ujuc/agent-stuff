@@ -1,6 +1,6 @@
 ---
 name: deep-read
-description: "코드베이스 영역을 깊이 분석하여 구조화된 리서치 문서를 생성한다. 구조, 데이터 흐름, 리스크 분석을 위해 3개 병렬 Explore 에이전트를 디스패치한다. 코드 분석해줘, 깊이 읽어봐, deep-read, /deep-read 요청 시 사용한다."
+description: "코드베이스 영역을 깊이 분석하여 구조화된 리서치 문서를 생성한다. 구조, 데이터 흐름, 리스크 분석을 위해 3개 병렬 researcher 에이전트를 디스패치한다. 코드 분석해줘, 깊이 읽어봐, deep-read, /deep-read 요청 시 사용한다."
 model: sonnet
 argument-hint: "[target-path]"
 allowed-tools: Read, Glob, Grep, Bash, Agent, advisor
@@ -16,9 +16,9 @@ Deeply analyze a code area and produce a structured research document at `.resea
 - Parse `$ARGUMENTS` for the target (directory, module, or feature area)
 - If no target specified, ask the user what to analyze
 
-### 2. Launch 3 Parallel Explore Agents
+### 2. Launch 3 Parallel Researcher Agents
 
-Spawn 3 agents simultaneously using `Agent` tool with `run_in_background: true`:
+Spawn 3 agents simultaneously using `Agent` tool with `subagent_type: "researcher"` and `run_in_background: true`. The researcher agent definition (`~/.claude/agents/researcher.md`) enforces citation rules, exploration depth, and no-modification constraints automatically.
 
 | Agent | Role | Output |
 |-------|------|--------|
@@ -26,15 +26,11 @@ Spawn 3 agents simultaneously using `Agent` tool with `run_in_background: true`:
 | **flow-explorer** | Data flow tracing, function call chains, state changes | `.research/.partial/dataflow.md` |
 | **risk-explorer** | External/internal dependencies, vulnerabilities, implicit contracts, tech debt | `.research/.partial/risks.md` |
 
-Each agent uses `subagent_type: "Explore"` with thoroughness "very thorough".
-
 Agent prompt template:
 ```
-You are a codebase researcher (see ~/.claude/agents/researcher.md for standards).
-Your focus: {role description}.
-Target scope: {target path}.
-Write findings to: {output path}.
-Read EVERY file in scope. Cite exact file:line ranges.
+Focus: {role description}.
+Target: {target path}.
+Output: {output path}.
 ```
 
 ### 3. Merge Results
@@ -74,12 +70,11 @@ After all 3 agents complete, read `.partial/` files and merge into `.research/re
 
 This skill runs on sonnet by default. At the decision points below, call `advisor()` to borrow higher-tier reasoning:
 
-- **Before Step 3 merge**: when the 3 Explore agents (structure / dataflow / risk) report contradictory findings, or when synthesizing the Architecture Overview is ambiguous.
+- **Before Step 3 merge**: when the 3 researcher agents (structure / dataflow / risk) report contradictory findings, or when synthesizing the Architecture Overview is ambiguous.
 - **When risk-explorer reports a Critical-level risk**: to judge whether that risk is load-bearing and how firmly to state it in the "Gotchas & Risks" section.
 
 How to call: invoke `advisor()` with no parameters. The full current conversation context (including the `.partial/` outputs from all three agents) is automatically forwarded to the higher-tier model. Use this only when **the merge direction itself needs a structural check** — not for simple Q&A.
 
 ## Constraints
-- **NO code modifications** — observation and documentation only
-- **NO improvement suggestions** — report what IS, not what should be
+- **NO code modifications during merge** — observation and documentation only (per-agent rules are enforced by researcher.md)
 - Create `.research/` directory if it does not exist
