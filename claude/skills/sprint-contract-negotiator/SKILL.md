@@ -1,131 +1,142 @@
 ---
 name: sprint-contract-negotiator
-description: "Generator-Evaluator 간 done 기준을 파일 기반 프로토콜로 협상하여 sprint contract를 생성한다. sprint contract 협상, done 기준 정의, 완료 조건 합의, acceptance criteria, sprint-contract-negotiator 요청 시 사용한다."
+description: Generator·Evaluator 두 에이전트가 파일 기반 프로토콜로 done 기준을 협상해 sprint contract를 만드는 스킬.
+when_to_use: "sprint contract 협상, done 기준 정의, 완료 조건 합의, acceptance criteria 작성, sprint-contract-negotiator 호출 시. 구현 시작 전에 'done이 뭔지 먼저 정하자'·'이 sprint의 합격 기준을 잡아줘'·'평가자가 검증할 기준을 만들어줘' 같은 요청에 적합."
 model: opus
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
 # Sprint Contract Negotiator
 
-Negotiate a "definition of done" between Generator and Evaluator agents via file-based communication protocol. Inspired by the GAN-inspired multi-agent pattern from Anthropic's harness design blog, where the Evaluator's specificity is the key quality driver.
+Negotiate a definition of done between Generator and Evaluator agents through a file-based protocol. Inspired by Anthropic's harness-design pattern in which the Evaluator's specificity drives final quality.
 
 ## Purpose
 
-Before implementation begins, Generator and Evaluator must agree on what "done" looks like. This skill produces a `contract.md` file that both agents can reference during the sprint. The contract prevents scope drift and ensures every criterion is externally testable.
+Before any implementation begins, both agents must agree on what "done" looks like. This skill produces a `contract.md` that both sides reference for the rest of the sprint, and an audit trail of every accept/reject round. The contract prevents scope drift and forces every criterion to be externally testable.
 
-## Input
+## Inputs and Scope
 
-A high-level spec or user story. NOT detailed technical implementation — the contract defines WHAT to verify, not HOW to build it.
+**Input**: a high-level spec or user story. NOT a technical implementation plan.
 
-Example input:
+**Out of scope**: unit-test design, code structure, library choices. The contract describes WHAT to verify, not HOW to build.
+
+Example inputs:
 - "Build a tile-based map editor with rectangle fill, entity placement, and animation preview"
 - "Add user authentication with OAuth2 and role-based access control"
 
+## Roles
+
+This skill plays both roles in alternation by writing to disk, then re-reading from disk. The file boundary is the contract — both roles MUST treat the other's last file as the only source of truth.
+
+**Generator** writes drafts. Each draft proposes:
+- Sprint goal (one sentence)
+- Implementation scope (feature list)
+- Verification criteria table (testable from the outside)
+
+**Evaluator** writes reviews. For every criterion in the latest draft it issues exactly one of:
+- `ACCEPT` — the criterion is specific, observable, and unambiguous
+- `REJECT` — with a concrete reason that names the missing element (subject, action, observable result, or verification method)
+
 ## Negotiation Protocol
 
-### Roles
+### File exchange
 
-**Generator** proposes:
-- Implementation plan (feature list with brief descriptions)
-- Testable criteria for each feature (what can be verified from the outside)
+All files live under `.sprint/` at the project root:
 
-**Evaluator** reviews each criterion and either:
-- ACCEPTS — the criterion is specific, externally testable, and unambiguous
-- REJECTS — with a concrete reason explaining why the criterion fails testability
-
-### Iteration Rules
-
-1. Generator writes `contract-draft-{n}.md` with proposed criteria
-2. Evaluator reviews and writes `contract-review-{n}.md` with ACCEPT/REJECT per criterion
-3. Generator incorporates feedback and writes next draft
-4. **Maximum 3 round-trips** — if no agreement after 3 rounds, escalate to user
-5. Final agreed version is written as `contract.md`
-
-### File Exchange Location
-
-All negotiation files are placed in the project root under `.sprint/` directory:
 ```
 .sprint/
   contract-draft-1.md
   contract-review-1.md
   contract-draft-2.md
   contract-review-2.md
-  contract.md          # Final agreed contract
+  ...
+  contract.md          # final agreed contract
 ```
 
-## Output: contract.md Structure
+File formats are defined in [references/file-format.md](references/file-format.md). A worked end-to-end round-trip is in [references/negotiation-example.md](references/negotiation-example.md).
 
-The final contract follows this structure:
+### Iteration rules
 
-```markdown
-# Sprint Contract — [Sprint Name]
+1. Generator writes `contract-draft-{n}.md`.
+2. Evaluator reads the draft, writes `contract-review-{n}.md` with one verdict per criterion.
+3. If any criterion is `REJECT`, Generator writes `contract-draft-{n+1}.md` addressing every rejection.
+4. Loop until Evaluator returns all `ACCEPT`, or until the round-trip cap is hit.
+5. On full acceptance: copy the agreed criteria into `contract.md` and append a `## Negotiation History` section.
 
-## Sprint Goal
-[One sentence describing what this sprint delivers]
+### Round-trip cap
 
-## Implementation Scope
-1. [Feature A] — [brief description]
-2. [Feature B] — [brief description]
-...
+- **Hard cap: 3 round-trips** (draft 1–3 plus reviews).
+- **Early escalation triggers** — escalate to the user before round 3 when ANY of these is true:
+  - Same criterion is `REJECT`-ed twice for the same reason → input ambiguity, not a wording problem.
+  - Round 2 review still rejects more than 50% of criteria → the spec is too vague to negotiate from.
+  - Generator cannot produce ≥ 8 criteria → scope is unclear or trivial.
 
-## Verification Criteria
-
-| # | Criterion | Expected Behavior | Test Method |
-|---|-----------|-------------------|-------------|
-| 1 | [Subject + Verb + Result] | [Observable outcome] | [How to verify] |
-| 2 | ... | ... | ... |
-
-## Exclusions
-- [Explicitly out-of-scope item 1]
-- [Explicitly out-of-scope item 2]
-```
-
-## Criteria Quality Standards
-
-### The Specificity Requirement
-
-The blog's key insight: when the Evaluator found issues, findings were highly specific. This level of specificity is REQUIRED in both criteria and evaluator responses.
-
-Bad criterion:
-> "The fill tool works correctly"
-
-Good criterion:
-> "Rectangle fill tool allows click-drag to fill rectangular area with selected tile"
-
-Bad evaluator feedback:
-> "FAIL — fill tool has bugs"
-
-Good evaluator feedback:
-> "FAIL — Rectangle fill tool only places tiles at drag start/end. fillRectangle exists but not triggered on mouseUp"
-
-### Criteria Writing Rule
-
-Every criterion MUST follow the pattern: **Subject + Verb + Expected Result + Verification Method**
-
-See [references/contract-template.md](references/contract-template.md) for the full template and real examples.
+When escalating, write `.sprint/escalation.md` with the unresolved criteria and the reason, then ask the user.
 
 ## Procedure
 
-1. Read the input spec or user story
-2. Use Glob and Grep to understand the existing codebase context (if any)
-3. **Round 1 — Generator proposes**: Write `contract-draft-1.md` with sprint goal, feature list, and initial criteria table
-4. **Round 1 — Evaluator reviews**: Read draft, check each criterion for external testability, write `contract-review-1.md`
-5. Repeat until agreement or 3 rounds exhausted
-6. Write final `contract.md`
-7. Report summary to user: number of criteria, rounds needed, any escalated items
+1. Read the input spec or user story.
+2. Use `Glob` and `Grep` only if relevant existing code informs scope (skip for greenfield).
+3. Create `.sprint/` if missing. Refuse to overwrite existing `.sprint/contract.md` without explicit confirmation.
+4. **Round 1 — Generator**: write `contract-draft-1.md` per [references/file-format.md](references/file-format.md). Aim for the criteria count appropriate to sprint size (see template).
+5. **Round 1 — Evaluator**: read draft 1, write `contract-review-1.md`. For every `REJECT`, name the missing element from the four-part rule (subject / verb / observable result / verification method).
+6. Repeat with rounds 2 and 3 as needed. Honor early escalation triggers.
+7. On full acceptance, write `contract.md` with the agreed criteria plus `## Negotiation History`.
+8. Report to the user: criteria count, rounds used, any escalations.
 
-## When to Use This Skill
+## Criterion Quality Rule
 
-- At the START of a sprint, before any implementation
-- When translating user stories into verifiable acceptance criteria
-- When Generator and Evaluator agents need a shared definition of done
-- When past sprints had scope disagreements or unclear completion criteria
+Every criterion MUST follow:
+
+> **Subject + Verb + Observable Result + Verification Method**
+
+Bad → Good comparisons and the full template are in [references/contract-template.md](references/contract-template.md).
+
+The Evaluator's REJECT reasons MUST cite which of the four parts is missing or unverifiable. Generic reasons like "too vague" are themselves rejected and the Evaluator must rewrite the review.
 
 ## Gotchas
 
-- **Do not include implementation details in criteria.** Criteria define WHAT to verify, not HOW to build. Technical implementation is the Generator's domain.
-- **Max 3 round-trips is a hard limit.** If criteria cannot be agreed upon, the problem is likely ambiguous input — escalate to the user rather than looping endlessly.
-- **Criteria count matters.** The blog's Sprint 3 had 27 criteria. Aim for thorough coverage — too few criteria means gaps will be discovered late.
-- **Evaluator must reject vague criteria.** If a criterion cannot be tested by an external observer without reading source code, it is vague. "Works correctly" is always vague.
-- **File-based protocol is non-negotiable.** All communication happens through files in `.sprint/`, not through conversational back-and-forth. This creates an audit trail.
-- **Do not confuse this with a test plan.** The contract defines acceptance criteria at the product level. Unit test plans are a separate concern that the Generator handles during implementation.
+- **Implementation details belong to the Generator's later work, not the contract.** "Uses PostgreSQL with btree index" is a HOW, not a WHAT. Strip it.
+- **Round cap is a hard wall, not a guideline.** If you can't agree in 3 rounds, the spec itself is broken — escalate. Looping a 4th time wastes context and produces lower-quality criteria than restarting from a sharper spec.
+- **`.sprint/contract.md` is sacred.** If it already exists for a sprint, do not overwrite. Bump the sprint name or ask the user.
+- **Evaluator rejects must be concrete.** "FAIL — vague" is itself rejected; the review must name which of the four parts is missing.
+- **File-based protocol is non-negotiable.** Both roles MUST read from disk between turns. Conversational state ("as I said in the previous draft") breaks the audit trail and undermines the whole point of the protocol.
+- **Do not conflate this with a test plan.** The contract is product-level acceptance criteria. Per-function unit tests are the Generator's domain during implementation.
+- **`description` mode-invocation note.** This skill has no `disable-model-invocation`, so trigger phrases in `description` + `when_to_use` directly drive auto-loading. Be deliberate about wording changes here.
+
+## Eval Criteria
+
+Five binary checks for any contract produced by this skill. The `autoresearch` skill can reuse these for autonomous optimization.
+
+```
+EVAL 1: Specificity
+  Question: Does every criterion have all four parts (subject, verb,
+            observable result, verification method)?
+  Pass: 100% of criteria pass.
+  Fail: Any criterion missing one or more parts.
+
+EVAL 2: External testability
+  Question: Could a reviewer who has not read the source code verify
+            every criterion using only the stated verification method?
+  Pass: All criteria verifiable from the outside.
+  Fail: Any criterion requires source-code inspection.
+
+EVAL 3: Round-trip discipline
+  Question: Did the negotiation finish in ≤ 3 rounds OR escalate
+            via `.sprint/escalation.md`?
+  Pass: ≤ 3 rounds, or escalation file exists with reason.
+  Fail: 4+ rounds, or stalled without escalation.
+
+EVAL 4: Audit trail completeness
+  Question: Do `.sprint/` files exist for every round, with one
+            review per draft?
+  Pass: For each `contract-draft-{n}.md`, a matching
+        `contract-review-{n}.md` exists.
+  Fail: Any round missing its review or draft pair.
+
+EVAL 5: Criteria count fit
+  Question: Is the criteria count in the template's recommended range
+            for the sprint size?
+  Pass: Within range (8–12 small, 15–25 medium, 25–40 large).
+  Fail: Outside the range without a documented reason.
+```
