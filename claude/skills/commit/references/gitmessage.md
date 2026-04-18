@@ -1,13 +1,23 @@
 # Git Commit Message Guide
 
-> Synthesized from [mitsuhiko/agent-stuff](https://github.com/mitsuhiko/agent-stuff/blob/main/skills/commit/SKILL.md)
-> and [antigravity-awesome-skills (Sentry-style)](https://github.com/sickn33/antigravity-awesome-skills/blob/main/skills/commit/SKILL.md),
-> adapted for Korean Conventional Commits with `-하다` endings.
+Single source of truth for commit rules used by the `commit` skill.
+When this file changes, also update `/Users/ujuc/.config/dotrc/gitmessage`
+(the global `commit.template`) so manual edits stay in sync.
+
+## Sources
+
+Synthesized from three primary references, adapted for Korean Conventional
+Commits ending in `-하다`:
+
+- [thoughtbot — Better Commit Messages with a .gitmessage Template](https://thoughtbot.com/blog/better-commit-messages-with-a-gitmessage-template)
+- [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/)
+- [adeekshith — git-commit-message.sh rules](https://gist.github.com/adeekshith/cd4c95a064977cdc6c50)
 
 ## Principles
 
-- Each commit should be a **single, stable change** — the repository must work after every commit.
-- Commits should be **independently reviewable**.
+- Each commit is a **single, stable change** — the repository must work after
+  every commit.
+- Commits are **independently reviewable**.
 - Reveal *why* you changed something, not just *what* changed.
 - Priority: **why > what > how**.
 
@@ -18,81 +28,161 @@
 
 <본문>
 
-<이슈 참조>
+<이슈 참조·footer>
 ```
 
-### Subject line
+## Subject line — 7 rules
 
-- Written in Korean, ending with `-하다` (e.g., `추가하다`, `수정하다`, `제거하다`)
-- 50 characters or fewer (including type prefix)
-- No trailing period
-- Choose the most specific `type` — avoid defaulting to `chore`
+Each rule is a hard check. Fail any one → rewrite the subject.
 
-### Body (optional)
+1. **50 characters or fewer**, including the `<type>(<scope>):` prefix.
+2. **End with the imperative `-하다` verb form** (Korean equivalent of English
+   imperative mood): `추가하다`, `수정하다`, `제거하다`, `개선하다`.
+3. **No trailing period.**
+4. **Blank line between subject and body** when a body exists.
+5. **Subject states *what*, body states *why*.** Do not cram "why" into the
+   subject by stacking clauses with `·`, `및`, `그리고`, or `~해`.
+6. **Do not list multiple changes in one subject** — split into separate
+   commits.
+7. **Subject test**: read `이 커밋이 적용되면 [제목]` out loud. If it does not
+   sound like a natural command (명령), rewrite.
 
-Include a body only when the change's intent is non-obvious.
+## Body
 
-- Explain **what** and **why**, not *how*
-- Contrast with previous behavior when relevant
-- 72 characters per line, `-` for bullet points
-- Separate from subject with a blank line
+Include a body **whenever the reason for the change is not obvious from the
+diff**. For `feat` and `fix`, a body is effectively mandatory.
 
-### Footer (optional)
+### Why / How structure
 
-- Related issue number or URL: `Closes #42`, `Refs #13`
+For non-trivial commits, use this two-block structure (from thoughtbot):
 
-## Commit Types
+```
+Why:
+- <변경이 필요한 이유 — 문제, 제약, 요구>
 
-| Type       | Description                          |
-|------------|--------------------------------------|
-| `feat`     | New feature                          |
-| `fix`      | Bug fix                              |
-| `refactor` | Code refactoring (no behavior change)|
-| `style`    | Formatting only (no logic change)    |
-| `docs`     | Documentation changes                |
-| `test`     | Add or refactor tests                |
-| `chore`    | Build, tooling, package manager, etc.|
+How:
+- <핵심 해결 방식만 — 구현 디테일은 코드에 맡긴다>
+```
 
-## Argument Handling
+For trivial additions to a simple `chore` or `docs` commit, a single free-form
+sentence in the body is fine. The template is a **guide, not a wall**.
+
+### Body rules
+
+- Wrap at **72 characters per line**.
+- Use `-` for bullet lists.
+- Explain **what + why**, not **how**. "How" belongs in the code, not the log.
+- Contrast with previous behavior when that clarifies intent.
+
+## Footer
+
+One blank line after the body. Each footer line uses the Conventional Commits
+1.0.0 token syntax:
+
+- `<word-token>: <value>` (colon + space) — e.g., `Acked-by: Jane Doe`
+- `<word-token> #<value>` (space + hash) — e.g., `Refs #42`
+- Tokens use hyphens instead of spaces (`Acked-by`, not `Acked by`).
+
+Common tokens: `Closes #<n>`, `Refs #<n>`, `Acked-by: <name>`,
+`Reviewed-by: <name>`.
+
+## Commit types
+
+Per Conventional Commits 1.0.0, plus project-specific notes.
+
+| Type       | Use for                                                  |
+|------------|----------------------------------------------------------|
+| `feat`     | New user-facing feature or capability                    |
+| `fix`      | Bug fix                                                  |
+| `refactor` | Code restructuring with no behavior change               |
+| `perf`     | Performance improvement with no behavior change          |
+| `style`    | Formatting only — whitespace, punctuation, casing        |
+| `docs`     | Documentation-only changes                               |
+| `test`     | Adding or refactoring tests                              |
+| `build`    | Build system, package manager, dependency bumps          |
+| `ci`       | CI/CD pipeline configuration                             |
+| `chore`    | Housekeeping not covered above — submodule pointer, etc. |
+
+Choose the most specific type. Do **not** default to `chore` when a more
+specific type fits.
+
+## Breaking changes
+
+Two notations, either works (use only one per commit):
+
+1. **Suffix `!` on the type/scope**: `feat!:` or `feat(api)!:`
+2. **Footer**: `BREAKING CHANGE: <설명>` (uppercase required; `BREAKING-CHANGE`
+   is a synonym per the spec).
+
+dotrc is a personal config repo, so breaking changes are rare. The notation is
+documented for completeness and for projects that consume this skill.
+
+## Anti-patterns
+
+Detected in recent history — treat these as hard failures and rewrite:
+
+- **Catch-all "서브모듈을 업데이트하다"** with no substantive reason.
+  → State *what the submodule changed* and *why* in a one-line body.
+- **Multi-change subjects** like `generate-skills frontmatter-spec when_to_use·paths·shell 추가를 반영해 서브모듈을 업데이트하다`.
+  → Break into separate commits, or move the list into a Why-bulleted body.
+- **Escaping to `chore` when `feat`/`fix`/`refactor` fits.**
+- **Subjects over 50 characters** that compress the whole body into the title.
+
+## Argument handling
 
 Caller-provided arguments influence the commit:
 
-- **File paths/globs** → limit which files to stage and commit
-- **Freeform instructions** → influence scope, summary, and body
-- **Combined** → honor both file selection and instructions
-- **Ambiguous files** → always ask the user before staging
+- **File paths / globs** → limit which files to stage and commit.
+- **Freeform instructions** → influence scope, summary, and body.
+- **Combined** → honor both file selection and instructions.
+- **Ambiguous files** → always ask the user before staging.
 
 ## Prohibitions
 
-- Do NOT add `Co-Authored-By` (system handles this automatically)
-- Do NOT add sign-offs (`Signed-off-by`)
-- Do NOT include breaking-change markers
-- Do NOT push — only commit
+- Do NOT add `Co-Authored-By` (the system handles this).
+- Do NOT add sign-offs (`Signed-off-by`).
+- Do NOT push — commit only, unless push was explicitly requested.
 
 ## Examples
 
-```
-feat(skills): commit 스킬을 추가하다
+### Feature (body required)
 
-한국어 Conventional Commits 규칙에 따른 커밋 생성 스킬.
-mitsuhiko, antigravity 레퍼런스와 gitmessage 가이드를 포함한다.
 ```
+feat(skills): commit 스킬에 제목 50자 자체검증을 추가하다
+
+Why:
+- 최근 제목이 70자 이상으로 이탈하여 원칙 회복이 필요하다
+- 서브모듈 커밋이 이유 없는 관용어로 반복되고 있다
+
+How:
+- Procedure에 제목 길이·body 유무·명령형 테스트 3단 검증을 삽입
+- Anti-patterns 섹션으로 실패 사례를 명시화
+```
+
+### Fix (body required)
 
 ```
 fix(zshrc): 플러그인 로드 순서 오류를 수정하다
 
-zimfw 초기화 전에 PATH 설정이 선행되어야 하는데 순서가 뒤바뀌어
-일부 툴(pyenv, rbenv)이 정상 동작하지 않던 문제를 수정한다.
+Why:
+- PATH 설정이 zimfw 초기화 후에 실행되어 pyenv·rbenv가 동작하지 않았다
+
+How:
+- Tools 섹션을 Plugins 섹션 이전으로 이동
 ```
 
+### Chore — submodule with real reason
+
 ```
-chore(agents): 서브모듈을 업데이트하다
+chore(agents): generate-skills 중복 감지 기능을 반영하다
+
+Why:
+- agent-stuff 서브모듈에서 스킬 중복 감지가 추가되어
+  스킬 생성 시 기존 항목 덮어쓰기 사고를 예방할 수 있다
 ```
 
-## Notes for AI Generation
+### Chore — trivial (body optional)
 
-1. Analyze the diff to understand *intent*, not just line changes.
-2. Write the subject in Korean with `-하다` ending.
-3. If the change has a non-obvious reason, always include a body.
-4. Keep subject ≤ 50 chars; body lines ≤ 72 chars.
-5. Stage only the intended files — if unclear, ask.
+```
+chore(agents): 서브모듈 포인터를 업데이트하다
+```

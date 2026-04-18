@@ -18,7 +18,12 @@ All `Bash` calls from this skill pass through the global `PreToolUse:Bash` hook 
 `<type>(<scope>): <한국어 제목 -하다>`
 
 - **scope**: follow the scopes defined in the project's CLAUDE.md.
-- Subject and body rules (allowed types, length limits, body priority, etc.) follow `references/gitmessage.md`.
+- **Subject ≤ 50 characters** (including `<type>(<scope>):` prefix).
+- **Body wrapped at 72 characters**, blank line separating subject and body.
+- **Imperative `-하다` ending** on the subject — no trailing period.
+- Full rule set, type table, footer syntax, breaking-change notation, and
+  anti-patterns live in `references/gitmessage.md`. Consult it for any case
+  not covered by the one-line summary above.
 
 ## Procedure
 
@@ -31,7 +36,7 @@ All `Bash` calls from this skill pass through the global `PreToolUse:Bash` hook 
    - If the user asked for a push, push the submodule first.
 3. Once the submodule is done, return to the parent repo and proceed including the updated submodule pointer.
 
-### Steps 1–7. Parent repo commit
+### Steps 1–8. Parent repo commit
 
 1. Read the user's arguments for file paths or instructions.
 2. Inspect changes with `git status`, then `git diff --stat` to see file-level scope. Run full `git diff` only for files whose body you actually need to understand — this keeps token usage bounded on large change sets.
@@ -39,13 +44,29 @@ All `Bash` calls from this skill pass through the global `PreToolUse:Bash` hook 
 4. If which files to stage is unclear, ask the user.
 5. Stage only the intended files with `git add`.
 6. If structural changes are detected, run an incremental doc update (see "Doc updates" below).
-7. Commit using a heredoc:
+7. **Draft the message, then self-check before committing.** Apply all three checks in order — failing any one means rewrite the draft:
+
+   1. **Subject length ≤ 50 characters** (including `<type>(<scope>):` prefix). Measure by Unicode character count, not bytes.
+   2. **Body required?** Follow the policy below. If the change requires a body and the draft has none, add a Why / How block. If the change is trivial and the draft has a body, consider removing it.
+   3. **Imperative test**: read `이 커밋이 적용되면 [제목]` out loud. If it does not read as a natural command, rewrite the subject.
+
+   **Body requirement policy:**
+
+   | Type                                   | Body                                                                        |
+   |----------------------------------------|-----------------------------------------------------------------------------|
+   | `feat`, `fix`                          | **Always** — at minimum a single "Why" line                                 |
+   | `refactor`, `perf`                     | When the motivation (structure, perf target) is not obvious from the diff  |
+   | `docs`, `style`, `test`, `build`, `ci` | Optional                                                                    |
+   | `chore(agents)` (submodule pointer)    | **One-line summary** of what changed in the submodule and why — no "업데이트하다"만 |
+   | Other `chore`                          | Optional                                                                    |
+
+8. Commit using a heredoc:
 
 ```bash
 git commit -m "$(cat <<'EOF'
 <type>(<scope>): <한국어 제목>
 
-<body — only when needed>
+<body — follow the Body requirement policy above>
 EOF
 )"
 ```
@@ -125,6 +146,25 @@ The summary block is shown to the user, so the labels stay in Korean.
 - Do NOT modify docs inside a submodule.
 - Do NOT create new doc files (incremental edits to existing docs only).
 - Do NOT push unless explicitly requested.
+- Do NOT pack multiple changes into one subject with `·`, `및`, `그리고` — split into separate commits instead.
+- Do NOT commit submodule pointer updates with a body-less catch-all subject (`서브모듈을 업데이트하다` alone). Always include a one-line body describing *what the submodule changed and why*.
+- Do NOT default to `chore` when `feat` / `fix` / `refactor` / `perf` actually fits.
+
+## Maintenance — rule source sync
+
+`references/gitmessage.md` is the single source of truth for commit rules.
+Whenever it is edited, also update `/Users/ujuc/.config/dotrc/gitmessage`
+(the global `commit.template`, used when the user runs `git commit` in an
+editor). Items that must stay aligned across both files:
+
+- Type list (`feat · fix · refactor · perf · style · docs · test · build · ci · chore`)
+- 50 / 72 character limits
+- `-하다` imperative ending rule
+- Body "Why / How" hint structure
+- Footer token syntax (`Closes #`, `Refs #`, `Acked-by:`)
+- Breaking change notation (`<type>!:` or `BREAKING CHANGE:` footer)
+
+Stage both files together in the same commit so the two views never diverge.
 
 ## Gemma delegation (optional)
 
