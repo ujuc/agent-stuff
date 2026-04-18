@@ -1,9 +1,11 @@
 ---
 name: autoresearch
-description: "편집 가능한 대상(프롬프트, 설정, 코드 등)을 반복 실행-평가-변이하여 자율적으로 최적화한다. Karpathy의 autoresearch 방법론 기반. 자동 실험, eval 루프, autoresearch, make this better, benchmark, eval 요청 시 사용한다."
+description: "편집 가능한 대상(프롬프트, 설정, 코드 등)을 반복 실행-평가-변이하여 자율적으로 최적화한다. Karpathy의 autoresearch 방법론(execute → score → mutate → keep/discard) 기반."
+when_to_use: "자동 실험, eval 루프, autoresearch 트리거. /autoresearch 또는 CLAUDE.md Skills 테이블 등록을 통해서만 호출됨(disable-model-invocation: true)."
 model: opus
 disable-model-invocation: true
 argument-hint: "[target-path]"
+allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
 ---
 
 # Autoresearch
@@ -30,14 +32,33 @@ Take any editable target, define what "good output" looks like as binary yes/no 
 
 **STOP. Do not run any experiments until all fields below are confirmed with the user via AskUserQuestion.**
 
-1. **Target file** — Path to the file to optimize (e.g., SKILL.md, config.yaml, prompt.md, query.sql)
-2. **Execution method** — How to run/test the target (e.g., invoke as skill, run a shell command, call an API)
-3. **Test inputs** — 3-5 different inputs/scenarios covering different use cases (avoid overfitting to one scenario)
-4. **Eval criteria** — 3-6 binary yes/no checks defining a good output (see [references/eval-guide.md](references/eval-guide.md))
-5. **Runs per experiment** — How many times to run per mutation. Default: 5
-6. **Budget cap** — Max number of experiment cycles. Default: 20
+If `$ARGUMENTS` (the `[target-path]` from `argument-hint`) is non-empty, prefill field 1 with it and confirm. If empty, ask the user.
 
-If the target already has eval criteria (in `## Eval Criteria` section or `evals.md`), present them to the user and ask whether to reuse, modify, or replace.
+| # | Field | Example values | Default |
+|---|-------|---------------|---------|
+| 1 | **Target file** (`{target}`) | `~/.claude/skills/foo/SKILL.md`, `config.yaml`, `prompts/extract.md`, `queries/top.sql` | from `$ARGUMENTS` |
+| 2 | **Execution method** (`{exec}`) | see exec patterns below | none |
+| 3 | **Test inputs** (`{inputs}`) | 3–5 scenarios as a list | none |
+| 4 | **Eval criteria** (`{evals}`) | 3–6 binary checks ([references/eval-guide.md](references/eval-guide.md)) | none |
+| 5 | **Runs per experiment** (`{runs}`) | integer | `5` |
+| 6 | **Budget cap** (`{budget}`) | integer | `20` |
+
+### Execution method patterns
+
+Pick the pattern that fits the target. Each must produce a single string output that can be scored.
+
+```
+# Skill invocation (when target is a SKILL.md)
+Skill("{skill-name}") with prompt {input} → capture transcript
+
+# Shell command (when target is a script/config)
+bash -c "{cmd-using-target} < {input-file}" → capture stdout
+
+# API/CLI tool (when target is a prompt template)
+echo "{input}" | claude -p "$(cat {target})" → capture stdout
+```
+
+If the target already has a `## Eval Criteria` section or sibling `evals.md`, present them to the user and ask whether to reuse, modify, or replace.
 
 ---
 
@@ -66,21 +87,21 @@ See [references/eval-guide.md](references/eval-guide.md) for the eval format, ru
 
 Run the target AS-IS before changing anything. This is experiment #0.
 
-1. Create working directory: `autoresearch-[target-name]/` next to the target file
-2. Create `results.tsv` with the header row
-3. Back up the original file as `{filename}.baseline`
-4. Run the target [N] times using the test inputs and execution method
-5. Score every output against every eval
-6. Record the baseline score
+1. Create working directory: `autoresearch-{target-name}/` next to the target file (where `{target-name}` is `basename({target})` minus extension).
+2. Create `results.tsv` inside the working directory with the header row.
+3. Copy the original file to `autoresearch-{target-name}/{filename}.baseline` (NOT next to the original — keeps cleanup atomic).
+4. Run the target `{runs}` times (the value confirmed in context-gathering, default `5`) using `{inputs}` and `{exec}`.
+5. Score every output against every eval in `{evals}`.
+6. Record the baseline score as experiment 0.
 
 **results.tsv format (tab-separated):**
 
 ```
 experiment	score	max_score	pass_rate	status	description
-0	14	20	70.0%	baseline	original skill — no changes
+0	14	20	70.0%	baseline	original target — no changes
 ```
 
-**After baseline:** Print summary to terminal. If baseline is 90%+, confirm with the user whether optimization is worthwhile.
+**After baseline:** Report the baseline summary to the user. If baseline is 90%+, confirm with the user via AskUserQuestion whether optimization is worthwhile (diminishing returns near the ceiling).
 
 ---
 
@@ -124,17 +145,18 @@ Edit the target file with ONE targeted mutation.
 
 ### 4-4. Run and Score
 
-Run the target [N] times with the same test inputs. Score every output.
+Run the target `{runs}` times with the same `{inputs}`. Score every output against `{evals}`.
 
 ### 4-5. Keep or Discard
 
-- **Score improved** → KEEP. This is the new baseline.
-- **Score unchanged** → DISCARD. Revert. Added complexity without improvement.
-- **Score worse** → DISCARD. Revert.
+Compare against the **current baseline** (the last KEEP, or experiment 0 initially):
+
+- **Score improved** → KEEP. The mutation is now the new baseline.
+- **Score unchanged or worse** → DISCARD. Revert the file fully (no partial reverts — see Gotcha 3).
 
 ### 4-6. Log and Report
 
-Append to `results.tsv`. Print progress to terminal:
+Append a row to `results.tsv`. Report progress to the user:
 
 ```
 [Experiment N] score/max (pass_rate%) — KEEP/DISCARD — one-line description
@@ -142,10 +164,10 @@ Append to `results.tsv`. Print progress to terminal:
 
 ### 4-7. Repeat
 
-Go back to 4-1. Continue until:
-- User manually stops
-- Budget cap reached
-- 95%+ pass rate for 3 consecutive experiments (diminishing returns)
+Go back to 4-1. Continue until any of:
+- User manually stops the loop.
+- `{budget}` experiment cap reached.
+- 95%+ pass rate for 3 consecutive experiments (diminishing returns).
 
 **If out of ideas:** Re-read failing outputs. Combine two near-miss mutations. Try removal instead of addition. Simplification that maintains score is a win.
 
@@ -169,27 +191,29 @@ After each experiment, append to `changelog.md`:
 
 ## Step 6: Deliver Results
 
-When the loop stops, present to terminal:
+When the loop stops, report to the user:
 
 1. **Score summary:** Baseline → Final (percent improvement)
 2. **Total experiments:** How many mutations tried
 3. **Keep rate:** Kept vs discarded
 4. **Top 3 changes** that helped most
 5. **Remaining failure patterns**
-6. **File locations** of results.tsv and changelog.md
+6. **File locations** of `results.tsv` and `changelog.md`
 
 ---
 
 ## Output Structure
 
+All artifacts live inside the working directory next to the target. Cleanup is one `rm -rf` of the working dir; the original target stays in place (improved version overwrites it).
+
 ```
-autoresearch-[target-name]/
+autoresearch-{target-name}/
 ├── results.tsv          # score log for every experiment
 ├── changelog.md         # detailed mutation log
-└── {filename}.baseline  # original file before optimization
+└── {filename}.baseline  # copy of the original target before optimization
 ```
 
-Plus the improved target file saved back to its original location.
+The improved target file is saved back to its original location — only the unchanged baseline copy lives inside the working directory.
 
 ---
 
@@ -201,3 +225,49 @@ Plus the improved target file saved back to its original location.
 4. **Evals can be wrong.** If all evals pass but output quality is bad, fix the evals first — go back to Step 2.
 5. **Overfitting to test inputs.** If the target improves on test inputs but degrades on novel inputs, the test inputs lack variety — go back to context gathering.
 6. **Size creep.** Each kept mutation adds complexity. Periodically check if the target has grown significantly and consolidate if needed.
+7. **Sequential by construction.** This skill implements hill-climbing — each mutation is evaluated against the last KEEP. Do not parallelize candidate mutations; that is beam search and changes the algorithm. If the user wants beam search, treat it as a different skill.
+8. **Trigger phrases live in CLAUDE.md, not `description`.** With `disable-model-invocation: true`, Claude does not auto-trigger from `description`. The Skills table in `~/.claude/CLAUDE.md` is the only source of natural-language triggers. Add new triggers there, not here.
+
+---
+
+## Eval Criteria
+
+Self-referential checks. The autoresearch skill itself can be optimized using these.
+
+```
+EVAL 1: Baseline established
+  Question: Does results.tsv contain a row with experiment=0 and
+            status=baseline before any mutation runs?
+  Pass: Row exists with the unmutated target's score.
+  Fail: Mutation occurred before experiment 0 was logged.
+
+EVAL 2: One-change discipline
+  Question: For every kept experiment N (N>0), does the diff between
+            target@N and target@N-1 represent a single coherent change
+            (one section edited, one parameter adjusted, one
+            instruction added/removed)?
+  Pass: Every kept diff is one logical change.
+  Fail: Any kept diff bundles multiple unrelated changes.
+
+EVAL 3: Full revert on discard
+  Question: After a DISCARD experiment, does the target file's content
+            match the prior baseline byte-for-byte (excluding
+            whitespace-only edits)?
+  Pass: File matches prior baseline.
+  Fail: Partial revert detected.
+
+EVAL 4: Changelog completeness
+  Question: Does changelog.md contain one entry per experiment with
+            all five fields (Score, Change, Reasoning, Result,
+            Remaining failures)?
+  Pass: Every experiment row in results.tsv has a matching
+        changelog entry with all five fields populated.
+  Fail: Any entry missing or any field empty.
+
+EVAL 5: Stop condition honored
+  Question: Did the loop stop on exactly one of: (a) explicit user
+            stop, (b) {budget} cap reached, (c) 95%+ for 3
+            consecutive experiments?
+  Pass: Final experiment row's status reflects one of the three.
+  Fail: Loop ran past budget or stopped without a documented reason.
+```
