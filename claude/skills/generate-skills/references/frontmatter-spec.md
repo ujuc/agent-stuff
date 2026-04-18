@@ -44,12 +44,23 @@ What the skill does and when to use it. Claude uses this to decide when to apply
 
 | Rule | Description |
 |------|-------------|
-| Max length | 1024 characters |
+| Max length | Combined with `when_to_use`, truncated at **1,536 characters** in the skill listing |
 | Recommended structure | **WHAT** (what it does) + **WHEN** (when to use it) |
 | XML tags | `< >` forbidden |
 | Language | Per project language policy (Korean or English) |
 
-This is the primary field the system uses for natural language matching. Its quality directly affects trigger accuracy.
+This is the primary field the system uses for natural language matching. Its quality directly affects trigger accuracy. Front-load the key use case — tail content may be truncated when the session has many skills.
+
+### `when_to_use`
+
+Additional context describing when Claude should invoke the skill — trigger phrases, example requests, domain hints. Appended to `description` in the skill listing and shares the 1,536-character cap.
+
+```yaml
+when_to_use: "Trigger phrases, example user utterances, when NOT to use this skill."
+```
+
+- Use this to separate concise WHAT (in `description`) from noisy trigger keywords.
+- Keep Korean trigger phrases verbatim; the matcher compares against raw user input.
 
 ### `argument-hint`
 
@@ -89,11 +100,19 @@ user-invocable: false
 Tools Claude can use without asking permission when this skill is active.
 
 ```yaml
-allowed-tools: Read, Grep, Glob
+# space-separated string
+allowed-tools: Read Grep Glob
+
+# or YAML list
+allowed-tools:
+  - Read
+  - Grep
+  - Bash(git add *)
 ```
 
-- Comma-separated list of tool names
-- Creates a scoped permission grant for the skill's duration
+- **Space-separated string** or **YAML list** (comma-separated is not the documented form)
+- Creates a scoped permission grant for the skill's duration; does not restrict which tools are callable, only which skip per-use approval
+- Baseline permission settings still apply to tools not listed
 
 ### `model`
 
@@ -115,7 +134,7 @@ Effort level when this skill is active. Overrides the session effort level.
 effort: max
 ```
 
-- Options: `low`, `medium`, `high`, `max` (Opus 4.6 only for `max`)
+- Options: `low`, `medium`, `high`, `xhigh`, `max` (availability depends on the model)
 - Default: inherits from session
 
 ### `context`
@@ -152,6 +171,34 @@ hooks:
   - event: on_skill_start
     command: echo "Skill started"
 ```
+
+### `paths`
+
+Glob patterns that limit when the skill is auto-activated by Claude. When set, the skill is loaded only when working with files matching the patterns. Uses the same format as path-specific memory rules.
+
+```yaml
+# comma-separated string
+paths: "src/**/*.ts, tests/**/*.spec.ts"
+
+# or YAML list
+paths:
+  - "src/**/*.ts"
+  - "tests/**/*.spec.ts"
+```
+
+- Useful for domain-specific skills (e.g., "only load when touching Terraform files").
+- Has no effect on `/skill-name` manual invocation.
+
+### `shell`
+
+Shell used for `` !`<command>` `` inline injections and ` ```! ` fenced blocks inside the skill.
+
+```yaml
+shell: powershell
+```
+
+- Options: `bash` (default) or `powershell`.
+- `powershell` requires `CLAUDE_CODE_USE_POWERSHELL_TOOL=1`.
 
 ---
 
@@ -202,8 +249,10 @@ After writing frontmatter, verify:
 - [ ] If `name` is present: matches kebab-case pattern (`^[a-z0-9]+(-[a-z0-9]+)*$`)
 - [ ] If `name` is present: matches folder name
 - [ ] If `name` is present: does not start with `claude` or `anthropic`
-- [ ] If `description` is present: 1024 characters or fewer
-- [ ] If `description` is present: no XML tags (`< >`)
-- [ ] If `description` is present: includes both WHAT and WHEN
+- [ ] Combined `description` + `when_to_use` length ≤ 1,536 characters
+- [ ] `description` has no XML tags (`< >`)
+- [ ] `description` includes WHAT; WHEN lives in `description` or `when_to_use`
 - [ ] If `context` is set: value is `fork`
 - [ ] If `agent` is set: `context: fork` is also set
+- [ ] If `allowed-tools` is set: space-separated string or YAML list (not comma-separated)
+- [ ] If `paths` is set: glob patterns only apply to auto-activation, not manual `/` invocation

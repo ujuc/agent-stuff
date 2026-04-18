@@ -146,7 +146,7 @@ if [[ -n "$NAME" ]]; then
 fi
 
 # --- Check 9: allowed frontmatter keys ---
-ALLOWED_KEYS="name description model disable-model-invocation allowed-tools argument-hint user-invocable effort context agent hooks"
+ALLOWED_KEYS="name description when_to_use model disable-model-invocation allowed-tools argument-hint user-invocable effort context agent hooks paths shell"
 ALL_KEYS=$(echo "$FRONTMATTER" | yq 'keys | .[]' 2>/dev/null || true)
 UNKNOWN_KEYS=""
 while IFS= read -r key; do
