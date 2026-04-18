@@ -9,6 +9,10 @@ allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git a
 
 Generate commits per the project's Korean Conventional Commits convention.
 
+## Runtime
+
+All `Bash` calls from this skill pass through the global `PreToolUse:Bash` hook (`rtk hook claude`), which transparently rewrites supported commands (git, ls, cat, ...) to `rtk <cmd>` for 60-90% token savings. Do **not** prefix commands with `rtk` inside this skill — let the hook handle it to avoid double-wrapping. Use `rtk gain` only when the user asks for savings analytics, and `rtk proxy <cmd>` only for debugging.
+
 ## Format
 
 `<type>(<scope>): <한국어 제목 -하다>`
@@ -30,8 +34,8 @@ Generate commits per the project's Korean Conventional Commits convention.
 ### Steps 1–7. Parent repo commit
 
 1. Read the user's arguments for file paths or instructions.
-2. Inspect changes with `git status` and `git diff`.
-3. Run `git log --oneline -20` to learn the recent commit style and scope vocabulary.
+2. Inspect changes with `git status`, then `git diff --stat` to see file-level scope. Run full `git diff` only for files whose body you actually need to understand — this keeps token usage bounded on large change sets.
+3. Run `git log --oneline -10` to learn the recent commit style and scope vocabulary. Increase to `-20` only when the last 10 commits look atypical.
 4. If which files to stage is unclear, ask the user.
 5. Stage only the intended files with `git add`.
 6. If structural changes are detected, run an incremental doc update (see "Doc updates" below).
