@@ -1,10 +1,11 @@
 ---
 name: multi-agent-orchestrator
-description: "Planner-Generator-Evaluator 3-agent 파이프라인으로 장시간 자율 코딩 세션을 오케스트레이션한다. 멀티에이전트, 파이프라인 실행, multi-agent-orchestrator, full harness run, autonomous build session, plan and build this 요청 시 사용한다."
+description: "Planner-Generator-Evaluator 3-agent 파이프라인으로 장시간 자율 코딩 세션을 오케스트레이션한다."
+when_to_use: "멀티에이전트, 파이프라인 실행, multi-agent-orchestrator, 에이전트 오케스트레이션, full harness run, autonomous build session, plan and build this 요청 시 사용한다. 4개 컴포넌트 스킬(spec-planner, sprint-contract-negotiator, qa-evaluator, frontend-design-evaluator)을 capstone 플로우로 엮어야 할 때 호출된다."
 model: opus
 disable-model-invocation: true
 argument-hint: "[1-4 sentence prompt]"
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git:*), Agent
+allowed-tools: Read Write Edit Glob Grep Bash Agent advisor
 ---
 
 # Multi-Agent Orchestrator
@@ -33,6 +34,24 @@ Orchestrate long-running autonomous coding sessions using a Planner-Generator-Ev
     └── FAIL → Feedback to Generator → Re-implement → Re-evaluate
 ```
 
+## Pre-flight Check
+
+Before invoking Stage 1, verify the environment is ready. Halt and report to the user if any check fails.
+
+1. **Component skills exist.** Confirm all four skills are installed:
+
+   ```bash
+   ls -d ~/.claude/skills/{spec-planner,sprint-contract-negotiator,qa-evaluator,frontend-design-evaluator}
+   ```
+
+   If any are missing, stop and tell the user which skill is missing.
+
+2. **`.harness/` is gitignored.** Read `.gitignore` at the repo root; if `.harness/` is not listed, append it before writing any artifacts. Pipeline files are ephemeral working state, not deliverables.
+
+3. **`.harness/` directory exists.** Create it if missing. If it already contains artifacts from a previous run, treat them per [communication-protocol.md](references/communication-protocol.md) "Stale File" rules — never silently overwrite.
+
+4. **Chrome integration (only when the task will reach Stage 4).** Check that `mcp__claude-in-chrome__*` tools are available. If evaluation is required and Chrome is not active, stop and ask the user to enable it (e.g., `--chrome` flag or `/chrome`) before proceeding. Do not start Stage 1 on a Chrome-bearing task without this gate.
+
 ## Pipeline Execution
 
 ### Stage 1: Planning
@@ -45,7 +64,7 @@ Invoke the **spec-planner** skill via Agent subagent.
 4. Review the spec for completeness before proceeding.
 
 ```
-Agent instruction: "Use the spec-planner skill to expand the following prompt into a product spec. Write the output to .harness/product-spec.md with the standard header (Agent, Timestamp, Phase: planning, Round: 1)."
+Agent instruction: "Use the spec-planner skill to expand the following prompt into a product spec. Write the output to .harness/product-spec.md with the standard YAML header (agent, timestamp, phase: planning, round: 1) per references/communication-protocol.md."
 ```
 
 ### Stage 2: Contract Negotiation
@@ -55,10 +74,10 @@ Invoke the **sprint-contract-negotiator** skill via Agent subagent.
 1. Pass `.harness/product-spec.md` to the Contract agent.
 2. The agent produces a negotiated definition of done.
 3. Output: `.harness/contract.md` with testable acceptance criteria.
-4. If the task is large enough to warrant sprints, produce per-sprint contracts.
+4. **Default: single contract** for the whole task (V2 architecture). Fall back to per-sprint contracts only when the user explicitly asks for phased delivery or the task exceeds ~6 hours — see [architecture.md](references/architecture.md) "When to keep sprints even with Opus".
 
 ```
-Agent instruction: "Use the sprint-contract-negotiator skill. Read .harness/product-spec.md and negotiate a contract. Write the output to .harness/contract.md with the standard header (Agent, Timestamp, Phase: contracting, Round: 1)."
+Agent instruction: "Use the sprint-contract-negotiator skill. Read .harness/product-spec.md and negotiate a contract. Write the output to .harness/contract.md with the standard YAML header (agent, timestamp, phase: contracting, round: 1) per references/communication-protocol.md."
 ```
 
 ### Stage 3: Implementation (Generator)
@@ -81,8 +100,10 @@ Invoke the **qa-evaluator** skill (and optionally **frontend-design-evaluator**)
 4. If the task has significant UI: also invoke frontend-design-evaluator for design scoring.
 
 ```
-Agent instruction: "Use the qa-evaluator skill. Read .harness/contract.md for acceptance criteria. The app is running at [URL]. Write .harness/evaluation-report.md with the standard header (Agent, Timestamp, Phase: evaluating, Round: N)."
+Agent instruction: "Use the qa-evaluator skill. Read .harness/contract.md for acceptance criteria. The app is running at [URL]. Write .harness/evaluation-report.md with the standard YAML header (agent, timestamp, phase: evaluating, round: N) per references/communication-protocol.md."
 ```
+
+**Always spawn a fresh Agent subagent per round.** Reusing the same agent across rounds accumulates context and leads to score inflation — see [harness-tuning-guide.md](references/harness-tuning-guide.md) §4.
 
 ### Stage 5: Feedback Loop
 
@@ -91,8 +112,10 @@ If the Evaluator returns FAIL:
 1. Read `.harness/evaluation-report.md` for specific feedback items.
 2. Address each feedback item in the implementation.
 3. Commit fixes.
-4. Re-invoke the Evaluator (increment Round number).
+4. Re-invoke the Evaluator with a **fresh** Agent subagent (increment Round number).
 5. Repeat until PASS or maximum iteration count reached (default: 3).
+
+**Advisor escalation after Round 2.** If Round 2 fails with issues overlapping Round 1's feedback (Generator could not address prior items), call `advisor()` before spending Round 3. The advisor sees the full transcript and can diagnose whether the contract is too ambitious, the Generator is missing context, or the Evaluator is asking beyond scope — often saving a wasted round and the escalation described in Gotcha #7.
 
 If the Evaluator returns PASS:
 
@@ -117,13 +140,15 @@ See [communication-protocol.md](references/communication-protocol.md) for the fu
 
 ### Standard File Header
 
-Every pipeline artifact must include:
+Every pipeline artifact must include a YAML frontmatter block at the top. The format is defined authoritatively in [communication-protocol.md](references/communication-protocol.md); keep writers aligned to:
 
-```
-- Agent: [authoring agent name]
-- Timestamp: [ISO 8601]
-- Phase: [planning|contracting|building|evaluating]
-- Round: [N]
+```yaml
+---
+agent: [authoring agent/skill name]
+timestamp: [ISO 8601, e.g., 2026-04-18T14:30:00Z]
+phase: [planning|contracting|building|evaluating]
+round: [integer, starting at 1]
+---
 ```
 
 ## Context Management Strategy
@@ -221,11 +246,11 @@ See [harness-tuning-guide.md](references/harness-tuning-guide.md) for the full r
 
 ## Gotchas
 
-1. **Chrome must be active for evaluation stages.** If Chrome is not available, the Evaluator skills will refuse to proceed. Always verify Chrome integration before entering the evaluation stage.
+1. **Chrome must be active for evaluation stages.** The qa-evaluator and frontend-design-evaluator skills gate on this themselves. Verify during the Pre-flight Check rather than mid-pipeline so the Generator does not complete an implementation that cannot be evaluated.
 
 2. **File-based communication is the only protocol.** Do not attempt to pass state between agents via in-memory variables, function returns, or prompt injection. Write to `.harness/` files.
 
-3. **Evaluator leniency drift is real.** Over multiple evaluation rounds, the Evaluator tends to become more lenient (score inflation). If you notice scores climbing without corresponding quality improvement, reset the Evaluator's context or re-invoke with explicit strictness instructions.
+3. **Evaluator leniency drift is real.** See [harness-tuning-guide.md](references/harness-tuning-guide.md) §4 "Score Inflation Over Rounds" for the diagnostic and fix. Primary mitigation: always spawn a fresh Agent subagent per evaluation round (no shared context across rounds).
 
 4. **Context reset requires a handoff file.** Never reset context without first writing `.harness/handoff.md`. A reset without a handoff loses all pipeline state.
 
@@ -239,4 +264,4 @@ See [harness-tuning-guide.md](references/harness-tuning-guide.md) for the full r
 
 9. **Default tech stack is a suggestion, not a mandate.** React+Vite+FastAPI+SQLite is the default only when the user does not specify. Always respect user-specified stacks.
 
-10. **Opus handles the full pipeline in one session; Sonnet does not.** Do not attempt a full pipeline run with Sonnet-class models without sprint splitting and context resets. It will degrade silently.
+10. **Opus handles the full pipeline in one session; Sonnet/Haiku do not.** Opus 4.6 and 4.7 (1M context) can complete a full pipeline in one session. Sonnet 4.6 (200K) and Haiku 4.5 require sprint splitting and explicit context resets via `.harness/handoff.md` — running the full pipeline in one go on those models will degrade silently as context pressure mounts.
