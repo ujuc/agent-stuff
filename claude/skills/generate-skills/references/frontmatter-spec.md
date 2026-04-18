@@ -100,7 +100,7 @@ user-invocable: false
 Tools Claude can use without asking permission when this skill is active.
 
 ```yaml
-# space-separated string
+# canonical (space-separated string, per official docs)
 allowed-tools: Read Grep Glob
 
 # or YAML list
@@ -108,9 +108,12 @@ allowed-tools:
   - Read
   - Grep
   - Bash(git add *)
+
+# also accepted in practice (comma-separated with spaces) — de-facto convention
+allowed-tools: Read, Grep, Bash(git status:*)
 ```
 
-- **Space-separated string** or **YAML list** (comma-separated is not the documented form)
+- Official spec lists **space-separated string** or **YAML list**; Claude Code also parses comma-separated-with-spaces, which is the convention used across most real-world skills
 - Creates a scoped permission grant for the skill's duration; does not restrict which tools are callable, only which skip per-use approval
 - Baseline permission settings still apply to tools not listed
 

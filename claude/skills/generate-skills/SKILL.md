@@ -251,11 +251,13 @@ When done, proceed to Step 5 (validation).
 
 ### Automated checks
 
-Run `scripts/validate-skill.sh`:
+Run `scripts/validate-skill` (thin bash launcher over the Rust workspace in `tools/`):
 
 ```bash
-bash agents/claude/skills/generate-skills/scripts/validate-skill.sh <skill-directory>
+bash agents/claude/skills/generate-skills/scripts/validate-skill <skill-directory>
 ```
+
+First invocation compiles the validator (~6–30s, debug profile); later runs are instant via Cargo's incremental cache. Requires `cargo` (install via <https://rustup.rs>).
 
 If anything fails, return to the relevant step, fix, and re-run.
 
