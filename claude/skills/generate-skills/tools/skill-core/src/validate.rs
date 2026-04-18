@@ -50,11 +50,6 @@ impl ValidationReport {
     }
 }
 
-fn kebab_re() -> &'static Regex {
-    static RE: OnceLock<Regex> = OnceLock::new();
-    RE.get_or_init(|| Regex::new(r"^[a-z0-9]+(-[a-z0-9]+)*$").unwrap())
-}
-
 fn xml_re() -> &'static Regex {
     static RE: OnceLock<Regex> = OnceLock::new();
     RE.get_or_init(|| Regex::new(r"<[a-zA-Z][a-zA-Z0-9]*[^>]*>").unwrap())
@@ -128,7 +123,7 @@ fn validate_name(fm: &Frontmatter, folder_name: &str, findings: &mut Vec<Finding
         Some(n) => {
             findings.push(Finding::pass("Frontmatter", format!("name field exists: {n}")));
 
-            if kebab_re().is_match(n) {
+            if rules::is_kebab_case(n) {
                 findings.push(Finding::pass("Frontmatter", "name is kebab-case"));
             } else {
                 findings.push(Finding::fail(

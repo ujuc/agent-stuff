@@ -103,13 +103,15 @@ Follow `references/skill-structure.md`.
 
 ### Auto-init (preferred)
 
-Run `scripts/init-skill.py`:
+Run `scripts/init-skill` (thin bash launcher over the Rust workspace in `tools/`):
 
 ```bash
-python3 agents/claude/skills/generate-skills/scripts/init-skill.py <skill-name> --path <target-path>
+bash agents/claude/skills/generate-skills/scripts/init-skill <skill-name> --path <target-path>
 ```
 
-By default this creates only `SKILL.md`. If the skill needs Tier-3 resources, pass `--with-references`, `--with-scripts`, and/or `--with-assets`. Fill in the body in Steps 3–4.
+By default this creates only `SKILL.md` with a template that includes commented-out placeholders for every optional frontmatter field (`when_to_use`, `paths`, `shell`, `effort`, `context`, `agent`, etc.). If the skill needs Tier-3 resources, pass `--with-references`, `--with-scripts`, and/or `--with-assets`. Fill in the body in Steps 3–4.
+
+Requires `cargo` (install via <https://rustup.rs>). First invocation compiles the binary (~6–30s); later runs are instant via Cargo's incremental cache.
 
 ### Manual scaffold (when init-skill.py is unavailable)
 

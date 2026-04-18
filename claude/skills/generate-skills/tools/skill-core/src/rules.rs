@@ -2,6 +2,15 @@
 //!
 //! Source: `agents/claude/skills/generate-skills/references/frontmatter-spec.md`.
 
+use regex::Regex;
+use std::sync::OnceLock;
+
+pub fn is_kebab_case(s: &str) -> bool {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| Regex::new(r"^[a-z0-9]+(-[a-z0-9]+)*$").unwrap())
+        .is_match(s)
+}
+
 pub const ALLOWED_KEYS: &[&str] = &[
     "name",
     "description",

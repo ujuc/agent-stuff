@@ -3,6 +3,7 @@ resolver = "3"
 members = [
     "skill-core",
     "validate-skill",
+    "init-skill",
 ]
 
 [workspace.package]
