@@ -12,6 +12,7 @@
 | gemma | Local Gemma model query via Ollama (auto-detects latest version) | sonnet |
 | generate-claude-md | CLAUDE.md/AGENTS.md generator | opus |
 | generate-skills | Skill generator | opus |
+| humanizer | AI writing pattern audit and rewrite | sonnet |
 | implement-plan | Plan executor with continuous verification | sonnet |
 | skill-improver | Test-driven skill improvement loop | sonnet + advisor |
 | multi-agent-orchestrator | Planner-Generator-Evaluator pipeline | opus |
