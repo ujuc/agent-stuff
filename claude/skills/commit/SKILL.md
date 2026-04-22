@@ -60,6 +60,8 @@ All `Bash` calls from this skill pass through the global `PreToolUse:Bash` hook 
    | `chore(agents)` (submodule pointer)    | **One-line summary** of what changed in the submodule and why — no "업데이트하다"만 |
    | Other `chore`                          | Optional                                                                    |
 
+   **After the three-check pass, if the user hinted `humanize` / `휴머나이저` / `AI 흔적` / `다듬어서`, run the "Humanizer audit (optional)" section before Step 8.**
+
 8. Commit using a heredoc:
 
 ```bash
@@ -149,6 +151,7 @@ The summary block is shown to the user, so the labels stay in Korean.
 - Do NOT pack multiple changes into one subject with `·`, `및`, `그리고` — split into separate commits instead.
 - Do NOT commit submodule pointer updates with a body-less catch-all subject (`서브모듈을 업데이트하다` alone). Always include a one-line body describing *what the submodule changed and why*.
 - Do NOT default to `chore` when `feat` / `fix` / `refactor` / `perf` actually fits.
+- Do NOT run humanizer on the commit subject — the `-하다` imperative is a format rule, not prose, and any edit risks the 50-char budget.
 
 ## Maintenance — rule source sync
 
@@ -171,3 +174,23 @@ Stage both files together in the same commit so the two views never diverge.
 For very large changes (`git diff --cached --shortstat` ≥ 500 lines, ≥ 10 files changed, or the user gives a hint like `큰 diff` / `요약해서 커밋` / `gemma로 정리`), the body draft can be pre-summarized via local Gemma. The subject and the final body are still authored and reviewed by Claude.
 
 Call pattern, fallback rules, and result usage follow `references/gemma-delegation.md`.
+
+## Humanizer audit (optional)
+
+Opt-in audit pass over the commit body to strip AI writing patterns. Trigger when the user includes `humanize`, `휴머나이저`, `AI 흔적`, or `다듬어서` in the commit arguments. Never run automatically.
+
+### Procedure
+
+1. Extract the body portion of the draft (everything after the blank line following the subject). Skip if the body is empty, or if ≥ 50% of body lines are bullets, numbered lists, or inside code fences — structured bodies are format, not prose.
+2. Invoke `Skill("humanizer")` with the body text in `audit` mode at `P1` threshold. Pass the body as-is; do not include the subject.
+3. If humanizer returns zero findings, proceed to Step 8 unchanged.
+4. If findings exist, render them as a compact table and ask the user to pick one:
+   - **a) 제안 적용** — invoke `Skill("humanizer")` again in `rewrite` mode at `P1` threshold, then use the rewritten body in Step 8.
+   - **s) 그대로 커밋** — keep the original body.
+   - **c) 취소** — abort before running `git commit`.
+
+### Scope
+
+- **Body only.** The subject follows a strict format (`<type>(<scope>): 한국어 제목 -하다`) and a 50-char budget; humanizer's prose rules do not apply, and edits risk breaking the budget.
+- **P1 only.** Commit bodies are short technical summaries. P2 patterns like `K16 한자어 남용` misfire on natural technical writing (e.g., "캐시를 활용하다" is idiomatic, not AI-ish). P1 is the minimum false-positive threshold.
+- **Skip for `revert` and `chore(agents)` submodule pointer bodies** — those are factual one-liners that should not be paraphrased.
