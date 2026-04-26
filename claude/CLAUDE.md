@@ -132,7 +132,7 @@ Triggered by natural language; invoke via the Skill tool when a trigger matches.
 | `annotate-plan` | 구현 계획 작성, 플랜 만들어줘, annotate-plan | sonnet + advisor |
 | `implement-plan` | 구현 시작, 플랜 실행해, implement-plan | sonnet |
 | `prompting-assist` | 프롬프트 개선해줘, 이 프롬프트 리뷰, 프롬프팅 팁, /prompting | sonnet |
-| `humanizer` | /humanizer, AI 글 다듬어줘, AI 흔적 제거, 휴머나이저, ai 글 감지 | sonnet |
+| `humanizer` | /humanizer, /humanizer --strict, /humanizer redo, AI 글 자연스럽게, AI 티 제거, ChatGPT 문체, 번역투 고쳐, 사람이 쓴 것처럼 윤문, 휴머나이저, 2차 윤문 | sonnet (sub-agents: opus) |
 
 ## Semantics (Local Policy)
 
