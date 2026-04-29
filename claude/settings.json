@@ -88,6 +88,17 @@
           }
         ]
       }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/gyeol-buffer-transcript.sh"
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
@@ -104,7 +115,8 @@
     "claude-md-management@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
     "harness@harness-marketplace": true,
-    "amp-plugin-cc@amp-plugin-cc": true
+    "amp-plugin-cc@amp-plugin-cc": true,
+    "rust-analyzer-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
