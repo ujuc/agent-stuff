@@ -13,6 +13,48 @@ Generate commits per the project's Korean Conventional Commits convention.
 
 All `Bash` calls from this skill pass through the global `PreToolUse:Bash` hook (`rtk hook claude`), which transparently rewrites supported commands (git, ls, cat, ...) to `rtk <cmd>` for 60-90% token savings. Do **not** prefix commands with `rtk` inside this skill — let the hook handle it to avoid double-wrapping. Use `rtk gain` only when the user asks for savings analytics, and `rtk proxy <cmd>` only for debugging.
 
+## Project skill override
+
+Before running `Format` / `Procedure` below, check whether the current
+repo ships its own commit skill and defer to it if so. This lets a project
+override the global Korean Conventional Commits convention with its own
+rules without editing this user-level skill.
+
+1. **Find the repo root.** Run `git rev-parse --show-toplevel`. If the
+   command fails (not inside a git repo), skip this section entirely and
+   continue with the user-level workflow.
+2. **Probe for a project commit skill.** Check whether
+   `<repo-root>/.claude/skills/commit/SKILL.md` exists (use Glob).
+3. **If it exists:**
+   - Read the file with the Read tool.
+   - Announce once to the user (Korean):
+     `프로젝트 레벨 commit 스킬을 사용합니다 (<absolute-path>).`
+   - Follow that SKILL.md's body for the rest of this invocation. Treat
+     it as authoritative — its `description`, `allowed-tools`, and body
+     override the user-level rules. Do **not** also run the user-level
+     `Format`, `Procedure`, `Doc updates`, `Push`, `Summary`, `Maintenance`,
+     `Gemma delegation`, or `Humanizer audit` sections; the project skill
+     is intentionally taking over the entire workflow.
+   - The user's original arguments (file paths, push hint, humanizer
+     hint, ...) remain in conversation context, so the project skill
+     can read them as it would normally.
+4. **If it does not exist** (or only the directory exists without a
+   `SKILL.md` file): silently continue with the rest of this
+   user-level skill. Do not announce anything.
+
+**Edge cases:**
+
+- The probe path is always relative to `git rev-parse --show-toplevel`,
+  not `pwd`. This makes the override work correctly when the user runs
+  `/commit` from a subdirectory.
+- Submodules: when the user-level Step 0 dispatches into a submodule,
+  the override check is **not re-run** for the submodule. The override
+  is per-invocation, not per-repo within an invocation. This avoids
+  surprising mid-flow handoffs and keeps the parent invocation's
+  authority consistent.
+- Worktrees: `git rev-parse --show-toplevel` returns the worktree's
+  own root, so each worktree can have its own `.claude/skills/commit/`.
+
 ## Format
 
 `<type>(<scope>): <한국어 제목 -하다>`
