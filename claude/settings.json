@@ -166,5 +166,6 @@
   "theme": "dark-ansi",
   "teammateMode": "tmux",
   "skipAutoPermissionPrompt": true,
-  "useAutoModeDuringPlan": true
+  "useAutoModeDuringPlan": true,
+  "model": "opusplan"
 }
