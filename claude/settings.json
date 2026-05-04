@@ -116,7 +116,8 @@
     "security-guidance@claude-plugins-official": true,
     "harness@harness-marketplace": true,
     "amp-plugin-cc@amp-plugin-cc": true,
-    "rust-analyzer-lsp@claude-plugins-official": true
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "codex@openai-codex": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -155,17 +156,23 @@
         "repo": "ujuc/amp-plugin-cc"
       },
       "autoUpdate": true
+    },
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
+      }
     }
   },
   "language": "korean",
   "spinnerTipsEnabled": false,
   "alwaysThinkingEnabled": true,
+  "effortLevel": "high",
   "advisorModel": "opus",
   "autoUpdatesChannel": "latest",
   "tui": "fullscreen",
   "theme": "dark-ansi",
   "teammateMode": "tmux",
   "skipAutoPermissionPrompt": true,
-  "useAutoModeDuringPlan": true,
-  "model": "opusplan"
+  "useAutoModeDuringPlan": true
 }
