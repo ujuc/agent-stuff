@@ -166,6 +166,10 @@ Triggered by natural language; invoke via the Skill tool when a trigger matches.
 | `prompting-assist` | 프롬프트 개선해줘, 이 프롬프트 리뷰, 프롬프팅 팁, /prompting | sonnet |
 | `humanizer` | /humanizer, /humanizer --strict, /humanizer redo, AI 글 자연스럽게, AI 티 제거, ChatGPT 문체, 번역투 고쳐, 사람이 쓴 것처럼 윤문, 휴머나이저, 2차 윤문 | sonnet (sub-agents: opus) |
 | `eos` | /eos, 세션 종료, eos, wrap up, 끝내기 정리, 오늘치 일기, 정리하고 끝내자, "강하게"/"검수"/"review" modifier 시 advisor pass 추가 | haiku |
+| `codex:setup` | /codex:setup, codex 설정, 코덱스 점검, codex 상태 확인 | sonnet |
+| `codex:rescue` | /codex:rescue, 코덱스로 위임, codex로 봐줘, 막혔을 때 코덱스, codex로 구현해줘 | sonnet (delegates to codex-cli) |
+
+> codex 플러그인은 `/codex:review`, `/codex:adversarial-review`, `/codex:status`, `/codex:cancel`, `/codex:result` 명령도 제공한다. 호출 정책은 아래 "Codex Delegation (Local Policy)" 참조.
 
 ## Semantics (Local Policy)
 
@@ -207,5 +211,44 @@ In addition to the gyeol session routine (items 1–6) and the semantics upstrea
    4. On decline (or if the user dismisses the notice), write today's date (YYYY-MM-DD) to `~/.claude/.last_skill_improver_run` so the prompt does not repeat next session.
 
 Rationale: skill-improver is consent-gated by design (commit confirmation in Phase 6), so a passive periodic prompt fits its workflow better than a fully autonomous cron. The 7-day cadence matches gyeol's `.last_update_check` and `.last_semantics_scan` interval.
+
+## Codex Delegation (Local Policy)
+
+`openai-codex` 플러그인(`enabledPlugins.codex@openai-codex` in `settings.json`)은 OpenAI Codex CLI를 통한 독립 검수·구현 채널이다. advisor()가 같은 모델군의 더 강한 reviewer 단일 의견을 주는 반면, codex는 **다른 모델 패밀리(OpenAI GPT-5.4)에서 오는 직교적 의견**을 제공한다. 두 채널은 보완재 — 둘 다 통과한 결과만 ship한다. 이 블록은 `<!-- gyeol:end -->` 마커 밖에 있어 gyeol self-update가 덮어쓰지 못한다.
+
+### Mandatory gates (반드시 호출)
+
+비-Opus 모델(`claude-sonnet-*`, `claude-haiku-*`, 기타)에서 다음 시점에 **반드시** codex 채널을 통과시킨다. Opus(`claude-opus-*`)는 advisor와 마찬가지로 면제.
+
+- **commit / push / publish 직전** — advisor() 호출 후 추가로 `/codex:review` 통과
+- **보안 민감 변경 머지 직전** — `/codex:adversarial-review` (인증, 권한, 비밀 처리, 외부 입력 경로, 파일 업로드, SQL/쿼리 빌더)
+- **Stop hook (Review Gate ON)** — 명시적 호출 없이도 Stop 직전 자동 리뷰 수행. settings.json의 Stop 훅에 `stop-review-gate-hook.mjs`로 등록되어 있음
+
+### Discretionary use (재량 호출)
+
+- **막혔을 때**: 같은 에러를 2회 이상 다른 접근으로 재시도해도 풀리지 않으면 `Skill("codex:rescue")` 또는 `/codex:rescue`로 핸드오프
+- **큰 설계 결정 직전**: `/codex:adversarial-review`로 가정 검증
+- **불확실한 상태 진단**: `/codex:rescue`로 2차 진단 의견 수집
+
+### When NOT to invoke
+
+- 단순 lookup, 단일 줄 수정, mechanical rename — Review Gate가 자동으로 처리하므로 별도 호출 불필요
+- 사용자가 명시적으로 codex를 면제한 작업 ("codex 빼고", "codex 없이" 등)
+- Opus 모델로 이미 advisor를 통과한 trivial한 변경
+
+### Conflict resolution (advisor vs codex 의견 충돌)
+
+advisor와 codex 의견이 갈리면:
+1. **둘 다 동일한 우려를 지적** → 즉시 수정
+2. **한쪽만 우려** → 사용자에게 한 줄로 surface 후 결정 위임 (조용히 무시 금지)
+3. **사용자가 이미 본 1차 증거와 충돌** → reconcile 라운드: "advisor는 X, codex는 Y, 내 증거는 Z. 어느 제약이 우선합니까?"
+
+### Auth & runtime
+
+- 인증: ChatGPT 로그인 (`ujuc@ujuc.me`). 상태 확인은 `node "$HOME/.claude/plugins/cache/openai-codex/codex/<ver>/scripts/codex-companion.mjs" setup --json` — `auth.loggedIn: true`, `ready: true` 기대
+- Codex CLI: `codex --version` (mise node LTS 경유)
+- Review Gate: **ON** by default policy. 활성화는 Claude Code 슬래시 명령 `/codex:setup --enable-review-gate`로 수행해야 plugin state가 영속 위치(`$HOME/.claude/plugins/data/codex-openai-codex/state/<workspace-slug-hash>/state.json`)에 저장된다. 셸에서 `! node ...`로 직접 호출하면 `CLAUDE_PLUGIN_DATA`가 비어 있어 macOS 임시 폴더로 떨어지므로 재부팅 시 사라진다
+- **Per-workspace 토글**: Review Gate는 워크스페이스 경로별 SHA256 해시로 분리 저장된다. 새 머신·재설치·다른 워크스페이스에서 작업 시 `/codex:setup --enable-review-gate`를 다시 호출해야 한다 (git 추적 대상이 아님)
+- 끄려면 `/codex:setup --disable-review-gate`
 
 @RTK.md
