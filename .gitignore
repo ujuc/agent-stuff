@@ -76,6 +76,7 @@ claude/teams
 claude/session-data
 claude/settings.local.json
 **/.last_*
+**/.last-*
 
 ### Entire agent runtime
 .entire/
