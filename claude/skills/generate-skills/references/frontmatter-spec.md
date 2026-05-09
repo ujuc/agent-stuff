@@ -34,7 +34,9 @@ description: What this skill does. When to use it.
 
 ## Field Reference
 
-All fields are optional. Only `description` is recommended so Claude knows when to use the skill.
+All fields are optional in the upstream spec. Only `description` is recommended so Claude knows when to use the skill.
+
+> **Local extension (this repository):** every SKILL.md MUST also include a `group` field — one of 8 fixed slugs. The `/skills` meta-skill (`skills/skill-index/`) reads this field to render the catalog, and `validate-skill` fails when it is missing or invalid. See the [`group`](#group) section below.
 
 ### `name`
 
@@ -213,6 +215,31 @@ shell: powershell
 - Options: `bash` (default) or `powershell`.
 - `powershell` requires `CLAUDE_CODE_USE_POWERSHELL_TOOL=1`.
 
+### `group`
+
+> **Local extension** — required by this repository, not the upstream spec.
+
+Group slug used by the `/skills` catalog (`skills/skill-index/`). Every SKILL.md must declare exactly one of the 8 fixed slugs below.
+
+```yaml
+group: planning
+```
+
+| slug | 한글 라벨 | Used for |
+|------|----------|----------|
+| `planning` | 🧭 기획·스펙 | Spec writing, sprint contracts |
+| `analysis` | 📐 분석·계획 | Codebase reading, plan annotation |
+| `build` | 🛠 구현·실행 | Plan execution, multi-agent orchestration |
+| `verify` | ✅ 검증·QA | Functional / design QA |
+| `docs` | 📝 문서·커밋 | Commits, CLAUDE.md generation |
+| `writing` | ✍️ 글쓰기 | Prose humanization, prompt crafting |
+| `llm` | 🤖 외부 LLM | Calls to non-Claude models (Gemma, Codex) |
+| `meta` | 🧪 메타·관리 | Skill management, session lifecycle |
+
+- `validate-skill` fails when this field is missing or holds a value outside the 8 slugs.
+- The slug list is defined in `tools/skill-core/src/rules.rs::ALLOWED_GROUPS`. Any change there must be reflected in this section, in `skill-index`, and in `skills/CLAUDE.md`.
+- Do NOT auto-fix a missing `group` field — `skill-improver` reports it as manual because guessing from directory name or description risks wrong placement.
+
 ---
 
 ## Invocation Control Matrix
@@ -269,3 +296,4 @@ After writing frontmatter, verify:
 - [ ] If `agent` is set: `context: fork` is also set
 - [ ] If `allowed-tools` is set: space-separated string or YAML list (not comma-separated)
 - [ ] If `paths` is set: glob patterns only apply to auto-activation, not manual `/` invocation
+- [ ] `group` field is present and equals one of `planning`, `analysis`, `build`, `verify`, `docs`, `writing`, `llm`, `meta` (local-required)

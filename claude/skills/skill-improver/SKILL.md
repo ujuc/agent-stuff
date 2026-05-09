@@ -1,6 +1,7 @@
 ---
 name: skill-improver
 description: "스킬/에이전트 정의를 테스트 시나리오 기반으로 자동 개선한다. 7일 주기로 세션 시작 시 비차단 알림이 뜨고, 구조 검증 후 심층 최적화가 필요하면 autoresearch로 위임한다. skill-improver, 스킬 개선해줘, 스킬 최적화, 스킬 테스트해줘, test skills 요청 시 사용한다."
+group: meta
 model: sonnet
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(bash:*), Bash(git:*), Bash(date:*), Agent, Skill, advisor
 argument-hint: "[skill-name ...]"
@@ -60,7 +61,7 @@ Generate tests using a **test category matrix** with three skill dimensions plus
 
 ### Dimension A — Structural (skill mode only)
 
-Run `validate-skill <path>` (Rust binary, not the legacy `.sh`). This single execution covers all structural checks (frontmatter format, naming, size limits). Do not duplicate. **Skip for agent mode** — no equivalent validator exists yet; rely on Dimension D.
+Run `validate-skill <path>` (Rust binary, not the legacy `.sh`). This single execution covers all structural checks (frontmatter format, naming, size limits, **`group` field presence and slug validity**). Do not duplicate in Dimension B. **Skip for agent mode** — no equivalent validator exists yet; rely on Dimension D.
 
 ### Dimension B — Semantic (skill-improver's core value)
 
@@ -143,6 +144,7 @@ For each FAIL result:
 - Core logic or workflow changes.
 - Description WHEN clause modifications (trigger phrases).
 - Body language translations (B.7 prose drift).
+- **Missing `group` field** — guessing from directory name or description risks wrong placement (e.g., a `frontend-*` skill might belong to `verify` or `build`). Surface the failure with the 8-slug list and ask the user to choose.
 - Any structural issue requiring design decisions.
 
 When fixability classification is ambiguous, call `advisor()` to decide. Misclassifying can damage the skill's intent.
@@ -262,4 +264,14 @@ EVAL 5: Timestamp update
             ~/.claude/.last_skill_improver_run contain today's UTC date?
   Pass: File contains YYYY-MM-DD matching today.
   Fail: File missing, stale, or contains malformed date.
+
+EVAL 6: Group field enforcement
+  Question: When a SKILL.md is missing the local-required `group` field
+            (or has a slug outside the 8 allowed values), does the run
+            classify the failure as manual and surface the 8-slug choice
+            list to the user?
+  Pass: Phase 4 reports it as manual, no auto-fix attempted, the user
+        sees the slug list for their decision.
+  Fail: skill-improver auto-fills a guessed group, or treats it as a
+        warning without surfacing it.
 ```
