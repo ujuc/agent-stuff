@@ -284,6 +284,23 @@ Define binary (yes/no) eval criteria that measure output quality.
 Per `references/eval-guide.md`, write 3–6 yes/no checks under an `## Eval Criteria` section in SKILL.md or in a separate `evals.md`.
 The autoresearch skill reuses these criteria when optimizing autonomously.
 
+### waza baseline measurement (optional)
+
+If `waza` is on PATH, record an initial benchmark so `skill-improver` has a before/after reference. Skip cleanly when waza is missing — `waza-runner` prints the install guide and exits without error.
+
+1. From the workspace, scaffold the eval suite:
+   ```bash
+   cd ~/.claude/data/waza-workspace
+   waza new eval <skill-name> --no-update-check
+   ```
+   This writes `evals/<skill-name>/eval.yaml` (canonical location: `agents/claude/evals/<skill-name>/`, exposed in the workspace via the `evals` symlink) with positive×2 + negative×1 task scaffolds.
+2. Refine the auto-generated tasks so triggers and expected outputs match reality. Replace the placeholder prompts and add at least one assertion that exercises the skill's specific behavior.
+3. Dispatch the runner with a `baseline` label:
+   ```
+   Agent("waza-runner", "eval <abs-path>/evals/<skill-name>/eval.yaml --label baseline")
+   ```
+4. The agent prints a Korean summary table and saves JSON to `~/.claude/data/waza/results/<skill-name>-baseline-<ts>.json`. Keep that path in mind — `skill-improver` will compare against it later.
+
 ### Independent review (optional)
 
 If the generated skill includes `references/` or `scripts/`, spawn a `general-purpose` agent to do a blind review. Follow `references/subagent-guidelines.md` → "Reviewer".

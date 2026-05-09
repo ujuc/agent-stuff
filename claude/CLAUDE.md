@@ -220,6 +220,8 @@ Triggered by natural language; invoke via the Skill tool when a trigger matches.
 
 > codex 플러그인은 `/codex:review`, `/codex:adversarial-review`, `/codex:status`, `/codex:cancel`, `/codex:result` 명령도 제공한다. 호출 정책은 아래 "Codex Delegation (Local Policy)" 참조.
 
+> `generate-skills`(스킬 신설)와 `skill-improver`(스킬 개선)는 평가 단계가 필요할 때 `agents/waza-runner.md` 서브에이전트를 dispatch해서 [waza](https://github.com/microsoft/waza) eval harness로 baseline · before/after 점수를 측정한다. workspace는 `~/.claude/data/waza-workspace/`, 결과 JSON은 `~/.claude/data/waza/results/`(둘 다 gitignored). waza가 미설치된 환경에서는 `agents/references/waza-install.md`의 한국어 가이드를 출력하고 평가만 skip한다 — 호출 스킬의 본 워크플로우는 정상 진행.
+
 ## Semantics (Local Policy)
 
 Overrides for how `$GYEOL_HOME/memory/semantics/` is maintained in this environment. This block lives **outside** the `<!-- gyeol:begin -->` / `<!-- gyeol:end -->` markers so gyeol self-update cannot overwrite it.

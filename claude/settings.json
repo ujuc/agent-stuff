@@ -23,11 +23,17 @@
       "Bash(brew bundle:*)",
       "Bash(mise which:*)",
       "Bash(ollama list:*)",
+      "Bash(waza:*)",
       "Bash(yq:*)",
       "Bash(python3:*)",
       "Bash(bash:*)",
       "Bash(chmod +x:*)",
       "Bash(mkdir:*)",
+      "Bash(ln:*)",
+      "Bash(cat:*)",
+      "Bash(jq:*)",
+      "Bash(mv:*)",
+      "Bash(rmdir:*)",
       "WebFetch(domain:agents.md)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:github.blog)",
@@ -117,7 +123,8 @@
     "harness@harness-marketplace": true,
     "amp-plugin-cc@amp-plugin-cc": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
-    "codex@openai-codex": true
+    "codex@openai-codex": true,
+    "warp@claude-code-warp": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -161,6 +168,12 @@
       "source": {
         "source": "github",
         "repo": "openai/codex-plugin-cc"
+      }
+    },
+    "claude-code-warp": {
+      "source": {
+        "source": "github",
+        "repo": "warpdotdev/claude-code-warp"
       }
     }
   },

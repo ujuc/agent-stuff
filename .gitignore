@@ -61,6 +61,7 @@ claude/cache
 claude/paste-cache
 claude/telemetry
 claude/tasks
+claude/data
 claude/security_warnings_state*
 claude/chrome
 claude/usage-data

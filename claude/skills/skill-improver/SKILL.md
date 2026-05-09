@@ -87,6 +87,18 @@ For complex skills (multi-agent-orchestrator, autoresearch, etc.), call `advisor
 
 Each test is a concrete check with expected outcome (PASS criteria).
 
+## Phase 2.5 — waza Baseline (optional, before changes)
+
+If `waza` is on PATH and the target has an eval suite at `agents/claude/evals/<target>/eval.yaml`, record a baseline score before any auto-fix runs. Skip cleanly when waza is missing or the eval suite does not exist — both `waza-runner` and this phase tolerate either state.
+
+1. For each target with an eval suite:
+   ```
+   Agent("waza-runner", "eval /Users/ujuc/.config/dotrc/agents/claude/evals/<target>/eval.yaml --label before")
+   ```
+2. Save the JSON path printed by the agent. It becomes the baseline reference for Phase 5.5.
+3. Note "no eval suite — skipping waza" once per target without one. Do NOT auto-scaffold here; that is `generate-skills`' role.
+4. If `waza` is not installed, the runner prints `agents/references/waza-install.md` and exits cleanly. Skip the phase entirely.
+
 ## Agent Definition Mode
 
 When the target is an agent `.md` file (not a `SKILL.md`):
@@ -156,6 +168,18 @@ When fixability classification is ambiguous, call `advisor()` to decide. Misclas
 3. If all re-run tests PASS → proceed to Phase 6.
 4. If failures remain and iteration count < 3 → return to Phase 4.
 5. If iteration count reaches 3 → call `advisor()` to decide whether to continue, stop, or reconsider whether the test scenario itself is wrong.
+
+## Phase 5.5 — waza Regression Check (optional, after changes)
+
+For each target that produced a baseline JSON in Phase 2.5, re-run the same eval before Phase 6 commits anything. Skip silently for targets without a baseline.
+
+1. Dispatch the runner in comparison mode:
+   ```
+   Agent("waza-runner", "eval /Users/ujuc/.config/dotrc/agents/claude/evals/<target>/eval.yaml --label after --baseline_json <Phase 2.5 path>")
+   ```
+2. The runner emits a before/after comparison table (`weighted_score`, `success_rate`, failed task count).
+3. **Regression rule**: if `weighted_score` drops more than 0.05 versus the baseline, mark the target as `⚠️ regression` in Phase 6's changelog and require explicit user confirmation before committing the change set. Recommend rolling back the fix or re-running waza with `--keep-workspace` to inspect intermediate artifacts.
+4. A score increase is reported in Phase 6 as `Δ +0.07` etc., no extra confirmation needed beyond the standard diff review.
 
 ## Phase 6 — Summary & Commit
 

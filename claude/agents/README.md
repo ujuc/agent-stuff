@@ -109,6 +109,27 @@ budget is deliberately tight:
   explicitly; beyond that, record a blocker (implementer) or proceed with
   the primary evidence.
 
+## Auxiliary Agents (out-of-pipeline)
+
+Some agents are not part of the planning pipeline above. They are stateless
+wrappers around external tools and are safe to share across multiple calling
+skills (the "one caller per agent" rule applies to pipeline workers only).
+
+| Agent          | Calling skills                | Model  | Tools       | Writes code | Output                                                 | Advisor |
+|----------------|-------------------------------|--------|-------------|-------------|--------------------------------------------------------|---------|
+| `waza-runner`  | `generate-skills`, `skill-improver` | sonnet | Bash, Read | no          | stdout (Korean summary) + `~/.claude/data/waza/results/*.json` | no      |
+
+`waza-runner` runs `waza run <eval.yaml>` against a single skill's eval suite,
+parses the resulting JSON, and renders a Korean summary table (or before/after
+comparison when given a baseline JSON). On a host without `waza` installed it
+prints the install guide at `references/waza-install.md` and exits cleanly so
+the calling skill can degrade gracefully without a score.
+
+Workspace: `~/.claude/data/waza-workspace/` (gitignored). The workspace's
+`.waza.yaml` keeps `paths.skills: skills/` with `skills/` symlinked to
+`/Users/ujuc/.config/dotrc/agents/claude/skills/`, so any SKILL.md is reachable
+without copying.
+
 ## Adding a New Agent — Checklist
 
 1. `name` in frontmatter matches the filename (kebab-case).
