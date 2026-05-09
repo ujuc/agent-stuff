@@ -286,18 +286,17 @@ The autoresearch skill reuses these criteria when optimizing autonomously.
 
 ### waza baseline measurement (optional)
 
-If `waza` is on PATH, record an initial benchmark so `skill-improver` has a before/after reference. Skip cleanly when waza is missing — `waza-runner` prints the install guide and exits without error.
+If `waza` is on PATH, record an initial benchmark so `skill-improver` has a before/after reference. **All waza operations route through the `waza-runner` agent — this skill never invokes the `waza` CLI directly.** Skip cleanly when waza is missing — `waza-runner` prints the install guide and exits without error.
 
-1. From the workspace, scaffold the eval suite:
-   ```bash
-   cd ~/.claude/data/waza-workspace
-   waza new eval <skill-name> --no-update-check
+1. Scaffold the eval suite via the runner:
    ```
-   This writes `evals/<skill-name>/eval.yaml` (canonical location: `agents/claude/evals/<skill-name>/`, exposed in the workspace via the `evals` symlink) with positive×2 + negative×1 task scaffolds.
-2. Refine the auto-generated tasks so triggers and expected outputs match reality. Replace the placeholder prompts and add at least one assertion that exercises the skill's specific behavior.
+   Agent("waza-runner", "scaffold <skill-name>")
+   ```
+   The runner writes `agents/claude/evals/<skill-name>/eval.yaml` with positive×2 + negative×1 placeholder tasks. An existing `eval.yaml` is preserved — the runner never overwrites.
+2. Refine the auto-generated tasks so triggers and expected outputs match reality. Replace the placeholder prompts and add at least one assertion that exercises the skill's specific behavior. (Human-in-the-loop step.)
 3. Dispatch the runner with a `baseline` label:
    ```
-   Agent("waza-runner", "eval <abs-path>/evals/<skill-name>/eval.yaml --label baseline")
+   Agent("waza-runner", "eval <skill-name> --label baseline")
    ```
 4. The agent prints a Korean summary table and saves JSON to `~/.claude/data/waza/results/<skill-name>-baseline-<ts>.json`. Keep that path in mind — `skill-improver` will compare against it later.
 

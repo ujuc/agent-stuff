@@ -119,11 +119,15 @@ skills (the "one caller per agent" rule applies to pipeline workers only).
 |----------------|-------------------------------|--------|-------------|-------------|--------------------------------------------------------|---------|
 | `waza-runner`  | `generate-skills`, `skill-improver` | sonnet | Bash, Read | no          | stdout (Korean summary) + `~/.claude/data/waza/results/*.json` | no      |
 
-`waza-runner` runs `waza run <eval.yaml>` against a single skill's eval suite,
-parses the resulting JSON, and renders a Korean summary table (or before/after
-comparison when given a baseline JSON). On a host without `waza` installed it
-prints the install guide at `references/waza-install.md` and exits cleanly so
-the calling skill can degrade gracefully without a score.
+`waza-runner` is the single entry point for all waza operations. Callers
+dispatch with `scaffold <name>` to create a placeholder `eval.yaml` or
+`eval <path-or-name>` to run a measurement (which auto-scaffolds the suite
+when one is missing). The runner parses the resulting JSON and renders a
+Korean summary table — or a before/after comparison when given a baseline
+JSON. **Callers must never invoke the `waza` CLI directly; all subcommands
+route through this agent.** On a host without `waza` installed it prints
+the install guide at `references/waza-install.md` and exits cleanly so the
+calling skill can degrade gracefully without a score.
 
 Workspace: `~/.claude/data/waza-workspace/` (gitignored). The workspace's
 `.waza.yaml` keeps `paths.skills: skills/` with `skills/` symlinked to

@@ -224,7 +224,7 @@ Triggered by natural language; invoke via the Skill tool when a trigger matches.
 
 > codex 플러그인은 `/codex:review`, `/codex:adversarial-review`, `/codex:status`, `/codex:cancel`, `/codex:result` 명령도 제공한다. 호출 정책은 아래 "Codex Delegation (Local Policy)" 참조.
 
-> `generate-skills`(스킬 신설)와 `skill-improver`(스킬 개선)는 평가 단계가 필요할 때 `agents/waza-runner.md` 서브에이전트를 dispatch해서 [waza](https://github.com/microsoft/waza) eval harness로 baseline · before/after 점수를 측정한다. workspace는 `~/.claude/data/waza-workspace/`, 결과 JSON은 `~/.claude/data/waza/results/`(둘 다 gitignored). waza가 미설치된 환경에서는 `agents/references/waza-install.md`의 한국어 가이드를 출력하고 평가만 skip한다 — 호출 스킬의 본 워크플로우는 정상 진행.
+> `generate-skills`(스킬 신설)와 `skill-improver`(스킬 개선)는 평가 단계가 필요할 때 `agents/waza-runner.md` 서브에이전트를 dispatch해서 [waza](https://github.com/microsoft/waza) eval harness로 baseline · before/after 점수를 측정한다. **모든 waza 작업(eval 측정, eval.yaml scaffold, 기타 향후 기능)은 `waza-runner` 한 곳을 통해서만 호출된다 — 어떤 SKILL.md/스크립트도 `waza` CLI를 직접 부르지 않는다.** runner는 두 명령을 노출한다: `scaffold <name>`(placeholder eval.yaml만 생성)과 `eval <path-or-name>`(측정; eval.yaml 부재 시 자동 scaffold). workspace는 `~/.claude/data/waza-workspace/`, 결과 JSON은 `~/.claude/data/waza/results/`(둘 다 gitignored). waza가 미설치된 환경에서는 `~/.claude/agents/references/waza-install.md`의 한국어 가이드를 출력하고 평가만 skip한다 — 호출 스킬의 본 워크플로우는 정상 진행.
 
 ## Semantics (Local Policy)
 
