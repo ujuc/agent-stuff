@@ -162,7 +162,7 @@ Triggered by natural language; invoke via the Skill tool when a trigger matches.
 
 | Skill | Triggers | Model |
 | --- | --- | --- |
-| `deep-read` | 코드 분석해줘, 깊이 읽어봐, deep-read | sonnet + advisor |
+| `deep-read` | 코드 분석해줘, 깊이 읽어봐, deep-read, /deep-read | sonnet + advisor |
 | `annotate-plan` | 구현 계획 작성, 플랜 만들어줘, annotate-plan | sonnet + advisor |
 
 ### 🛠 구현·실행 (`build`)

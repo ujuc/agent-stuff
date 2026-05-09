@@ -36,7 +36,7 @@ Output: {output path}.
 Required top-level sections: {from table}.
 ```
 
-Wait for all 3 agents to finish before Step 3. Poll via `TaskList` / `TaskOutput`; do not start merging on partial completion.
+Wait for all 3 agents to finish before Step 3 — `run_in_background` agents auto-notify on completion. Do not start merging on partial completion.
 
 ### 3. Merge Results
 
@@ -95,8 +95,6 @@ Do not call advisor for routine Q&A or progress updates.
 3. **Large targets hit subagent context limits.** For directories over ~50 files, instruct each researcher to stream findings to its output file as it goes, not accumulate in memory. Consider narrowing `Target:` to a subfolder per role if an agent reports truncation.
 4. **Merge drift when partials use different heading levels.** The Required sections in the Step 2 table are enforced — if a partial omits `# Architecture Overview`, the merge mapping breaks silently. Grep each partial for the required headings before merging; if any is missing, re-prompt that one agent with stricter instructions.
 
-5. **PARTIAL markers must survive merging.** `researcher` writes `<!-- PARTIAL: ... -->` at the top of its output when it could not finish. Step 3 preserves this as a `> PARTIAL: ...` blockquote in the merged document. Silently dropping the marker would leave the user with an incomplete research document that looks complete — grep every partial for `PARTIAL` before running Step 4 cleanup.
-
 ## Eval Criteria
 
 ```
@@ -110,8 +108,9 @@ EVAL 1: All three partials written
 EVAL 2: Merge completeness
   Question: Does the final `.research/research-{topic}.md` contain all
             seven sections listed in the Step 3 template (Architecture
-            Overview, Key Files, Data Flow, Dependencies, Patterns,
-            Gotchas & Risks, Integration Points)?
+            Overview, Key Files & Responsibilities, Data Flow,
+            Dependencies, Patterns & Conventions, Gotchas & Risks,
+            Integration Points)?
   Pass: All seven headings present.
   Fail: Any heading missing.
 
