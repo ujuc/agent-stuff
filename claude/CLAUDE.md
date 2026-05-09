@@ -127,6 +127,10 @@ When creating new scripts, tools, or utilities bundled with a skill (or any scri
 
 Avoid bash for non-trivial logic — keep bash strictly as launchers/wrappers. Avoid Node/Deno/Bun unless the task is explicitly JS/TS ecosystem work.
 
+## Agent Usage
+
+When an available agent fits the task at hand, lean on it as much as possible — dispatch the agent instead of doing the work inline. Subagents protect the main context window, enable parallel work, and produce structured artifacts that downstream skills can consume.
+
 ## Directory Layout
 
 `~/.claude/` mixes user-maintained configuration with runtime state. Edit only these paths:
