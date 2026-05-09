@@ -177,7 +177,7 @@ Triggered by natural language; invoke via the Skill tool when a trigger matches.
 | Skill | Triggers | Model |
 | --- | --- | --- |
 | `qa-evaluator` | QA 테스트, 웹앱 테스트, 앱 검증해줘 | sonnet + advisor |
-| `frontend-design-evaluator` | 디자인 평가, UI 리뷰, 디자인 검수해줘 | sonnet + advisor |
+| `frontend-design-evaluator` | 디자인 평가, UI 리뷰, frontend-design-evaluator, 디자인 검수해줘, evaluate this design, rate my frontend, AI slop check | sonnet + advisor |
 
 ### 📝 문서·커밋 (`docs`)
 
