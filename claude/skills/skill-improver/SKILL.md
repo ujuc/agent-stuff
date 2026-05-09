@@ -1,6 +1,6 @@
 ---
 name: skill-improver
-description: "스킬/에이전트 정의를 테스트 시나리오 기반으로 자동 개선한다. 7일 주기로 세션 시작 시 비차단 알림이 뜨고, 구조 검증 후 심층 최적화가 필요하면 autoresearch로 위임한다. skill-improver, 스킬 개선해줘, 스킬 최적화, 스킬 테스트해줘, test skills 요청 시 사용한다."
+description: "스킬/에이전트 정의를 테스트 시나리오 기반으로 자동 개선한다. 7일 주기로 세션 시작 시 비차단 알림이 뜨고, 구조 검증 후 심층 최적화가 필요하면 autoresearch로 위임한다. /skill-improver, skill-improver, 스킬 개선해줘, 스킬 최적화, 스킬 테스트해줘, test skills 요청 시 사용한다."
 group: meta
 model: sonnet
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(bash:*), Bash(git:*), Bash(date:*), Agent, Skill, advisor
@@ -72,7 +72,7 @@ Run `validate-skill <path>` (Rust binary, not the legacy `.sh`). This single exe
 | **B.6 CLAUDE.md table sync** | Skill's entry in `claude/CLAUDE.md` matches its frontmatter | Compare triggers and model columns against actual frontmatter values. **Tolerate trailing annotations on the model column** (e.g., `sonnet + advisor`, `opus + tool`) — strip ` + <annotation>` before comparing the model token to frontmatter `model:` |
 | **B.7 Language policy** | Description Korean, body English, trigger keywords intact | Parse frontmatter description for Korean characters; scan body for non-trivial Korean prose |
 
-> **Scope boundary**: trigger completeness, trigger uniqueness, and model fitness checks belong to the skill-engineer agent. Do not duplicate them here.
+> **Scope boundary**: trigger completeness, trigger uniqueness, and model fitness checks belong to the `skill-engineer` agent. Do not duplicate them here. To run those checks, dispatch `Agent("skill-engineer", "<target> [--check trigger|overlap|model|all]")` either inline (after Phase 5 passes) or as a standalone follow-up.
 
 ### Dimension C — Type-specific (skills)
 
@@ -89,15 +89,14 @@ Each test is a concrete check with expected outcome (PASS criteria).
 
 ## Phase 2.5 — waza Baseline (optional, before changes)
 
-If `waza` is on PATH and the target has an eval suite at `agents/claude/evals/<target>/eval.yaml`, record a baseline score before any auto-fix runs. Skip cleanly when waza is missing or the eval suite does not exist — both `waza-runner` and this phase tolerate either state.
+If `waza` is on PATH, record a baseline score before any auto-fix runs by dispatching `waza-runner`. The runner auto-scaffolds a placeholder suite when the target has no eval yet, so this phase **does not pre-check eval suite existence** — just delegate. Skip cleanly only when waza itself is missing.
 
-1. For each target with an eval suite:
+1. For each target:
    ```
-   Agent("waza-runner", "eval /Users/ujuc/.config/dotrc/agents/claude/evals/<target>/eval.yaml --label before")
+   Agent("waza-runner", "eval <target> --label before")
    ```
 2. Save the JSON path printed by the agent. It becomes the baseline reference for Phase 5.5.
-3. Note "no eval suite — skipping waza" once per target without one. Do NOT auto-scaffold here; that is `generate-skills`' role.
-4. If `waza` is not installed, the runner prints `agents/references/waza-install.md` and exits cleanly. Skip the phase entirely.
+3. If `waza` is not installed, the runner exits cleanly with an install guide. Skip the phase entirely.
 
 ## Agent Definition Mode
 
@@ -175,7 +174,7 @@ For each target that produced a baseline JSON in Phase 2.5, re-run the same eval
 
 1. Dispatch the runner in comparison mode:
    ```
-   Agent("waza-runner", "eval /Users/ujuc/.config/dotrc/agents/claude/evals/<target>/eval.yaml --label after --baseline_json <Phase 2.5 path>")
+   Agent("waza-runner", "eval <target> --label after --baseline_json <Phase 2.5 path>")
    ```
 2. The runner emits a before/after comparison table (`weighted_score`, `success_rate`, failed task count).
 3. **Regression rule**: if `weighted_score` drops more than 0.05 versus the baseline, mark the target as `⚠️ regression` in Phase 6's changelog and require explicit user confirmation before committing the change set. Recommend rolling back the fix or re-running waza with `--keep-workspace` to inspect intermediate artifacts.
@@ -237,6 +236,7 @@ This phase is skipped for structural-only runs ("스킬 테스트해줘", "test 
 - When run via the `maintain` skill in `full` mode, check for existing skill-engineer output before running redundant checks.
 - Trigger overlap, completeness, and model fitness checks belong to skill-engineer — do not duplicate.
 - Phase 6 timestamp write is the only side effect outside of skill files and CLAUDE.md.
+- All waza interactions go through `waza-runner` — never invoke the `waza` CLI directly from this skill, including for scaffold, version checks, or anything else.
 
 ## Gotchas
 
@@ -252,9 +252,11 @@ This phase is skipped for structural-only runs ("스킬 테스트해줘", "test 
 
 6. **Spec staleness ≠ blocker**: Phase 0's spec freshness check is informational. Stale `frontmatter-spec.md` only means new fields might be unknown; it does not invalidate existing checks. Warn the user but continue.
 
+7. **Placeholder eval.yaml score interpretation**: when a skill has no `eval.yaml`, `waza-runner` auto-scaffolds a placeholder suite and baseline is measured against it. Scores may sit in the 0.0–0.4 range, but the regression guard (Δ ≥ 0.05) still works correctly. If precise absolute values are needed, refine the task via `generate-skills` and re-measure.
+
 ## Eval Criteria
 
-Five binary checks for autoresearch reuse:
+Binary checks for autoresearch reuse:
 
 ```
 EVAL 1: Phase 0 environment guard
@@ -298,4 +300,24 @@ EVAL 6: Group field enforcement
         sees the slug list for their decision.
   Fail: skill-improver auto-fills a guessed group, or treats it as a
         warning without surfacing it.
+
+EVAL 7: Single-entry-point compliance
+  Question: Across all SKILL.md / agent files, is `waza-runner.md` the
+            only file that contains a direct `waza <subcommand>` call?
+  Pass: rg -n "waza\s+(new|run|dev|quality|coverage)" the agents tree
+        with -g '!waza-runner.md' -g '!waza-install.md' returns 0 hits.
+  Fail: Any caller (skill, script, other agent) reaches the `waza` CLI
+        directly.
+
+EVAL 8: Auto-scaffold delegation
+  Question: When the target has no eval.yaml, does Phase 2.5 simply
+            dispatch waza-runner without any pre-check, and does the
+            runner auto-scaffold + measure baseline as a single atomic
+            step from the caller's perspective?
+  Pass: Phase 2.5 contains no `test -f eval.yaml` or equivalent guard;
+        runner output shows the scaffold notice once and a baseline
+        JSON is written.
+  Fail: skill-improver re-implements the scaffold call, OR runner skips
+        measurement on missing eval.yaml, OR scaffold notice is missing
+        or duplicated.
 ```

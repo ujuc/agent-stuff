@@ -207,7 +207,7 @@ Triggered by natural language; invoke via the Skill tool when a trigger matches.
 | --- | --- | --- |
 | `skill-index` | /skills, 스킬 목록, 스킬 그룹, 어떤 스킬 있어, 스킬 카탈로그 | haiku |
 | `generate-skills` | 스킬 만들어줘, 새 스킬 추가, 스킬 업데이트, 스킬 수정, generate-skills | opus |
-| `skill-improver` | 스킬 테스트해줘, 스킬 개선해줘, 스킬 최적화, skill-improver | sonnet + advisor |
+| `skill-improver` | /skill-improver, 스킬 테스트해줘, 스킬 개선해줘, 스킬 최적화, skill-improver, test skills | sonnet + advisor |
 | `autoresearch` | 자동 실험, eval 루프, autoresearch | opus |
 | `eos` | /eos, 세션 종료, eos, wrap up, 끝내기 정리, 오늘치 일기, 정리하고 끝내자, "강하게"/"검수"/"review" modifier 시 advisor pass 추가 | haiku |
 

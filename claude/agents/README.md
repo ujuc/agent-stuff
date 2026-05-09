@@ -115,9 +115,10 @@ Some agents are not part of the planning pipeline above. They are stateless
 wrappers around external tools and are safe to share across multiple calling
 skills (the "one caller per agent" rule applies to pipeline workers only).
 
-| Agent          | Calling skills                | Model  | Tools       | Writes code | Output                                                 | Advisor |
-|----------------|-------------------------------|--------|-------------|-------------|--------------------------------------------------------|---------|
-| `waza-runner`  | `generate-skills`, `skill-improver` | sonnet | Bash, Read | no          | stdout (Korean summary) + `~/.claude/data/waza/results/*.json` | no      |
+| Agent             | Calling skills                | Model  | Tools                    | Writes code | Output                                                         | Advisor |
+|-------------------|-------------------------------|--------|--------------------------|-------------|----------------------------------------------------------------|---------|
+| `waza-runner`     | `generate-skills`, `skill-improver` | sonnet | Bash, Read               | no          | stdout (Korean summary) + `~/.claude/data/waza/results/*.json` | no      |
+| `skill-engineer`  | `skill-improver` (optional)   | sonnet | Read, Glob, Grep, advisor | no          | stdout (Korean report — trigger / overlap / model fitness)     | ≤1      |
 
 `waza-runner` is the single entry point for all waza operations. Callers
 dispatch with `scaffold <name>` to create a placeholder `eval.yaml` or
@@ -133,6 +134,14 @@ Workspace: `~/.claude/data/waza-workspace/` (gitignored). The workspace's
 `.waza.yaml` keeps `paths.skills: skills/` with `skills/` symlinked to
 `/Users/ujuc/.config/dotrc/agents/claude/skills/`, so any SKILL.md is reachable
 without copying.
+
+`skill-engineer` is a read-only design analyst dispatched by
+`skill-improver` (or directly by the user) for the analysis dimensions
+that fall outside structural validation: trigger completeness, trigger
+overlap across skills, and model fitness. It produces a Korean report
+with PASS / WARN / FAIL verdicts per dimension and never edits skill
+files. Dispatch with `Agent("skill-engineer", "<target> [--check
+trigger|overlap|model|all]")`.
 
 ## Adding a New Agent — Checklist
 
