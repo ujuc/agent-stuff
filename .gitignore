@@ -79,6 +79,9 @@ claude/settings.local.json
 **/.last_*
 **/.last-*
 
+### autoresearch runtime artifacts (working dirs created by autoresearch skill)
+**/autoresearch-*/
+
 ### Entire agent runtime
 .entire/
 

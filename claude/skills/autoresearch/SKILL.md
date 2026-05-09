@@ -1,10 +1,9 @@
 ---
 name: autoresearch
 description: "편집 가능한 대상(프롬프트, 설정, 코드 등)을 반복 실행-평가-변이하여 자율적으로 최적화한다. Karpathy의 autoresearch 방법론(execute → score → mutate → keep/discard) 기반."
-when_to_use: "자동 실험, eval 루프, autoresearch 트리거. /autoresearch 또는 CLAUDE.md Skills 테이블 등록을 통해서만 호출됨(disable-model-invocation: true)."
+when_to_use: "자동 실험, eval 루프, autoresearch 트리거. /autoresearch 또는 CLAUDE.md Skills 테이블 등록을 통해서만 호출됨."
 group: meta
 model: opus
-disable-model-invocation: true
 argument-hint: "[target-path]"
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
 ---
@@ -43,6 +42,11 @@ If `$ARGUMENTS` (the `[target-path]` from `argument-hint`) is non-empty, prefill
 | 4 | **Eval criteria** (`{evals}`) | 3–6 binary checks ([references/eval-guide.md](references/eval-guide.md)) | none |
 | 5 | **Runs per experiment** (`{runs}`) | integer | `5` |
 | 6 | **Budget cap** (`{budget}`) | integer | `20` |
+
+**Choosing `runs` and `budget`:**
+
+- `runs` controls how many times each experiment is executed to reduce noise. Use **`1`** for deterministic targets (static text rubric, scripts with fixed output). Use **`3–5`** when the exec produces variable LLM output (prompts, skill invocations). Use **`8+`** only when noise dominates and you need tight confidence on small score deltas — costs scale linearly.
+- `budget` caps total experiments. Use **`5–10`** for exploratory short runs or when the target is small and likely near its ceiling already. Use the default **`20`** for typical optimization. Use **`30+`** only for large targets with many independent failure modes; expect diminishing returns past 25 in practice.
 
 ### Execution method patterns
 
@@ -114,7 +118,18 @@ This is the core autoresearch loop. Once started, run autonomously until stopped
 
 ### 4-1. Analyze Failures
 
-Look at which evals fail most. Read the actual outputs. Identify the pattern — formatting? missing instruction? ambiguity?
+Look at which evals fail most. Read the actual outputs. Classify the failure into one of these named patterns:
+
+| Pattern | How to detect | Typical fix direction |
+|---------|---------------|------------------------|
+| **Format drift** | Output structure differs across runs (JSON/Markdown/list shape varies) | Add explicit format example; specify required headers/keys |
+| **Missing instruction** | A specific eval fails because the target never tells the model what to do for that case | Add a single-sentence rule addressing the gap |
+| **Ambiguous instruction** | Output varies semantically across runs on the same input | Reword the instruction; add disambiguating example |
+| **Buried instruction** | Critical rule appears late in the file and is ignored | Move it to the top of the relevant section |
+| **Over-optimization** | One eval improves while another regresses | Soften the dominant instruction; add counter-example |
+| **Eval misalignment** | All evals pass but output is clearly bad, OR all fail despite reasonable output | Fix evals (Step 2), not target |
+
+If the failure does not fit any pattern, log "novel" in the experiment row and propose a fix anyway — but flag it for Eval Criteria review.
 
 ### 4-2. Form a Hypothesis
 
@@ -218,6 +233,35 @@ The improved target file is saved back to its original location — only the unc
 
 ---
 
+## Worked Example
+
+A real meta-optimization run on this very SKILL.md (recorded session, not synthetic):
+
+- **`{target}`**: `claude/skills/autoresearch/SKILL.md` (this file)
+- **`{exec}`**: text-based static rubric — operator scores the SKILL.md content directly against custom evals (the Option A path from Gotcha 9)
+- **`{inputs}`**: the SKILL.md content itself (single artifact)
+- **`{evals}`** (5 binary checks, distinct from the runtime `Eval Criteria` below):
+  - T1 — anti-recursion safeguard present
+  - T2 — runs/budget tradeoff guidance present
+  - T3 — worked example present
+  - T4 — all 6 procedural steps in order
+  - T5 — Step 4-1 names ≥3 failure patterns with detection method
+- **`{runs}`**: 1 (deterministic — static text yields the same score each evaluation)
+- **`{budget}`**: 8
+
+| Exp | Score | Δ | Mutation | Decision |
+|-----|-------|---|----------|----------|
+| 0 | 1/5 (20%) | — | baseline | — |
+| 1 | 2/5 (40%) | +20% | add Gotcha 9 (anti-recursion) | KEEP |
+| 2 | 3/5 (60%) | +20% | replace Step 4-1 prose with named failure pattern table | KEEP |
+| 3 | 4/5 (80%) | +20% | add runs/budget tradeoff guidance below context table | KEEP |
+| 4 | 5/5 (100%) | +20% | add this Worked Example section | KEEP |
+| 5 | 5/5 (100%) | 0% | simplify wording — "to average out stochastic variance" → "to reduce noise" | KEEP (no regression, size-creep guard) |
+
+Stopped at experiment 5 (3 budget remaining) — rubric ceiling reached, simplification confirmed methodology, further mutations would test only the rubric's own resolution. Stop reason: pre-authorized early stop on diminishing returns near ceiling.
+
+---
+
 ## Gotchas
 
 1. **Never skip the baseline.** Without it, you cannot measure improvement.
@@ -228,6 +272,13 @@ The improved target file is saved back to its original location — only the unc
 6. **Size creep.** Each kept mutation adds complexity. Periodically check if the target has grown significantly and consolidate if needed.
 7. **Sequential by construction.** This skill implements hill-climbing — each mutation is evaluated against the last KEEP. Do not parallelize candidate mutations; that is beam search and changes the algorithm. If the user wants beam search, treat it as a different skill.
 8. **Trigger phrases live in CLAUDE.md, not `description`.** With `disable-model-invocation: true`, Claude does not auto-trigger from `description`. The Skills table in `~/.claude/CLAUDE.md` is the only source of natural-language triggers. Add new triggers there, not here.
+
+9. **Meta-recursion: target == this skill itself.** When the target file is autoresearch's own `SKILL.md`, the execution method must NOT be `Skill("autoresearch")` — that would invoke this skill within itself and either deadlock or create unbounded recursion. Pick one instead:
+   - **Text-based static rubric** — score the SKILL.md content against new evals (clarity, structure, coverage). `runs=1` is sufficient; static text yields deterministic scores.
+   - **Synthetic transcript via `claude -p`** — pipe `claude -p "$(cat {target})"` with sample user prompts, score the planning quality of the output.
+   - **Wet execution on a separate dummy target** — run autoresearch on a small unrelated file (e.g., a short prompt or config) and score the resulting `results.tsv` / `changelog.md` against the runtime evals.
+
+   Never let the target path appear inside its own `{exec}` definition.
 
 ---
 
