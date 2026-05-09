@@ -21,6 +21,7 @@ agent-stuff/
 │   ├── deplicated/          # Deprecated — do not reference or modify
 │   ├── hooks/               # Claude Code hook scripts (rtk-rewrite, polyglot-typecheck, etc.)
 │   ├── plugins/             # Externally installed plugins — treat as read-only
+│   ├── evals/               # waza evaluation suites — one subdirectory per skill
 │   ├── skills/              # Global skill definitions (each with SKILL.md)
 │   ├── CLAUDE.md            # Global Claude Code configuration (loaded in every session)
 │   ├── RTK.md               # RTK (Rust Token Killer) reference
