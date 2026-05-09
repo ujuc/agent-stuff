@@ -145,29 +145,78 @@ When guidelines conflict: **CLAUDE.md** (this file) takes precedence over projec
 
 ## Skills
 
-Triggered by natural language; invoke via the Skill tool when a trigger matches. Located in `skills/<skill-name>/SKILL.md`.
+Triggered by natural language; invoke via the Skill tool when a trigger matches. Located in `skills/<skill-name>/SKILL.md`. SKILL.md frontmatter의 `group:` 필드가 분류의 단일 진실 소스이며, 대화창에서 `/skills` 또는 `스킬 목록 보여줘`를 호출하면 `skill-index` 메타스킬이 플러그인 명령까지 합쳐 카탈로그를 출력한다.
+
+### 🧭 기획·스펙 (`planning`)
 
 | Skill | Triggers | Model |
-| ----- | -------- | ----- |
-| `commit` | /commit, 커밋해줘, 변경사항 커밋 | sonnet |
-| `gemma` | /gemma, gemma로 요약해줘, lm studio, gemini api, 로컬 LLM, 오프라인 AI, 클라우드로 돌려줘 | sonnet |
-| `generate-claude-md` | /generate-claude-md, CLAUDE.md 업데이트, AGENTS.md 갱신 | opus |
-| `generate-skills` | 스킬 만들어줘, 새 스킬 추가, 스킬 업데이트, 스킬 수정, generate-skills | opus |
-| `autoresearch` | 자동 실험, eval 루프, autoresearch | opus |
-| `skill-improver` | 스킬 테스트해줘, 스킬 개선해줘, 스킬 최적화, skill-improver | sonnet + advisor |
-| `frontend-design-evaluator` | 디자인 평가, UI 리뷰, 디자인 검수해줘 | sonnet + advisor |
-| `multi-agent-orchestrator` | 멀티에이전트, 파이프라인 실행, 에이전트 오케스트레이션 | opus |
-| `qa-evaluator` | QA 테스트, 웹앱 테스트, 앱 검증해줘 | sonnet + advisor |
+| --- | --- | --- |
 | `spec-planner` | 스펙 작성, 요구사항 확장, 기획서 만들어줘 | opus |
 | `sprint-contract-negotiator` | sprint contract 협상, done 기준 정의, 완료 조건 합의 | opus |
+
+### 📐 분석·계획 (`analysis`)
+
+| Skill | Triggers | Model |
+| --- | --- | --- |
 | `deep-read` | 코드 분석해줘, 깊이 읽어봐, deep-read | sonnet + advisor |
 | `annotate-plan` | 구현 계획 작성, 플랜 만들어줘, annotate-plan | sonnet + advisor |
+
+### 🛠 구현·실행 (`build`)
+
+| Skill | Triggers | Model |
+| --- | --- | --- |
 | `implement-plan` | 구현 시작, 플랜 실행해, implement-plan | sonnet |
-| `prompting-assist` | 프롬프트 개선해줘, 이 프롬프트 리뷰, 프롬프팅 팁, /prompting | sonnet |
+| `multi-agent-orchestrator` | 멀티에이전트, 파이프라인 실행, 에이전트 오케스트레이션 | opus |
+
+### ✅ 검증·QA (`verify`)
+
+| Skill | Triggers | Model |
+| --- | --- | --- |
+| `qa-evaluator` | QA 테스트, 웹앱 테스트, 앱 검증해줘 | sonnet + advisor |
+| `frontend-design-evaluator` | 디자인 평가, UI 리뷰, 디자인 검수해줘 | sonnet + advisor |
+
+### 📝 문서·커밋 (`docs`)
+
+| Skill | Triggers | Model |
+| --- | --- | --- |
+| `commit` | /commit, 커밋해줘, 변경사항 커밋 | sonnet |
+| `generate-claude-md` | /generate-claude-md, CLAUDE.md 업데이트, AGENTS.md 갱신 | opus |
+
+### ✍️ 글쓰기 (`writing`)
+
+| Skill | Triggers | Model |
+| --- | --- | --- |
 | `humanizer` | /humanizer, /humanizer --strict, /humanizer redo, AI 글 자연스럽게, AI 티 제거, ChatGPT 문체, 번역투 고쳐, 사람이 쓴 것처럼 윤문, 휴머나이저, 2차 윤문 | sonnet (sub-agents: opus) |
-| `eos` | /eos, 세션 종료, eos, wrap up, 끝내기 정리, 오늘치 일기, 정리하고 끝내자, "강하게"/"검수"/"review" modifier 시 advisor pass 추가 | haiku |
+| `prompting-assist` | 프롬프트 개선해줘, 이 프롬프트 리뷰, 프롬프팅 팁, /prompting | sonnet |
+
+### 🤖 외부 LLM (`llm`)
+
+| Skill | Triggers | Model |
+| --- | --- | --- |
+| `gemma` | /gemma, gemma로 요약해줘, lm studio, gemini api, 로컬 LLM, 오프라인 AI, 클라우드로 돌려줘 | sonnet |
 | `codex:setup` | /codex:setup, codex 설정, 코덱스 점검, codex 상태 확인 | sonnet |
 | `codex:rescue` | /codex:rescue, 코덱스로 위임, codex로 봐줘, 막혔을 때 코덱스, codex로 구현해줘 | sonnet (delegates to codex-cli) |
+
+### 🧪 메타·관리 (`meta`)
+
+| Skill | Triggers | Model |
+| --- | --- | --- |
+| `skill-index` | /skills, 스킬 목록, 스킬 그룹, 어떤 스킬 있어, 스킬 카탈로그 | haiku |
+| `generate-skills` | 스킬 만들어줘, 새 스킬 추가, 스킬 업데이트, 스킬 수정, generate-skills | opus |
+| `skill-improver` | 스킬 테스트해줘, 스킬 개선해줘, 스킬 최적화, skill-improver | sonnet + advisor |
+| `autoresearch` | 자동 실험, eval 루프, autoresearch | opus |
+| `eos` | /eos, 세션 종료, eos, wrap up, 끝내기 정리, 오늘치 일기, 정리하고 끝내자, "강하게"/"검수"/"review" modifier 시 advisor pass 추가 | haiku |
+
+### 워크플로우 색인
+
+```
+[새 프로젝트]   spec-planner → sprint-contract-negotiator → annotate-plan
+                → implement-plan → qa-evaluator → commit
+[기존 코드]     deep-read → annotate-plan → implement-plan → commit
+[스킬 정비]     skill-improver → generate-skills → maintain → eos
+[글쓰기]        prompting-assist → humanizer
+[디자인]        frontend-design-evaluator → multi-agent-orchestrator
+```
 
 > codex 플러그인은 `/codex:review`, `/codex:adversarial-review`, `/codex:status`, `/codex:cancel`, `/codex:result` 명령도 제공한다. 호출 정책은 아래 "Codex Delegation (Local Policy)" 참조.
 

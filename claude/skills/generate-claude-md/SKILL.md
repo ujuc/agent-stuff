@@ -2,6 +2,7 @@
 name: generate-claude-md
 description: 프로젝트용 CLAUDE.md, AGENTS.md, contributing-docs/, .claude/rules/ 파일을 발견 불가능 정보 원칙에 따라 생성하거나 업데이트한다.
 when_to_use: "문서 생성/갱신 요청일 때. 트리거: '/generate-claude-md', 'CLAUDE.md 업데이트', 'AGENTS.md 갱신', 'rules 생성', 'contributing-docs 추가', 'update CLAUDE.md', 'refresh AGENTS.md'. 단일 파일 편집은 Edit 도구를 직접 쓰고 이 스킬을 호출하지 않는다."
+group: docs
 model: opus
 allowed-tools: Read, Write, Edit, Glob, Grep, Agent, advisor
 ---

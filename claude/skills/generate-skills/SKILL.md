@@ -1,6 +1,7 @@
 ---
 name: generate-skills
 description: "Claude 스킬을 생성하거나 기존 스킬을 최신 spec에 맞게 업데이트한다. 스킬 만들어줘, 새 스킬 추가, 스킬 업데이트, 스킬 수정, generate-skills 요청 시 사용한다."
+group: meta
 model: opus
 disable-model-invocation: true
 argument-hint: "[skill-name]"

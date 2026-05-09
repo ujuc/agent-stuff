@@ -8,6 +8,7 @@ Skill definitions for Claude Code. Each skill is `SKILLNAME/SKILL.md` with optio
 - Skill body text is English; only `description` / `when_to_use` and user-visible trigger phrases may contain Korean
 - When modifying a skill, update `README.md` if the skill's purpose, triggers, or model assignment changed
 - After editing a skill, run `skill-improver` on the affected targets before committing — it validates frontmatter, spec conformance, and scenario coverage
+- Every SKILL.md frontmatter MUST include a `group:` field — one of: `planning`, `analysis`, `build`, `verify`, `docs`, `writing`, `llm`, `meta`. The `skill-index/` meta-skill reads this field to render `/skills`. Adding a new skill without `group:` will surface it under "❓ 미분류" with a stderr warn, and CLAUDE.md / README.md tables will fall out of sync until backfilled.
 
 ## Behavioral Guidelines
 

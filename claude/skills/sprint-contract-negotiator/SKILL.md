@@ -2,6 +2,7 @@
 name: sprint-contract-negotiator
 description: Generator·Evaluator 두 에이전트가 파일 기반 프로토콜로 done 기준을 협상해 sprint contract를 만드는 스킬.
 when_to_use: "sprint contract 협상, done 기준 정의, 완료 조건 합의, acceptance criteria 작성, sprint-contract-negotiator 호출 시. 구현 시작 전에 'done이 뭔지 먼저 정하자'·'이 sprint의 합격 기준을 잡아줘'·'평가자가 검증할 기준을 만들어줘' 같은 요청에 적합."
+group: planning
 model: opus
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---

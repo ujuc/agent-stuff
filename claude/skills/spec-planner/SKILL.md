@@ -2,6 +2,7 @@
 name: spec-planner
 description: "1-4문장 프롬프트를 상세 제품 스펙으로 확장한다. 범위는 야심차게, 구현 디테일은 Generator에게 위임한다."
 when_to_use: "스펙 작성, 요구사항 확장, spec-planner, 기획서 만들어줘, 제품 기획 시작, plan this app, expand this idea, create a product spec"
+group: planning
 model: opus
 allowed-tools: Read, Write, Glob, Grep
 ---

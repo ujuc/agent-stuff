@@ -8,6 +8,7 @@ description: |
   으로 8,000자+ 정밀 검증. 의미 불변·근거 기반·장르 유지·과윤문 가드(30/50%)·
   Do-NOT list(고유명사/수치/인용)·등급 A~D 자동 채점. 트리거: AI 글 자연스럽게,
   AI 티 제거, ChatGPT 문체, 번역투 고쳐, 사람이 쓴 것처럼 윤문, 휴머나이저, redo, 2차 윤문, --strict.
+group: writing
 model: sonnet
 allowed-tools:
   - Read

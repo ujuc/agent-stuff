@@ -2,6 +2,7 @@
 name: frontend-design-evaluator
 description: "프론트엔드 결과물을 Design Quality, Originality, Craft, Functionality 4가지 기준으로 점수 매기고 Generator-Evaluator 루프에 넣을 개선 지시를 생성한다."
 when_to_use: "디자인 평가, UI 리뷰, frontend-design-evaluator, 디자인 검수해줘, evaluate this design, rate my frontend, AI slop check 요청 시 사용한다. 루프의 판별자(evaluator)로도 호출된다."
+group: verify
 model: sonnet
 allowed-tools: Read ToolSearch advisor mcp__claude-in-chrome__tabs_context_mcp mcp__claude-in-chrome__tabs_create_mcp mcp__claude-in-chrome__navigate mcp__claude-in-chrome__read_page mcp__claude-in-chrome__get_page_text mcp__claude-in-chrome__javascript_tool mcp__claude-in-chrome__resize_window
 ---

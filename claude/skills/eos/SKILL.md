@@ -1,6 +1,7 @@
 ---
 name: eos
 description: "세션 종료(End Of Session) 정리 의식. 현재 대화와 미처리 transcript 버퍼를 함께 정리해 gyeol daily log에 append, _recent.md 7일 trim, schema lint, 처리된 버퍼 삭제까지 한 번에 실행한다. /eos, 세션 종료, eos, wrap up, 끝내기 정리, 오늘치 일기, 정리하고 끝내자 류로 호출 시 사용. modifier에 강하게/검수/review 포함 시 advisor 패스 추가."
+group: meta
 model: haiku
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 argument-hint: "[강하게|review]"

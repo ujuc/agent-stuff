@@ -2,6 +2,7 @@
 name: autoresearch
 description: "편집 가능한 대상(프롬프트, 설정, 코드 등)을 반복 실행-평가-변이하여 자율적으로 최적화한다. Karpathy의 autoresearch 방법론(execute → score → mutate → keep/discard) 기반."
 when_to_use: "자동 실험, eval 루프, autoresearch 트리거. /autoresearch 또는 CLAUDE.md Skills 테이블 등록을 통해서만 호출됨(disable-model-invocation: true)."
+group: meta
 model: opus
 disable-model-invocation: true
 argument-hint: "[target-path]"
