@@ -1,6 +1,6 @@
 ---
 name: gemma
-description: "로컬 LM Studio와 Google AI Studio(Gemini API)를 통해 Gemma 모델에 프롬프트를 전달한다. variant별 자동 라우팅(e2b/e4b→로컬, 26b/31b→원격)과 LM Studio 미가용 시 Gemini 폴백을 지원한다. gemma, gemma4, gemma로 요약해줘, gemma로 번역해, lm studio로 돌려줘, gemini api로 보내줘, 로컬 LLM, 오프라인 AI, 로컬로 처리해, API 키, 클라우드로 돌려줘, Gemma 호출 요청 시 사용한다. 민감 정보 오프라인 처리, 긴 컨텍스트 요약, 다국어 번역, 초안 생성 등에 적합."
+description: "로컬 LM Studio와 Google AI Studio(Gemini API)를 통해 Gemma 모델에 프롬프트를 전달한다. variant별 자동 라우팅(e2b/e4b→로컬, 26b/31b→원격)과 LM Studio 미가용 시 Gemini 폴백을 지원한다. gemma, gemma4, gemma로 요약해줘, gemma로 번역해, lm studio로 돌려줘, gemini api로 보내줘, 로컬 LLM, 오프라인 AI, 로컬로 처리해, 클라우드로 돌려줘, Gemma 호출 요청 시 사용한다. 민감 정보 오프라인 처리, 긴 컨텍스트 요약, 다국어 번역, 초안 생성 등에 적합."
 group: llm
 model: sonnet
 allowed-tools: Bash(rtk:*), Bash(bash:*), Bash(lms:*), Bash(op:*), Bash(brew:*)

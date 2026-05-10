@@ -197,7 +197,7 @@ Triggered by natural language; invoke via the Skill tool when a trigger matches.
 
 | Skill | Triggers | Model |
 | --- | --- | --- |
-| `gemma` | /gemma, gemma로 요약해줘, lm studio, gemini api, 로컬 LLM, 오프라인 AI, 클라우드로 돌려줘 | sonnet |
+| `gemma` | /gemma, gemma4, gemma로 요약해줘, gemma로 번역해, lm studio로 돌려줘, gemini api로 보내줘, 로컬 LLM, 오프라인 AI, 로컬로 처리해, 클라우드로 돌려줘 | sonnet |
 | `codex:setup` | /codex:setup, codex 설정, 코덱스 점검, codex 상태 확인 | sonnet |
 | `codex:rescue` | /codex:rescue, 코덱스로 위임, codex로 봐줘, 막혔을 때 코덱스, codex로 구현해줘 | sonnet (delegates to codex-cli) |
 
