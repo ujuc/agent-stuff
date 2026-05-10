@@ -4,7 +4,6 @@ description: "Planner-Generator-Evaluator 3-agent 파이프라인으로 장시�
 when_to_use: "멀티에이전트, 파이프라인 실행, multi-agent-orchestrator, 에이전트 오케스트레이션, full harness run, autonomous build session, plan and build this 요청 시 사용한다. 4개 컴포넌트 스킬(spec-planner, sprint-contract-negotiator, qa-evaluator, frontend-design-evaluator)을 capstone 플로우로 엮어야 할 때 호출된다."
 group: build
 model: opus
-disable-model-invocation: true
 argument-hint: "[1-4 sentence prompt]"
 allowed-tools: Read Write Edit Glob Grep Bash Agent advisor
 ---
@@ -52,6 +51,45 @@ Before invoking Stage 1, verify the environment is ready. Halt and report to the
 3. **`.harness/` directory exists.** Create it if missing. If it already contains artifacts from a previous run, treat them per [communication-protocol.md](references/communication-protocol.md) "Stale File" rules — never silently overwrite.
 
 4. **Chrome integration (only when the task will reach Stage 4).** Check that `mcp__claude-in-chrome__*` tools are available. If evaluation is required and Chrome is not active, stop and ask the user to enable it (e.g., `--chrome` flag or `/chrome`) before proceeding. Do not start Stage 1 on a Chrome-bearing task without this gate.
+
+## Stage 0: Plan & Confirm
+
+After Pre-flight passes, present the execution plan to the user and require explicit go-ahead before invoking the Planner. The pipeline writes multiple files, spawns several subagents, and may run for hours — the user must opt in to that scope each time, regardless of whether invocation came from a slash command or from a natural-language trigger.
+
+### Procedure
+
+1. Parse the user prompt (1-4 sentences) and derive:
+   - **Tech stack**: whatever the user specified, otherwise note `default: React+Vite+FastAPI+SQLite`.
+   - **Scope estimate**: small / medium / large per the cost reference table in this file.
+   - **Evaluator deployment**: yes / no per the criteria in "Evaluator Deployment Decision".
+
+2. Render a Korean summary block (single message, this exact shape):
+
+   ```
+   ▣ multi-agent-orchestrator 실행 계획
+
+   - Prompt 요약: <one-line restatement>
+   - 실행 단계: Planner → Contract → Generator[ → Evaluator]
+   - Tech stack: <stack or "default: React+Vite+FastAPI+SQLite">
+   - 예상 시간·비용: <Solo / Generator+Evaluator / Full pipeline 행에서 매칭한 값>
+   - 작업물 위치: .harness/ (gitignored)
+   ```
+
+3. Call `AskUserQuestion` with three options:
+   - `진행` — start Stage 1 immediately.
+   - `tech stack 변경` — collect the desired stack via a follow-up question, regenerate the summary, re-confirm.
+   - `중단` — exit without writing to `.harness/`.
+
+   Block until the user responds. Never silently proceed to Stage 1.
+
+4. Branch on the response:
+   - `진행` → continue to Stage 1.
+   - `tech stack 변경` → ask once for the new stack, update the summary, loop back to step 3.
+   - `중단` → stop. Do not create `.harness/` files. Acknowledge the cancellation in one line.
+
+### Skip rule
+
+If `.harness/handoff.md` already exists with `phase: building` (or later) — i.e. the orchestrator is resuming after a context reset, not starting fresh — skip Stage 0 and resume from the recorded phase. The handoff itself is the prior approval. In every other case (no handoff, or handoff with `phase: planning|contracting`), Stage 0 runs.
 
 ## Pipeline Execution
 
@@ -266,3 +304,5 @@ See [harness-tuning-guide.md](references/harness-tuning-guide.md) for the full r
 9. **Default tech stack is a suggestion, not a mandate.** React+Vite+FastAPI+SQLite is the default only when the user does not specify. Always respect user-specified stacks.
 
 10. **Opus handles the full pipeline in one session; Sonnet/Haiku do not.** Opus 4.6 and 4.7 (1M context) can complete a full pipeline in one session. Sonnet 4.6 (200K) and Haiku 4.5 require sprint splitting and explicit context resets via `.harness/handoff.md` — running the full pipeline in one go on those models will degrade silently as context pressure mounts.
+
+11. **Stage 0 confirmation gate is non-negotiable.** Whether the skill was auto-invoked from a natural-language trigger or explicitly run via slash command, Stage 0 always fires (unless the handoff skip rule applies). Do not bypass it for "obvious" prompts — the gate is also the user's last chance to correct the default tech stack and scope estimate before the pipeline writes anything to `.harness/`.
