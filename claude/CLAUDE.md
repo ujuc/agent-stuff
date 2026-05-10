@@ -191,7 +191,7 @@ Triggered by natural language; invoke via the Skill tool when a trigger matches.
 | Skill | Triggers | Model |
 | --- | --- | --- |
 | `humanizer` | /humanizer, /humanizer --strict, /humanizer redo, AI 글 자연스럽게, AI 티 제거, ChatGPT 문체, 번역투 고쳐, 사람이 쓴 것처럼 윤문, 휴머나이저, 2차 윤문 | sonnet (sub-agents: opus) |
-| `prompting-assist` | 프롬프트 개선해줘, 이 프롬프트 리뷰, 프롬프팅 팁, /prompting | sonnet |
+| `prompting-assist` | 프롬프트 개선해줘, 이 프롬프트 리뷰해줘, 프롬프팅 팁, /prompting | sonnet |
 
 ### 🤖 외부 LLM (`llm`)
 
@@ -277,7 +277,7 @@ Rationale: skill-improver is consent-gated by design (commit confirmation in Pha
 
 - **commit / push / publish 직전** — advisor() 호출 후 추가로 `/codex:review` 통과
 - **보안 민감 변경 머지 직전** — `/codex:adversarial-review` (인증, 권한, 비밀 처리, 외부 입력 경로, 파일 업로드, SQL/쿼리 빌더)
-- **Stop hook (Review Gate ON)** — 명시적 호출 없이도 Stop 직전 자동 리뷰 수행. settings.json의 Stop 훅에 `stop-review-gate-hook.mjs`로 등록되어 있음
+- **Stop hook (Review Gate ON)** — 명시적 호출 없이도 Stop 직전 자동 리뷰 수행. settings.json에는 직접 기재되지 않으며, `/codex:setup --enable-review-gate` 호출 시 codex 플러그인이 워크스페이스별 state에 `stop-review-gate-hook.mjs`를 동적 등록함
 
 ### Discretionary use (재량 호출)
 
