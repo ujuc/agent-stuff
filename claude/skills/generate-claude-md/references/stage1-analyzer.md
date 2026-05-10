@@ -142,7 +142,7 @@ Write your findings to .research/partials/claude-md-structure.md using this stru
 | run_in_background | true                             |
 | description     | Scan documentation and CI          |
 
-**Skip condition**: No documentation files (CLAUDE.md, AGENTS.md, .cursorrules, CONTRIBUTING.md) and no CI config detected in initial glob.
+**Skip condition**: No documentation files (CLAUDE.md, AGENTS.md, .cursor/rules/, CONTRIBUTING.md) and no CI config detected in initial glob.
 
 **Prompt template**:
 
@@ -150,7 +150,7 @@ Write your findings to .research/partials/claude-md-structure.md using this stru
 Scan documentation and CI configuration at {target_path}.
 
 Look for:
-1. Existing AI config: CLAUDE.md (root and all nested locations), AGENTS.md, .cursorrules, .github/copilot-instructions.md
+1. Existing AI config: CLAUDE.md (root and all nested locations), AGENTS.md, .cursor/rules/*.mdc, .github/copilot-instructions.md
 2. Contributing docs: CONTRIBUTING.md, contributing-docs/, docs/
 3. CI/CD: .github/workflows/*.yml, .gitlab-ci.yml, Jenkinsfile, .circleci/config.yml — extract test, build, and deploy commands
 4. Nested CLAUDE.md files: list all paths, record section headings and approximate line count

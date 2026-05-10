@@ -184,7 +184,7 @@ Triggered by natural language; invoke via the Skill tool when a trigger matches.
 | Skill | Triggers | Model |
 | --- | --- | --- |
 | `commit` | /commit, 커밋해줘, commit, 변경사항 커밋, 커밋하고 푸시해줘 | sonnet |
-| `generate-claude-md` | /generate-claude-md, CLAUDE.md 업데이트, AGENTS.md 갱신 | opus |
+| `generate-claude-md` | /generate-claude-md, CLAUDE.md 업데이트, AGENTS.md 갱신, rules 생성, contributing-docs 추가, update CLAUDE.md, refresh AGENTS.md | opus |
 
 ### ✍️ 글쓰기 (`writing`)
 
