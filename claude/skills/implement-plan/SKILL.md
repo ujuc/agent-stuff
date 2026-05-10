@@ -104,6 +104,7 @@ Entered from Step 3 Mode A when the previous verifier is complete AND either a b
 
 1. **Blocker path.** If `.plans/.blocker-{prev-slug}.md` exists:
    - Read the file and display its three sections (`## Problem`, `## Attempts`, `## Proposal`) verbatim to the user.
+   - Delete `.plans/.implementing` to deactivate the `polyglot-typecheck` hook before handing off.
    - Direct the user to run `annotate-plan` Phase B (`address notes`) so the blocker feeds the next annotation cycle.
    - Do NOT continue to the next todo item. Do NOT run debugger (the implementer already determined this is not a diagnosable failure).
 
@@ -133,12 +134,18 @@ If verifier reports repeated errors OR implementation diverges from the plan:
 When all items are done or a blocking error occurs:
 
 1. Launch one final `verifier` agent (full build + test suite) and wait for its report.
+   - If PASS → continue.
+   - If FAIL → surface the failure; suggest `/commit --no-push` to preserve state; ask whether to debug inline or reset the last item.
 2. Delete `.plans/.implementing` flag.
-3. Output summary:
+3. If Mode B was used, clean up worktrees (one per agent from Step 3):
+   ```bash
+   git worktree remove <path> && git branch -d <branch-name>
+   ```
+4. Output summary:
    - Items completed / total.
    - Verification results (pass/fail per check).
    - Any items marked `(RESET)`.
-4. If uncommitted changes exist, suggest running `/commit`.
+5. If uncommitted changes exist, suggest running `/commit`.
 
 ## Gotchas
 
