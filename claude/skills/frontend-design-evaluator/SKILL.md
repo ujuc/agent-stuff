@@ -64,6 +64,8 @@ Quick reference:
 - Trend **stagnant / declining** → "Pivot. Current direction plateaued. Try [alternative]."
 - All criteria **> 7** → "Polish phase. Address: [micro-details]."
 
+Replace every bracketed placeholder with concrete content before emitting the directive (e.g., "Originality and Craft", "brutalist editorial layout", "hero h1 leading"). Emitting literal `[weak areas]` or `[alternative]` is a failure mode.
+
 ## Output Format
 
 ```
@@ -71,6 +73,7 @@ Quick reference:
 
 **URL**: <url>
 **Iteration**: <round> of <planned>
+**Viewports tested**: <e.g., 375px, 1280px / light, dark>
 **Trend**: Improving / Stagnant / Declining
 
 ### Scores
