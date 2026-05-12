@@ -123,7 +123,6 @@
     "harness@harness-marketplace": true,
     "amp-plugin-cc@amp-plugin-cc": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
-    "codex@openai-codex": true,
     "warp@claude-code-warp": true
   },
   "extraKnownMarketplaces": {
@@ -163,12 +162,6 @@
         "repo": "ujuc/amp-plugin-cc"
       },
       "autoUpdate": true
-    },
-    "openai-codex": {
-      "source": {
-        "source": "github",
-        "repo": "openai/codex-plugin-cc"
-      }
     },
     "claude-code-warp": {
       "source": {
