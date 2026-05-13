@@ -76,6 +76,9 @@ claude/metrics
 claude/teams
 claude/session-data
 claude/settings.local.json
+claude/daemon.log
+claude/daemon
+claude/jobs
 **/.last_*
 **/.last-*
 
