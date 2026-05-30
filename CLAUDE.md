@@ -4,17 +4,16 @@ Personal AI agent configuration repository. Git submodule of [dotrc](https://git
 
 ## Technical Stack
 
-- Symlink deployment model (this repo → dotrc submodule → ~/.claude)
-
-## Architecture
-
-| Source    | Target      | Status      |
-| --------- | ----------- | ----------- |
-| `claude/` | `~/.claude` | Active      |
+- Symlink deployment model: `claude/` → `~/.claude` (this repo is a dotrc submodule)
 
 ## Development Commands
 
-No build or test toolchain. This is a pure configuration repository.
+No build/run toolchain — this is a configuration repository. The one verification
+loop is for skill changes:
+
+- Validate a skill: `bash claude/skills/generate-skills/scripts/validate-skill claude/skills/<name>` (first run compiles a Rust workspace, ~6–30s)
+- Eval suites live in `claude/evals/<skill>/` — run them via the `waza-runner` agent, never the `waza` CLI directly
+- After editing a skill, run `skill-improver` before committing
 
 ## Work Rules
 
@@ -25,6 +24,8 @@ No build or test toolchain. This is a pure configuration repository.
 
 ## Behavioral Guidelines
 
+- `claude/` is symlinked to `~/.claude`; `claude/CLAUDE.md` and `claude/settings.json` are GLOBAL — they load/apply in every Claude Code session, not just this repo. High blast radius.
+- `claude/` mixes tracked config with gitignored runtime state — `.gitignore` is the source of truth for what's runtime. Don't edit gitignored paths (`sessions/`, `cache/`, `file-history/`, `projects/`, …) or `claude/plugins/` (externally installed).
 - `claude/deplicated/` is fully deprecated — do not reference or modify
 - Always edit files in this repository, not at symlink targets
 
