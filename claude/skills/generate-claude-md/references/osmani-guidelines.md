@@ -2,6 +2,13 @@
 
 Source: https://addyosmani.com/blog/agents-md/
 
+> **Authority note**: For the operative ✅ include / ❌ exclude rule and the
+> CLAUDE.md size budget, `claude-code-best-practices.md` (the official Anthropic
+> guidance, live-fetched) is authoritative. This file provides the *research
+> rationale* (ETH Zurich data) and the anti-pattern taxonomy behind the same
+> "less is more" principle — keep both in sync; do not let the include/exclude
+> lists here diverge from the authoritative table.
+
 ## Core Philosophy
 
 Include only information that is **undiscoverable and operationally critical**.

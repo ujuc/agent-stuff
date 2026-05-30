@@ -16,11 +16,11 @@ This document defines the full verification pipeline for Stage 4: Checklist Veri
 
 Apply line by line to every generated/modified file:
 
-1. **Universality / Necessity / Redundancy**: Does the instruction apply to all tasks? Would omitting it cause mistakes? Is it obvious from reading the code? → If not, delete or move to AGENTS.md / contributing-docs/
+1. **Universality / Necessity / Redundancy (prune test)**: Apply the authoritative prune test (claude-code-best-practices.md) — *"Would removing this cause Claude to make mistakes?"* If not, cut it. Also: does it apply to all tasks? Is it obvious from reading the code? → If it fails the prune test, delete or move to AGENTS.md / contributing-docs/
 2. **Linter role**: Is this a code style rule? → Delete and recommend replacing with a linter or hook
 3. **Speculation exclusion**: Does it include anything not confirmed in Stage 1–2? → If so, delete
 4. **Verifiability**: Can compliance with each instruction be verified? → If not, make it concrete
-5. **Size constraints**: Root CLAUDE.md under 100 lines (hard limit 300)? Nested CLAUDE.md under 50 lines (hard limit 100)? Individual instructions under 50 items? → If exceeded, consolidate or delete
+5. **Size constraints**: Root CLAUDE.md under 100 lines soft / **200 hard** (official ceiling, claude-code-best-practices.md)? Nested CLAUDE.md under 50 lines (hard limit 100)? Individual instructions under 50 items? → If exceeded, consolidate, delete, or split into `.claude/rules/`
 6. **Hierarchy / Scope**: Does CLAUDE.md reference contributing-docs/ directly (should go via AGENTS.md)? Does AGENTS.md contain Claude-specific content only? Does a nested CLAUDE.md cover content outside its directory or repeat parent content? Do rules/ files duplicate CLAUDE.md content? Are glob-scopeable rules using alwaysApply: true? Do rules/ files overlap in role with contributing-docs/? Can alwaysApply: true rules without path scoping be moved to CLAUDE.md? → If any, move/delete or replace with parent reference
 7. **Reference integrity**: Are relative paths in nested CLAUDE.md valid? → Verify relative paths
 8. **Discoverability**: Can an agent learn this by reading the code? → If yes, delete
@@ -31,6 +31,7 @@ Apply line by line to every generated/modified file:
 
 Warn the user when any of the following are detected:
 
+- **Over-specified CLAUDE.md** (primary anti-pattern, claude-code-best-practices.md): the file is long enough that real rules get lost in the noise and adherence drops. Fix: ruthlessly prune, or convert a must-run rule to a hook
 - **Auto-generated content**: LLM-summarized content of the codebase is included verbatim
 - **Information duplication**: Content already present in README, CONTRIBUTING.md, or CI configuration is repeated
 - **Stale content**: Technologies, dependencies, or patterns are described that do not match the current codebase
@@ -131,7 +132,7 @@ Files to review: {list_of_generated_file_paths}
 3. Redundancy: Is any content duplicated between CLAUDE.md, AGENTS.md, and contributing-docs/? → flag the duplicate
 4. Hierarchy: Does CLAUDE.md reference contributing-docs/ directly (should go through AGENTS.md)? → flag
 5. Nested CLAUDE.md: Does any nested file repeat content from root CLAUDE.md? Does scope exceed its directory? → flag
-6. Size: Is root CLAUDE.md under 100 lines (hard limit 300)? Nested under 50 (hard limit 100)?
+6. Size: Is root CLAUDE.md under 100 lines soft / 200 hard (official ceiling)? Nested under 50 (hard limit 100)? Flag any line that fails the prune test ("would removing this cause a mistake?")
 7. Actionability: Is every instruction verifiable? Any vague guidance? → flag with suggestion
 
 Report: PASS/FAIL per criterion. For each FAIL, quote the specific line and explain why.

@@ -28,11 +28,15 @@ The orchestrator passes the following inputs to this agent:
 
 ## Common Writing Rules
 
-Apply to all generated files:
+Apply to all generated files. The authoritative ✅ include / ❌ exclude table and
+the prune test live in `claude-code-best-practices.md` (live-fetched) — defer to
+the freshest copy of it; the rules below are the operative shorthand.
 
 - Do not include code snippets directly — use `file:line` references only
 - **Discoverability test**: For every line, ask "Can an agent discover this by reading the code?" If yes, omit it
+- **Prune test** (authoritative gate): ask "Would removing this cause Claude to make mistakes?" If not, cut it. Bloated files cause Claude to ignore real instructions
 - No auto-generated summaries: Do not include LLM-generated summaries of code as-is
+- A must-run-every-time rule (e.g., lint before commit) belongs in a **hook**, not a CLAUDE.md line — recommend the hook instead
 
 ---
 
@@ -41,7 +45,7 @@ Apply to all generated files:
 ### Generation Principles
 
 - Include only universal content that applies to every session and every task
-- Target line count: 100 lines or fewer. Hard limit: 300 lines
+- Target line count: ~100 lines (soft). **Hard ceiling: 200 lines** — the official limit (claude-code-best-practices.md): files over 200 lines consume more context and reduce adherence. Past the ceiling, split into `.claude/rules/` or `@`-imports rather than letting CLAUDE.md sprawl
 - Do not include code style rules (delegate to linters/formatters)
 - Reference AGENTS.md only (do not reference contributing-docs/ directly)
 - Include only **confirmed facts** from Stages 1 and 2. Exclude assumptions or "nice to have" items
@@ -69,6 +73,13 @@ Apply to all generated files:
 - **[AGENTS.md](./AGENTS.md)** — Undiscoverable operational info, detailed guides
 (Also list any subdirectories with nested CLAUDE.md)
 ```
+
+**Pointer vs. `@import`** (claude-code-best-practices.md): Claude Code reads
+CLAUDE.md, **not** AGENTS.md. Keep the AGENTS.md reference a markdown **link**
+(read on demand) — do **not** use `@AGENTS.md`, which would load AGENTS.md in full
+every session and defeat progressive disclosure. Use `@import` only for content
+that genuinely belongs in every session. If the project relies on Claude Code
+auto-reading AGENTS.md, surface the tradeoff and let the user choose.
 
 ### Do-NOT-Include List
 
