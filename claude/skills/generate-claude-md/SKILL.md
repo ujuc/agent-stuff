@@ -31,11 +31,12 @@ already exists. **File existence overrides the keyword default:**
 
 - **Refine path = the existing update-mode** (U1 audit → U2 drift → U3 surgical
   edit). It is *not* a new mechanism. Route every "file exists" case through it.
-- **No-baseline recommendation**: when no CLAUDE.md exists, surface one line
-  before generating — *"베이스라인이 없습니다. `/init`으로 스타터 CLAUDE.md를
-  만든 뒤 이 스킬로 정제하길 권장합니다(공식 워크플로). 지금 풀 생성으로
-  진행할까요, 아니면 `/init` 실행 후 다시 호출할까요?"* If the user proceeds, run
-  full generation (Stage 1→4) as the standalone fallback.
+- **No-baseline recommendation**: when no CLAUDE.md exists, surface a one-line
+  recommendation before generating — state that no baseline was found and that
+  running `/init` first (the official "/init then refine" workflow) is preferred,
+  then ask whether to proceed with full generation now or re-invoke after `/init`.
+  Render this prompt in the user's language. If the user proceeds, run full
+  generation (Stage 1→4) as the standalone fallback.
 - **Light refine when the baseline is rich**: if the existing CLAUDE.md came from
   `/init`'s `CLAUDE_CODE_NEW_INIT=1` flow (it already did subagent exploration +
   interview), skip the heavy Stage 1 deep-explore. Apply only the skill's
