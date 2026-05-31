@@ -79,6 +79,7 @@ claude/settings.local.json
 claude/daemon.log
 claude/daemon
 claude/jobs
+claude/security
 **/.last_*
 **/.last-*
 
