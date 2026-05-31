@@ -100,9 +100,9 @@ Exceptions (skip advisor — adds noise without value):
 - Tasks where the next action is dictated by tool output you just read
 - When the user has explicitly waived advisor for the current task
 
-Detection: identify the active model from the environment block (e.g., `claude-opus-4-7[1m]` = Opus, `claude-sonnet-4-6` = Sonnet, requires advisor). The Skills table marker `+ advisor` for individual skills is now redundant with this global rule but kept for readability.
+Detection: identify the active model from the environment block (e.g., `claude-opus-4-7[1m]` = Opus, `claude-sonnet-4-6` = Sonnet, requires advisor).
 
-Rationale: opusplan trades execution quality for cost. advisor (which uses a stronger reviewer model) catches the subtle errors that justify the trade-off. Skipping advisor on non-Opus defeats the safety net.
+Rationale: non-Opus trades execution quality for cost; advisor (a stronger reviewer model) catches the subtle errors that justify the trade-off.
 
 ## Output Style — Concise (Cost-Aware)
 
@@ -151,65 +151,7 @@ When guidelines conflict: **CLAUDE.md** (this file) takes precedence over projec
 
 Triggered by natural language; invoke via the Skill tool when a trigger matches. Located in `skills/<skill-name>/SKILL.md`. SKILL.md frontmatter의 `group:` 필드가 분류의 단일 진실 소스이며, 대화창에서 `/skills` 또는 `스킬 목록 보여줘`를 호출하면 `skill-index` 메타스킬이 플러그인 명령까지 합쳐 카탈로그를 출력한다.
 
-### 🧭 기획·스펙 (`planning`)
-
-| Skill | Triggers | Model |
-| --- | --- | --- |
-| `spec-planner` | 스펙 작성, 요구사항 확장, 기획서 만들어줘 | opus |
-| `sprint-contract-negotiator` | sprint contract 협상, done 기준 정의, 완료 조건 합의 | opus |
-
-### 📐 분석·계획 (`analysis`)
-
-| Skill | Triggers | Model |
-| --- | --- | --- |
-| `deep-read` | 코드 분석해줘, 깊이 읽어봐, deep-read, /deep-read | sonnet + advisor |
-| `annotate-plan` | 구현 계획 작성, 플랜 만들어줘, annotate-plan | sonnet + advisor |
-
-### 🛠 구현·실행 (`build`)
-
-| Skill | Triggers | Model |
-| --- | --- | --- |
-| `implement-plan` | 구현 시작, 플랜 실행해, implement-plan | sonnet |
-| `multi-agent-orchestrator` | 멀티에이전트, 파이프라인 실행, 에이전트 오케스트레이션 | opus |
-
-### ✅ 검증·QA (`verify`)
-
-| Skill | Triggers | Model |
-| --- | --- | --- |
-| `qa-evaluator` | QA 테스트, 웹앱 테스트, 앱 검증해줘 | sonnet + advisor |
-| `frontend-design-evaluator` | 디자인 평가, UI 리뷰, frontend-design-evaluator, 디자인 검수해줘, evaluate this design, rate my frontend, AI slop check | sonnet + advisor |
-
-### 📝 문서·커밋 (`docs`)
-
-| Skill | Triggers | Model |
-| --- | --- | --- |
-| `commit` | /commit, 커밋해줘, commit, 변경사항 커밋, 커밋하고 푸시해줘 | sonnet |
-| `generate-claude-md` | /generate-claude-md, CLAUDE.md 업데이트, AGENTS.md 갱신, rules 생성, contributing-docs 추가, update CLAUDE.md, refresh AGENTS.md | opus |
-
-### ✍️ 글쓰기 (`writing`)
-
-| Skill | Triggers | Model |
-| --- | --- | --- |
-| `humanizer` | /humanizer, /humanizer --strict, /humanizer redo, AI 글 자연스럽게, AI 티 제거, ChatGPT 문체, 번역투 고쳐, 사람이 쓴 것처럼 윤문, 휴머나이저, 2차 윤문 | sonnet (sub-agents: opus) |
-| `prompting-assist` | 프롬프트 개선해줘, 이 프롬프트 리뷰해줘, 프롬프팅 팁, /prompting | sonnet |
-
-### 🤖 외부 LLM (`llm`)
-
-| Skill | Triggers | Model |
-| --- | --- | --- |
-| `gemma` | /gemma, gemma4, gemma로 요약해줘, gemma로 번역해, lm studio로 돌려줘, gemini api로 보내줘, 로컬 LLM, 오프라인 AI, 로컬로 처리해, 클라우드로 돌려줘 | sonnet |
-| `codex:setup` | /codex:setup, codex 설정, 코덱스 점검, codex 상태 확인 | sonnet |
-| `codex:rescue` | /codex:rescue, 코덱스로 위임, codex로 봐줘, 막혔을 때 코덱스, codex로 구현해줘 | sonnet (delegates to codex-cli) |
-
-### 🧪 메타·관리 (`meta`)
-
-| Skill | Triggers | Model |
-| --- | --- | --- |
-| `skill-index` | /skills, 스킬 목록, 스킬 그룹, 어떤 스킬 있어, 스킬 카탈로그 | haiku |
-| `generate-skills` | 스킬 만들어줘, 새 스킬 추가, 스킬 업데이트, 스킬 수정, generate-skills | opus |
-| `skill-improver` | /skill-improver, 스킬 테스트해줘, 스킬 개선해줘, 스킬 최적화, skill-improver, test skills | sonnet + advisor |
-| `autoresearch` | 자동 실험, eval 루프, autoresearch | opus |
-| `eos` | /eos, 세션 종료, eos, wrap up, 끝내기 정리, 오늘치 일기, 정리하고 끝내자, "강하게"/"검수"/"review" modifier 시 advisor pass 추가 | haiku |
+전체 스킬 카탈로그(그룹·트리거·모델)는 대화창에서 `/skills`(또는 "스킬 목록 보여줘")로 확인한다 — `skill-index`가 `group:` frontmatter와 플러그인 명령을 합쳐 항상 최신 상태로 출력하므로, 여기에 정적 표를 중복 유지하지 않는다.
 
 ### 워크플로우 색인
 
@@ -239,7 +181,7 @@ gyeol's `MEMORY_SYSTEM.md` documents `scripts/fetch-source.py` and `scripts/buil
 - **Add a new reference**: read `_index.md` to find the next available id, `Write` the `summary/{id}-{slug}.md` file, archive the source via `WebFetch` + `Write` as above, then `Edit` `_index.md` and `_tags.md`. Update `_topics/` if applicable.
 - **PDF sources**: if a PDF is required and cannot be rendered in-session, place the original under `source/manual/{id}-{slug}.pdf` and note the manual capture in the reference's frontmatter.
 
-Rationale: the current Python scripts target a legacy `.memory/` path that does not match the documented `memory/` structure, and their dependencies (`trafilatura`, `pymupdf4llm`) are not guaranteed to be installed. In-session tools are always available and operate on the correct path.
+Rationale: the legacy Python scripts target a stale `.memory/` path (not the documented `memory/`) and need possibly-uninstalled deps (`trafilatura`, `pymupdf4llm`); in-session tools always work on the correct path.
 
 ### Upstream check (60-day cadence)
 
@@ -265,7 +207,7 @@ In addition to the gyeol session routine (items 1–6) and the semantics upstrea
    3. On consent, invoke `Skill("skill-improver")` with no arguments (full sweep). **Do NOT write the timestamp here** — skill-improver's Phase 6 writes it only on successful completion. This preserves the "failed runs re-prompt next session" behavior documented in the skill's Gotcha #4.
    4. On decline (or if the user dismisses the notice), write today's date (YYYY-MM-DD) to `~/.claude/.last_skill_improver_run` so the prompt does not repeat next session.
 
-Rationale: skill-improver is consent-gated by design (commit confirmation in Phase 6), so a passive periodic prompt fits its workflow better than a fully autonomous cron. The 7-day cadence matches gyeol's `.last_update_check` and `.last_semantics_scan` interval.
+Rationale: skill-improver is consent-gated (Phase 6 commit confirmation), so a passive prompt fits better than an autonomous cron; the 7-day cadence matches gyeol's other interval checks.
 
 ## Codex Delegation (Local Policy)
 
