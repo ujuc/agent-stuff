@@ -57,7 +57,6 @@ agent-stuff/
 - `claude/` is symlinked to `~/.claude` — files inside it must NOT use relative paths to reference outside their own tree
 - `claude/CLAUDE.md` is loaded as global config in every Claude Code session, not just within this repo
 - `claude/plugins/` contains externally installed plugins — treat as read-only, not project code
-- `claude/settings.json` activates the OpenAI Codex plugin (`enabledPlugins.codex@openai-codex` + `extraKnownMarketplaces.openai-codex` → `openai/codex-plugin-cc`). Stop-hook Review Gate is ON, so every response is auto-reviewed by Codex. Manual delegation/review uses `/codex:rescue`, `/codex:review`, `/codex:adversarial-review`. Mandatory call gates and conflict-resolution rules are documented in `claude/CLAUDE.md` → "Codex Delegation (Local Policy)".
 
 ## Non-Obvious Conventions
 
