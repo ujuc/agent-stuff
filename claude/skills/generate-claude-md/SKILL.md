@@ -61,17 +61,15 @@ working directory.
 
 Principles that govern every stage of this skill.
 
-**Authoritative guidance** (references/claude-code-best-practices.md — **live-fetched**): the official Anthropic ✅ include / ❌ exclude table, the prune test (*"Would removing this cause Claude to make mistakes? If not, cut it"*), the 200-line ceiling, `@import` semantics, AGENTS.md loading, and the "over-specified CLAUDE.md" failure pattern. On skill start, **first load WebFetch with `ToolSearch` (query `select:WebFetch`) — it is a deferred tool and is not callable until its schema is loaded, even though `allowed-tools` pre-grants permission — then** WebFetch the upstream URLs in that file's frontmatter. On **any** failure (tool not loaded, offline, rate limit, layout change), fall back to its cached snapshot and tell the user in one line. This source **supersedes** osmani for the include/exclude rule and the size budget.
+**Authoritative guidance** (references/claude-code-best-practices.md — **live-fetched**): the official Anthropic ✅ include / ❌ exclude table, the prune test (*"Would removing this cause Claude to make mistakes? If not, cut it"*), the 200-line ceiling, `@import` semantics, AGENTS.md loading, and the "over-specified CLAUDE.md" failure pattern. On skill start, **first load WebFetch with `ToolSearch` (query `select:WebFetch`) — it is a deferred tool and is not callable until its schema is loaded, even though `allowed-tools` pre-grants permission — then** WebFetch the upstream URLs in that file's frontmatter. On **any** failure (tool not loaded, offline, rate limit, layout change), fall back to its cached snapshot and tell the user in one line.
 
-**Design principles** (references/karpathy-guidelines.md): think before acting, simplicity first, surgical precision, goal-driven execution.
-
-**Content principles & research rationale** (references/osmani-guidelines.md): the *why* behind "include only undiscoverable information" — AGENTS.md is a diagnostic list of problems code has not yet solved. Performance evidence: auto-generated context → success rate −2–3%, cost +20%; human-written gotchas → +4% (ETH Zurich). Every line must justify its existence. (For the operative include/exclude rule itself, defer to the authoritative source above.)
+**Content principles & research rationale**: the *why* behind "include only undiscoverable information" — AGENTS.md is a diagnostic list of problems code has not yet solved. Performance evidence: auto-generated context → success rate −2–3%, cost +20%; human-written gotchas → +4% (ETH Zurich). Every line must justify its existence. (For the operative include/exclude rule itself, defer to the authoritative source above.)
 
 **Governance principle** (references/entry-router-guidelines.md): when autonomous-agent safeguards are required, reflect the Entry Router CORE rules in AGENTS.md Boundaries and CLAUDE.md behavioral guidelines.
 
 **Soul** (references/SOUL.md): the foundation of agent identity and attitude. This is a static seed copy used when generating project files — not a pointer to the live identity file (`../rules/SOUL.md`).
 
-**LLM context**: LLMs are in-context learners. Retrieving code patterns is enough to follow style, so style rules are unnecessary. High-level errors compound geometrically downstream. Write instructions as verifiable success criteria.
+**LLM context**: code patterns are discoverable, so style rules are unnecessary — exclude them. Write instructions as verifiable success criteria.
 
 ---
 
@@ -118,7 +116,7 @@ For ambiguous items, present candidate interpretations and ask the user to choos
 
 Spawn a single general-purpose agent (`model: sonnet`) to generate files.
 
-**What to pass**: Stage 1 summary, Stage 2 answers, target file list, and the core principles from the guideline files — the **authoritative include/exclude table + prune test + 200-line budget** (references/claude-code-best-practices.md, live-fetched result preferred), plus karpathy, osmani, entry-router, and SOUL.
+**What to pass**: Stage 1 summary, Stage 2 answers, target file list, and the core principles from the guideline files — the **authoritative include/exclude table + prune test + 200-line budget** (references/claude-code-best-practices.md, live-fetched result preferred), plus entry-router and SOUL.
 
 **5 generation targets**: Root CLAUDE.md, AGENTS.md, contributing-docs/, nested CLAUDE.md, `.claude/rules/`. Generate only the applicable ones.
 

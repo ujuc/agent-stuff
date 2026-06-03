@@ -8,9 +8,9 @@ check_interval_days: 0  # 0 = fetch on every run (user preference: always live; 
 # Claude Code Best Practices — Authoritative CLAUDE.md Guidance
 
 This file is the **authoritative source** for how the skill writes and verifies
-CLAUDE.md / AGENTS.md / rules. It supersedes the blog-derived
-`osmani-guidelines.md` for the include/exclude rule and the size budget; osmani
-remains the *research rationale* (ETH Zurich data) behind the same principle.
+CLAUDE.md / AGENTS.md / rules. It is the single authoritative
+source for the include/exclude rule and the size budget; the research rationale
+(ETH Zurich data) is inlined in SKILL.md's Generation Philosophy.
 
 ## How this file is used (live fetch first, cache as fallback)
 
