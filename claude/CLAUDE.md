@@ -109,7 +109,7 @@ Triggered by natural language; invoke via the Skill tool when a trigger matches.
 [새 프로젝트]   spec-planner → sprint-contract-negotiator → annotate-plan
                 → implement-plan → qa-evaluator → commit
 [기존 코드]     deep-read → annotate-plan → implement-plan → commit
-[스킬 정비]     skill-improver → generate-skills → maintain → eos
+[스킬 정비]     skill-improver → generate-skills → maintain
 [글쓰기]        prompting-assist → humanizer
 [디자인]        frontend-design-evaluator → multi-agent-orchestrator
 ```

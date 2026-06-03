@@ -47,7 +47,7 @@ bash ~/.claude/skills/skill-index/scripts/skill-index.sh --markdown
 | `docs` | 📝 문서·커밋 | commit, generate-claude-md |
 | `writing` | ✍️ 글쓰기 | humanizer, prompting-assist |
 | `llm` | 🤖 외부 LLM | gemma, codex:* |
-| `meta` | 🧪 메타·관리 | generate-skills, skill-improver, autoresearch, eos, maintain, skill-index |
+| `meta` | 🧪 메타·관리 | generate-skills, skill-improver, autoresearch, maintain, skill-index |
 
 플러그인 명령은 `tools/skill-index/plugin-groups.toml` 에서 동일 8 그룹에 매핑된다.
 

@@ -69,7 +69,7 @@ Principles that govern every stage of this skill.
 
 **Governance principle** (references/entry-router-guidelines.md): when autonomous-agent safeguards are required, reflect the Entry Router CORE rules in AGENTS.md Boundaries and CLAUDE.md behavioral guidelines.
 
-**Soul** (references/SOUL.md): the foundation of agent identity and attitude. This is a static seed copy used when generating project files — not a pointer to `$GYEOL_HOME/SOUL.md`.
+**Soul** (references/SOUL.md): the foundation of agent identity and attitude. This is a static seed copy used when generating project files — not a pointer to the live identity file (`../rules/SOUL.md`).
 
 **LLM context**: LLMs are in-context learners. Retrieving code patterns is enough to follow style, so style rules are unnecessary. High-level errors compound geometrically downstream. Write instructions as verifiable success criteria.
 
@@ -160,7 +160,7 @@ Skill-specific pitfalls that automation cannot catch. Update whenever a new edge
 
 1. **Stage 2 cannot be delegated to a subagent.** It requires `AskUserQuestion`, which only runs in the main orchestrator context. Explore-Deep can overlap with the user's typing, but the question flow itself must stay in the main agent.
 
-2. **`references/SOUL.md` is a static seed copy, not the live identity file.** The user's identity lives at `$GYEOL_HOME/SOUL.md`. The copy bundled here is a frozen snapshot so generation is reproducible across environments. Do not substitute `$GYEOL_HOME/SOUL.md` at runtime.
+2. **`references/SOUL.md` is a static seed copy, not the live identity file.** The user's identity lives at `~/.config/dotrc/rules/SOUL.md` (`../rules/SOUL.md`). The copy bundled here is a frozen snapshot so generation is reproducible across environments. Do not substitute the live identity file at runtime.
 
 3. **Blind Reviewer must receive no orchestrator context.** If Phase 1 or Phase 2 output leaks into the Reviewer prompt, the review stops being independent and the FAIL filter loses its value. Only generated file contents should be passed in.
 

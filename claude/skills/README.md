@@ -22,7 +22,7 @@ bash skill-index/scripts/skill-index.sh --workflow  # 워크플로우 색인만
 | `docs` | 📝 문서·커밋 | `commit`, `generate-claude-md` |
 | `writing` | ✍️ 글쓰기 | `humanizer`, `prompting-assist` |
 | `llm` | 🤖 외부 LLM | `gemma`, `codex:setup`, `codex:rescue` |
-| `meta` | 🧪 메타·관리 | `skill-index`, `generate-skills`, `skill-improver`, `autoresearch`, `eos` |
+| `meta` | 🧪 메타·관리 | `skill-index`, `generate-skills`, `skill-improver`, `autoresearch` |
 
 플러그인 명령 매핑은 [`skill-index/tools/skill-index/plugin-groups.toml`](skill-index/tools/skill-index/plugin-groups.toml).
 
@@ -32,7 +32,7 @@ bash skill-index/scripts/skill-index.sh --workflow  # 워크플로우 색인만
 [새 프로젝트]   spec-planner → sprint-contract-negotiator → annotate-plan
                 → implement-plan → qa-evaluator → commit
 [기존 코드]     deep-read → annotate-plan → implement-plan → commit
-[스킬 정비]     skill-improver → generate-skills → maintain → eos
+[스킬 정비]     skill-improver → generate-skills → maintain
 [글쓰기]        prompting-assist → humanizer
 [디자인]        frontend-design-evaluator → multi-agent-orchestrator
 ```
