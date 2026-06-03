@@ -43,8 +43,7 @@
       "mcp__acp__Edit",
       "mcp__acp__Bash",
       "Skill(commit)",
-      "Skill(commit:*)",
-      "Read(//tmp/**)"
+      "Skill(commit:*)"
     ],
     "deny": [],
     "ask": [],
@@ -94,18 +93,10 @@
           }
         ]
       }
-    ],
-    "SessionEnd": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/gyeol-buffer-transcript.sh"
-          }
-        ]
-      }
     ]
+  },
+  "worktree": {
+    "baseRef": "fresh"
   },
   "statusLine": {
     "type": "command",
@@ -113,47 +104,39 @@
   },
   "enabledPlugins": {
     "superpowers@claude-plugins-official": true,
-    "everything-claude-code@everything-claude-code": true,
     "claude-hud@claude-hud": true,
     "code-review@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
     "feature-dev@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
-    "harness@harness-marketplace": true,
     "amp-plugin-cc@amp-plugin-cc": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
-    "warp@claude-code-warp": true
+    "warp@claude-code-warp": true,
+    "ecc@ecc": true,
+    "skill-creator@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "claude-code-setup@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "chrome-devtools-mcp@claude-plugins-official": true,
+    "explanatory-output-style@claude-plugins-official": true,
+    "remember@claude-plugins-official": true,
+    "jdtls-lsp@claude-plugins-official": true,
+    "kotlin-lsp@claude-plugins-official": true,
+    "terraform@claude-plugins-official": true,
+    "aws-core@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
-    "anthropic-agent-skills": {
-      "source": {
-        "source": "github",
-        "repo": "anthropics/skills"
-      }
-    },
     "claude-plugins-official": {
       "source": {
         "source": "github",
         "repo": "anthropics/claude-plugins-official"
       }
     },
-    "everything-claude-code": {
-      "source": {
-        "source": "github",
-        "repo": "affaan-m/everything-claude-code"
-      }
-    },
     "claude-hud": {
       "source": {
         "source": "github",
         "repo": "jarrodwatts/claude-hud"
-      }
-    },
-    "harness-marketplace": {
-      "source": {
-        "source": "github",
-        "repo": "revfactory/harness"
       }
     },
     "amp-plugin-cc": {
@@ -168,15 +151,21 @@
         "source": "github",
         "repo": "warpdotdev/claude-code-warp"
       }
+    },
+    "ecc": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/affaan-m/ECC.git"
+      }
     }
   },
-  "language": "korean",
+  "language": "한국어",
   "spinnerTipsEnabled": false,
   "alwaysThinkingEnabled": true,
   "advisorModel": "opus",
-  "autoUpdatesChannel": "latest",
   "tui": "fullscreen",
   "theme": "dark-ansi",
+  "editorMode": "normal",
   "teammateMode": "tmux",
   "skipAutoPermissionPrompt": true,
   "useAutoModeDuringPlan": true

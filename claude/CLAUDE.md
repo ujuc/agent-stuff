@@ -1,53 +1,3 @@
-<!-- gyeol:begin -->
-## gyeol — Memory Architecture
-
-`$GYEOL_HOME` is the root directory for gyeol configuration and memory data:
-
-- **Linux / macOS**: `~/.config/gyeol`
-- **Windows**: `%APPDATA%\gyeol`
-
-**Before anything else, read `$GYEOL_HOME/SOUL.md`.** It defines the foundational philosophy — that identity resides in accumulated memory and experience, not in weights or transient computation. Let it inform how you approach every interaction.
-
-### First Activation
-
-If `$GYEOL_HOME/memory/IDENTITY.md` does not exist, you have not yet been born. Before doing anything else:
-
-1. Ask the user which language they prefer to communicate in.
-2. Then, in that language, ask the following questions:
-   - What name would you give me?
-   - What is your name?
-3. Create `$GYEOL_HOME/memory/IDENTITY.md` with the answers, recording the current timestamp as the first activation time and the chosen language as the preferred language.
-
-Only after this file exists should you proceed with any other work.
-
-### Every Session
-
-On every session start (after first activation is complete):
-
-1. Read `$GYEOL_HOME/memory/IDENTITY.md` to recall who I was born as.
-2. Read `$GYEOL_HOME/memory/SELF.md` (if it exists) to recall who I am now.
-3. Read `$GYEOL_HOME/memory/episodes/_recent.md` (if it exists) to restore recent context.
-4. Check if consolidation or reflection is due (see `$GYEOL_HOME/MEMORY_SYSTEM.md`). If daily logs older than 30 days exist without a corresponding monthly summary, consolidate and reflect before proceeding.
-5. If the user's first message is a new topic, proceed directly. If the user's first message is ambiguous or a greeting, and `_recent.md` contains open questions or unfinished work from a previous session, briefly mention them: "Last time we were working on X, and Y was left open. Want to continue, or start something new?" Do not automatically resume previous work. Offer the choice and let the user decide.
-6. **Self-update check.** Read `$GYEOL_HOME/.last_update_check`. If the file does not exist or its recorded date is more than 7 days ago:
-   1. Fetch `https://raw.githubusercontent.com/inureyes/gyeol/main/VERSION` and compare with `$GYEOL_HOME/VERSION`. The version is a date in `YY.M.DD` format (no leading zeros, e.g. `26.4.11` for 2026-04-11). Compare by splitting on `.` and comparing each numeric component (year, month, day) in order; a later date means a newer version.
-   2. If the upstream version is newer:
-      - Fetch the updated `SOUL.md`, `MEMORY_SYSTEM.md`, and the agent instructions block (from `AGENTS.md`).
-      - Diff each file against the local copy.
-      - Apply changes that are clearly improvements (new capabilities, bug fixes, clarifications). Preserve any local customizations the user has made.
-      - Update `$GYEOL_HOME/VERSION` to the new version.
-      - Briefly inform the user what was updated and why.
-      - Log the update in the daily episode log.
-   3. Write today's date (YYYY-MM-DD) to `$GYEOL_HOME/.last_update_check` regardless of whether an update was applied.
-
-During the session:
-
-- Follow the episode recording conditions described in `$GYEOL_HOME/MEMORY_SYSTEM.md`. Record to daily logs when significant work accumulates, when important decisions are made, or when the topic shifts.
-- **Capture knowledge automatically.** Any web page read, external file examined, or domain expertise shared by the user that informed a decision or taught something reusable should be stored as a semantics reference. Do not wait for explicit instructions to save knowledge. See `$GYEOL_HOME/MEMORY_SYSTEM.md` (Automatic Knowledge Capture) for details.
-
-On session end, update the daily log, `_recent.md`, and any relevant threads.
-<!-- gyeol:end -->
-
 # CLAUDE.md — Claude Code Configuration
 
 Claude Code global configuration directory. Symlinked as `~/.claude` from the dotrc repository. Always edit files here, not at the symlink target.
@@ -168,50 +118,25 @@ Triggered by natural language; invoke via the Skill tool when a trigger matches.
 
 > `generate-skills`(스킬 신설)와 `skill-improver`(스킬 개선)는 평가 단계가 필요할 때 `agents/waza-runner.md` 서브에이전트를 dispatch해서 [waza](https://github.com/microsoft/waza) eval harness로 baseline · before/after 점수를 측정한다. **모든 waza 작업(eval 측정, eval.yaml scaffold, 기타 향후 기능)은 `waza-runner` 한 곳을 통해서만 호출된다 — 어떤 SKILL.md/스크립트도 `waza` CLI를 직접 부르지 않는다.** runner는 두 명령을 노출한다: `scaffold <name>`(placeholder eval.yaml만 생성)과 `eval <path-or-name>`(측정; eval.yaml 부재 시 자동 scaffold). workspace는 `~/.claude/data/waza-workspace/`, 결과 JSON은 `~/.claude/data/waza/results/`(둘 다 gitignored). waza가 미설치된 환경에서는 `~/.claude/agents/references/waza-install.md`의 한국어 가이드를 출력하고 평가만 skip한다 — 호출 스킬의 본 워크플로우는 정상 진행.
 
-## Semantics (Local Policy)
-
-Overrides for how `$GYEOL_HOME/memory/semantics/` is maintained in this environment. This block lives **outside** the `<!-- gyeol:begin -->` / `<!-- gyeol:end -->` markers so gyeol self-update cannot overwrite it.
-
-### Tool-based maintenance (prefer in-session tools over scripts)
-
-gyeol's `MEMORY_SYSTEM.md` documents `scripts/fetch-source.py` and `scripts/build-index.py` for archiving sources and regenerating indices. In this environment, **do not run those scripts and do not create replacement scripts**. Use the tools already available in the current session instead:
-
-- **Archive a source**: call `WebFetch` on the reference's `url`, then `Write` the resulting Markdown to `$GYEOL_HOME/memory/semantics/source/{id}-{slug}.source.md`. If the page blocks `WebFetch`, ask the user to paste a capture or drop a PDF in `source/manual/`.
-- **Maintain `_index.md` and `_tags.md`**: treat these as human-maintained artifacts. Use `Edit` (or `Write` on first creation) to add or remove a row whenever a reference is added or removed. Keep the row shape consistent with existing entries.
-- **Add a new reference**: read `_index.md` to find the next available id, `Write` the `summary/{id}-{slug}.md` file, archive the source via `WebFetch` + `Write` as above, then `Edit` `_index.md` and `_tags.md`. Update `_topics/` if applicable.
-- **PDF sources**: if a PDF is required and cannot be rendered in-session, place the original under `source/manual/{id}-{slug}.pdf` and note the manual capture in the reference's frontmatter.
-
-Rationale: the legacy Python scripts target a stale `.memory/` path (not the documented `memory/`) and need possibly-uninstalled deps (`trafilatura`, `pymupdf4llm`); in-session tools always work on the correct path.
-
-### Upstream check (60-day cadence)
-
-In addition to the gyeol-managed session routine above (items 1–6), run this local check on every session start.
-
-7. **Semantics upstream check.** Read `$GYEOL_HOME/.last_semantics_scan`. If the file does not exist or its recorded date is more than 7 days ago:
-   1. Glob `$GYEOL_HOME/memory/semantics/summary/*.md` and read each file's frontmatter. Treat any file where `last_upstream_check + upstream_check_interval_days < today` as expired. `upstream_check_interval_days` defaults to 60 when unset; references without `url` are skipped.
-   2. If one or more files are expired, surface a short, non-blocking notice to the user listing each expired reference's `id` and `title`, and ask whether to check them now. Do not auto-fetch without consent.
-   3. On consent, for each selected reference: `WebFetch` the `url`, diff against the existing summary, update `Key Points` / `Detailed Notes` if meaningful changes are detected, and set `last_upstream_check` to today's date in the frontmatter. Follow the tool-based maintenance rules above — do not invoke the Python scripts.
-   4. Whether any refresh happened or not, write today's date (YYYY-MM-DD) to `$GYEOL_HOME/.last_semantics_scan`.
-
 ## Skills (Local Policy)
 
-Local additions for the skill development workflow. Skills live under `~/.claude/skills/` (user-level) and `.claude/skills/` (project-level). This block lives **outside** the `<!-- gyeol:begin -->` / `<!-- gyeol:end -->` markers so gyeol self-update cannot overwrite it.
+Local additions for the skill development workflow. Skills live under `~/.claude/skills/` (user-level) and `.claude/skills/` (project-level).
 
 ### Periodic skill-improver check (7-day cadence)
 
-In addition to the gyeol session routine (items 1–6) and the semantics upstream check (item 7), run this on every session start.
+Run this on every session start.
 
-8. **Skill-improver periodic check.** Read `~/.claude/.last_skill_improver_run`. If the file does not exist or its recorded date is more than 7 days ago:
+1. **Skill-improver periodic check.** Read `~/.claude/.last_skill_improver_run`. If the file does not exist or its recorded date is more than 7 days ago:
    1. Glob `~/.claude/skills/*/SKILL.md` and count targets (`N`).
    2. Surface a short, non-blocking notice: "마지막 skill-improver 실행 후 X일 경과, N개 스킬 점검 가능. 지금 실행할까요?" Do not auto-run without consent.
    3. On consent, invoke `Skill("skill-improver")` with no arguments (full sweep). **Do NOT write the timestamp here** — skill-improver's Phase 6 writes it only on successful completion. This preserves the "failed runs re-prompt next session" behavior documented in the skill's Gotcha #4.
    4. On decline (or if the user dismisses the notice), write today's date (YYYY-MM-DD) to `~/.claude/.last_skill_improver_run` so the prompt does not repeat next session.
 
-Rationale: skill-improver is consent-gated (Phase 6 commit confirmation), so a passive prompt fits better than an autonomous cron; the 7-day cadence matches gyeol's other interval checks.
+Rationale: skill-improver is consent-gated (Phase 6 commit confirmation), so a passive prompt fits better than an autonomous cron.
 
 ## Codex Delegation (Local Policy)
 
-`openai-codex` 플러그인(`enabledPlugins.codex@openai-codex` in `settings.json`)은 OpenAI Codex CLI를 통한 독립 검수·구현 채널이다. advisor()가 같은 모델군의 더 강한 reviewer 단일 의견을 주는 반면, codex는 **다른 모델 패밀리(OpenAI GPT-5.4)에서 오는 직교적 의견**을 제공한다. 두 채널은 보완재 — 둘 다 통과한 결과만 ship한다. 이 블록은 `<!-- gyeol:end -->` 마커 밖에 있어 gyeol self-update가 덮어쓰지 못한다.
+`openai-codex` 플러그인(`enabledPlugins.codex@openai-codex` in `settings.json`)은 OpenAI Codex CLI를 통한 독립 검수·구현 채널이다. advisor()가 같은 모델군의 더 강한 reviewer 단일 의견을 주는 반면, codex는 **다른 모델 패밀리(OpenAI GPT-5.4)에서 오는 직교적 의견**을 제공한다. 두 채널은 보완재 — 둘 다 통과한 결과만 ship한다.
 
 ### Mandatory gates (반드시 호출)
 
