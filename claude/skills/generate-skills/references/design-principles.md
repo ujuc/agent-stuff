@@ -6,7 +6,16 @@
 
 ## 1. Concise is Key
 
-The context window is a shared resource. Every token has a cost.
+The context window is a shared resource. Every token has a cost. A skill earns
+its tokens only by supplying what the model **cannot** derive on its own — from
+its training or by reading the code in front of it. If the model already knows
+it, it does not belong in a skill.
+
+**Aggressively cut model-known content first.** Anything the model absorbed in
+training — language idioms, standard tool/CLI behavior, generic best practices,
+common file formats, Git verbs, well-known config conventions — adds no value
+when restated. Telling the model what it already knows changes nothing and only
+crowds out the instructions that actually steer it.
 
 **What to omit:**
 - General knowledge Claude already knows (e.g., "Markdown uses # for headings")
@@ -14,7 +23,8 @@ The context window is a shared resource. Every token has a cost.
 - Excessive preamble and qualifiers
 - Supporting documents: README.md, CHANGELOG.md, CONTRIBUTING.md
 
-**The test:** Does this token change Claude's behavior? If not, remove it.
+**The test:** Does this token change Claude's behavior? If not, remove it. When
+unsure whether the model already knows something, assume it does and cut it.
 
 ---
 

@@ -26,7 +26,7 @@ If `$ARGUMENTS` is empty, ask the user via AskUserQuestion which mode and which 
 
 Principles that guide every step. See `references/design-principles.md` for the full version.
 
-1. **Concise is key.** The context window is shared. Don't restate things Claude already knows.
+1. **Concise is key — aggressively cut what the model already knows.** The context window is shared, and a skill earns its tokens only by supplying what the model cannot derive from training or from reading the code. Restating model-known conventions, generic best practices, or standard tool behavior is pure overhead — telling the model what it already knows changes nothing. When in doubt, assume it knows and cut it.
 2. **Match degrees of freedom to task fragility** (low / medium / high specificity).
 3. **Progressive disclosure**: split content across three tiers (metadata → body → bundled resources).
 4. **Use subagents** wherever they protect the main context or unlock parallel work. See `references/subagent-guidelines.md` for the decision criteria.
