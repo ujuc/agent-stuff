@@ -82,6 +82,7 @@ claude/jobs
 claude/security
 **/.last_*
 **/.last-*
+**/*log*
 
 ### autoresearch runtime artifacts (working dirs created by autoresearch skill)
 **/autoresearch-*/
