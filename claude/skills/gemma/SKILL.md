@@ -3,7 +3,7 @@ name: gemma
 description: "로컬 LM Studio와 Google AI Studio(Gemini API)를 통해 Gemma 모델에 프롬프트를 전달한다. variant별 자동 라우팅(e2b/e4b→로컬, 26b/31b→원격)과 LM Studio 미가용 시 Gemini 폴백을 지원한다. gemma, gemma4, gemma로 요약해줘, gemma로 번역해, lm studio로 돌려줘, gemini api로 보내줘, 로컬 LLM, 오프라인 AI, 로컬로 처리해, 클라우드로 돌려줘, Gemma 호출 요청 시 사용한다. 민감 정보 오프라인 처리, 긴 컨텍스트 요약, 다국어 번역, 초안 생성 등에 적합."
 group: llm
 model: sonnet
-allowed-tools: Bash(rtk:*), Bash(bash:*), Bash(lms:*), Bash(op:*), Bash(brew:*)
+allowed-tools: Bash(bash:*), Bash(lms:*), Bash(op:*), Bash(brew:*)
 argument-hint: "[--local|--cloud] [variant] prompt"
 ---
 
@@ -21,22 +21,20 @@ scripts.
 
 ## How to invoke
 
-All invocations go through `scripts/query.sh`. Use the `Bash` tool with
-`rtk bash ...` (token-optimizing proxy; mandated by the user's global
-CLAUDE.md → RTK policy):
+All invocations go through `scripts/query.sh`. Use the `Bash` tool:
 
 ```bash
 # Default: variant e4b on LM Studio, auto-fallback to Gemini if LM Studio down.
-rtk bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh "이 문단을 3줄로 요약해줘: ..."
+bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh "이 문단을 3줄로 요약해줘: ..."
 
 # Explicit variant.
-rtk bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh e4b "hello"
+bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh e4b "hello"
 
 # Force remote (Gemini API).
-rtk bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh --cloud 31b "복잡한 추론 문제: ..."
+bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh --cloud 31b "복잡한 추론 문제: ..."
 
 # Force local; fail if LM Studio unavailable (privacy-strict mode).
-GEMMA_NO_FALLBACK=1 rtk bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh --local e4b "민감 데이터: ..."
+GEMMA_NO_FALLBACK=1 bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh --local e4b "민감 데이터: ..."
 ```
 
 stdout contains only the model response. stderr has a single `info:` line
@@ -114,7 +112,7 @@ After install, you still need to:
 1. Identify the prompt body and (optional) variant from the user's request.
 2. For long inputs, build the prompt with a clear instruction on top and the
    body in a single string (heredoc or quoted).
-3. Call `query.sh` via `rtk bash` with the chosen flags.
+3. Call `query.sh` via `bash` with the chosen flags.
 4. Surface the stdout response to the user with a header that names the
    actual backend and model (read from the stderr `info:` line). Never
    present Gemma/Gemini output as if it were Claude's own reply.

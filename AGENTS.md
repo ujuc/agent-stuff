@@ -19,12 +19,11 @@ agent-stuff/
 ├── claude/                  # Symlinked to ~/.claude — global Claude Code config
 │   ├── agents/              # Global agent definitions
 │   ├── deplicated/          # Deprecated — do not reference or modify
-│   ├── hooks/               # Claude Code hook scripts (rtk-rewrite, polyglot-typecheck, etc.)
+│   ├── hooks/               # Claude Code hook scripts (polyglot-typecheck, etc.)
 │   ├── plugins/             # Externally installed plugins — treat as read-only
 │   ├── evals/               # waza evaluation suites — one subdirectory per skill
 │   ├── skills/              # Global skill definitions (each with SKILL.md)
 │   ├── CLAUDE.md            # Global Claude Code configuration (loaded in every session)
-│   ├── RTK.md               # RTK (Rust Token Killer) reference
 │   ├── mcp.json             # MCP server configuration
 │   └── settings.json        # Claude Code settings (model, permissions, hooks, statusline)
 ├── docs/

@@ -10,10 +10,6 @@ allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git a
 
 Generate commits per the project's Korean Conventional Commits convention.
 
-## Runtime
-
-All `Bash` calls from this skill pass through the global `PreToolUse:Bash` hook (`rtk hook claude`), which transparently rewrites supported commands (git, ls, cat, ...) to `rtk <cmd>` for 60-90% token savings. Do **not** prefix commands with `rtk` inside this skill — let the hook handle it to avoid double-wrapping. Use `rtk gain` only when the user asks for savings analytics, and `rtk proxy <cmd>` only for debugging.
-
 ## Project skill override
 
 Before running `Format` / `Procedure` below, check whether the current

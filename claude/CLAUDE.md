@@ -123,5 +123,3 @@ Run this on every session start.
    4. On decline (or if the user dismisses the notice), write today's date (YYYY-MM-DD) to `~/.claude/.last_skill_improver_run` so the prompt does not repeat next session.
 
 Rationale: skill-improver is consent-gated (Phase 6 commit confirmation), so a passive prompt fits better than an autonomous cron.
-
-@RTK.md
