@@ -97,7 +97,6 @@
     "claude-hud@claude-hud": true,
     "code-review@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
-    "feature-dev@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
     "amp-plugin-cc@amp-plugin-cc": true,
@@ -106,15 +105,12 @@
     "ecc@ecc": true,
     "skill-creator@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
-    "claude-code-setup@claude-plugins-official": true,
     "pyright-lsp@claude-plugins-official": true,
     "chrome-devtools-mcp@claude-plugins-official": true,
     "explanatory-output-style@claude-plugins-official": true,
     "remember@claude-plugins-official": true,
     "jdtls-lsp@claude-plugins-official": true,
-    "kotlin-lsp@claude-plugins-official": true,
-    "terraform@claude-plugins-official": true,
-    "aws-core@claude-plugins-official": true
+    "kotlin-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "claude-plugins-official": {
