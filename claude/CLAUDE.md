@@ -73,6 +73,26 @@ Avoid bash for non-trivial logic — keep bash strictly as launchers/wrappers. A
 
 When an available agent fits the task at hand, lean on it as much as possible — dispatch the agent instead of doing the work inline.
 
+## Execution Delegation (Cost-Aware)
+
+CLI commands run on the harness, not on a model — the active model (usually Opus)
+picks the command and reads its output. There is no built-in "haiku runs the CLI."
+By default, keep bulky output and shallow grunt work off the Opus context:
+
+- **Run-and-report → `haiku` subagent (default).** When a task is just running a
+  command (or a sweep of them) and capturing/summarizing the result rather than
+  reasoning over it, dispatch a `haiku` subagent (Agent tool, `model: haiku`) to run
+  it and return a tight summary.
+- **Text-only transforms → local `gemma` skill.** Summarize, translate, classify, or
+  draft from text already in hand via `gemma` (LM Studio, `--local`; add
+  `GEMMA_NO_FALLBACK=1` for sensitive data so it never leaves the machine). `gemma`
+  cannot execute system commands — text only.
+- **Keep on the active model** when the output drives a decision, edit, or analysis.
+  Delegated output is a draft — verify before acting (see Model Quality Safeguards).
+
+Exception: trivial single commands (`ls`, `git status`) — run inline; subagent
+spin-up costs more than it saves.
+
 ## Directory Layout
 
 `~/.claude/` mixes user-maintained configuration with runtime state. Edit only these paths:
