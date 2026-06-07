@@ -93,6 +93,23 @@ By default, keep bulky output and shallow grunt work off the Opus context:
 Exception: trivial single commands (`ls`, `git status`) — run inline; subagent
 spin-up costs more than it saves.
 
+## Workflow Orchestration (Cost-Aware)
+
+The `Workflow` tool runs deterministic multi-agent scripts (fan-out, pipeline,
+adversarial verify) and can spawn dozens of agents — reserve it for work that
+genuinely needs that scale.
+
+- **Use it only for long / large-scale parallel / adversarial verification** —
+  skill evals, rule-compliance checks, claim-source cross-verification, bulk
+  triage. Do NOT use it for ordinary coding or single-file edits; dispatch one
+  Agent or work inline instead.
+- **Gauge cost on a narrow slice before any large run** — one directory, one
+  narrow question — then state the token budget explicitly. Route steps that
+  don't need a strong model down to a smaller model.
+
+A per-session effort directive (e.g. ultracode) can raise this default — honor
+the active session directive when one is set.
+
 ## Directory Layout
 
 `~/.claude/` mixes user-maintained configuration with runtime state. Edit only these paths:
