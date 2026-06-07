@@ -67,6 +67,8 @@ Principles that govern every stage of this skill.
 
 **Governance principle** (references/entry-router-guidelines.md): when autonomous-agent safeguards are required, reflect the Entry Router CORE rules in AGENTS.md Boundaries and CLAUDE.md behavioral guidelines.
 
+**Workflow-usage policy** (undiscoverable info — document *conditionally*): when Stage 1/2 reveal the target project does large-scale parallel/adversarial orchestration (eval harnesses, rule-compliance verification, claim-source cross-checking, bulk triage, multi-agent pipelines), have Section A emit a short "Workflow Orchestration" policy in the generated CLAUDE.md. For projects without such workloads, **omit it** — it fails the prune test and burns the size budget.
+
 **Soul** (references/SOUL.md): the foundation of agent identity and attitude. This is a static seed copy used when generating project files — not a pointer to the live identity file (`../rules/SOUL.md`).
 
 **LLM context**: code patterns are discoverable, so style rules are unnecessary — exclude them. Write instructions as verifiable success criteria.

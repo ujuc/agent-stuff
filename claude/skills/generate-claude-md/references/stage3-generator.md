@@ -88,6 +88,27 @@ auto-reading AGENTS.md, surface the tradeoff and let the user choose.
 - Rules that a linter or formatter already enforces
 - Content duplicated in AGENTS.md or contributing-docs/
 
+### Conditional Block: Workflow Orchestration (Cost-Aware)
+
+Emit this block in the generated CLAUDE.md **only** when Stages 1–2 show the
+project does large-scale parallel/adversarial orchestration — eval/benchmark
+harnesses, rule- or policy-conformance verification, claim-source cross-checking,
+bulk triage, or multi-agent pipelines. Otherwise **omit** it (prune test: a
+project that never orchestrates gains nothing from it).
+
+Template to emit (adapt the parenthetical examples to the project's real workloads):
+
+```markdown
+## Workflow Orchestration (Cost-Aware)
+
+- Use multi-agent workflows only for long / large-scale parallel / adversarial
+  verification (e.g. <project's eval suites, compliance checks, bulk triage>).
+  Not for ordinary coding or single-file edits.
+- Gauge cost on a narrow slice (one directory, one narrow question) before any
+  large run; state the token budget. Route steps that don't need a strong model
+  down to a smaller model.
+```
+
 ---
 
 ## Section B: AGENTS.md
