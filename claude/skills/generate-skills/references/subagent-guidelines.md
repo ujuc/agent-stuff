@@ -107,8 +107,16 @@ Do NOT fix issues — only report them.
 
 **Agent parameters**:
 - `subagent_type`: `general-purpose`
+- `model`: `fable` (cross-model review — catches blind spots the drafting model shares with same-family reviewers)
 - `description`: "Blind review generated skill"
 - `run_in_background`: `false` (must receive results before reporting to user)
+
+**Fallback (fable unavailable)**:
+1. If the fable dispatch fails with an Agent-call error (model outage, unsupported environment), re-dispatch the identical prompt with `model: sonnet`. Do not skip the review.
+2. State the substitution in the final report — "Review model: sonnet (fable unavailable fallback)" — so the user knows the review strength differs.
+3. If the fallback dispatch also fails, skip the review and recommend a manual review to the user in the final report.
+
+Blind-review independence rules apply unchanged to the fallback run — only the model changes.
 
 ---
 

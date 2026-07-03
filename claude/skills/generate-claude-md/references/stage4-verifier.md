@@ -103,8 +103,18 @@ Spawn the Blind Reviewer when output includes more than a single root CLAUDE.md 
 ### Agent Definition
 
 - `subagent_type`: `general-purpose`
-- `model`: sonnet
+- `model`: fable (cross-model review — catches blind spots shared by the sonnet-based Phase 1/2 pipeline)
 - `run_in_background`: false (orchestrator must receive results before final report)
+
+### Fallback (fable unavailable)
+
+If the fable dispatch fails with an Agent-call error (model outage, unsupported environment):
+
+1. Re-dispatch the identical prompt with `model: sonnet` (the previous convention model). Do not skip the review.
+2. State the substitution in the final report — "Review model: sonnet (fable unavailable fallback)" — so the user knows the review strength differs.
+3. If the fallback dispatch also fails, escalate via the existing advisor path (condition ③).
+
+The blind-review independence constraints below apply unchanged to the fallback run — only the model changes.
 
 ### What to Provide
 

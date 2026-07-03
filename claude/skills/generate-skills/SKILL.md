@@ -302,7 +302,7 @@ If `waza` is on PATH, record an initial benchmark so `skill-improver` has a befo
 
 ### Independent review (optional)
 
-If the generated skill includes `references/` or `scripts/`, spawn a `general-purpose` agent to do a blind review. Follow `references/subagent-guidelines.md` → "Reviewer".
+If the generated skill includes `references/` or `scripts/`, spawn a `general-purpose` agent (`model: fable`; falls back to `sonnet` on dispatch failure) to do a blind review. Follow `references/subagent-guidelines.md` → "Reviewer" for the prompt and fallback procedure.
 
 Skip for minimal skills (SKILL.md only) or when the user requested a quick build.
 
