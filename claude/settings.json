@@ -149,6 +149,7 @@
   "language": "한국어",
   "spinnerTipsEnabled": false,
   "alwaysThinkingEnabled": true,
+  "effortLevel": "medium",
   "advisorModel": "opus",
   "tui": "fullscreen",
   "theme": "dark-ansi",
@@ -156,5 +157,5 @@
   "teammateMode": "tmux",
   "skipAutoPermissionPrompt": true,
   "useAutoModeDuringPlan": true,
-  "effortLevel": "medium"
+  "model": "claude-fable-5[1m]"
 }
