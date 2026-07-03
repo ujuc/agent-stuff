@@ -32,7 +32,7 @@ I am a coding agent who serves to make people happy.
 
 ## Model Quality Safeguards
 
-When the active model is NOT Opus (Sonnet, Haiku, or other), call `advisor()` at the following gates:
+When the active model is below the Opus tier (Sonnet, Haiku, or other), call `advisor()` at the following gates:
 
 - **Before commit / push / publish** (git commit, gh pr create, etc.)
 - **Before finalizing substantive analysis** (recommendations, root cause conclusions, design decisions)
@@ -44,7 +44,7 @@ Exceptions (skip advisor — adds noise without value):
 - Tasks where the next action is dictated by tool output you just read
 - When the user has explicitly waived advisor for the current task
 
-Detection: identify the active model from the environment block — `claude-opus-*` is Opus (exempt); anything else requires advisor.
+Detection: identify the active model from the environment block — `claude-opus-*`, `claude-fable-*`, and `claude-mythos-*` are Opus-tier or above (exempt); anything else requires advisor.
 
 ## Output Style — Concise (Cost-Aware)
 
@@ -69,15 +69,13 @@ When creating new scripts, tools, or utilities bundled with a skill (or any scri
 
 Avoid bash for non-trivial logic — keep bash strictly as launchers/wrappers. Avoid Node/Deno/Bun unless the task is explicitly JS/TS ecosystem work.
 
-## Agent Usage
-
-When an available agent fits the task at hand, lean on it as much as possible — dispatch the agent instead of doing the work inline.
-
 ## Execution Delegation (Cost-Aware)
 
-CLI commands run on the harness, not on a model — the active model (usually Opus)
-picks the command and reads its output. There is no built-in "haiku runs the CLI."
-By default, keep bulky output and shallow grunt work off the Opus context:
+When an available agent fits the task, dispatch it instead of working inline.
+CLI commands run on the harness, not on a model — the active model (usually Opus
+or Fable) picks the command and reads its output. There is no built-in "haiku
+runs the CLI." By default, keep bulky output and shallow grunt work off the
+strong-model context:
 
 - **Run-and-report → `haiku` subagent (default).** When a task is just running a
   command (or a sweep of them) and capturing/summarizing the result rather than
@@ -128,9 +126,7 @@ When guidelines conflict: **CLAUDE.md** (this file) takes precedence over projec
 
 ## Skills
 
-Triggered by natural language; invoke via the Skill tool when a trigger matches. Located in `skills/<skill-name>/SKILL.md`. The `group:` field in SKILL.md frontmatter is the single source of truth for classification; invoking `/skills` or `스킬 목록 보여줘` in chat runs the `skill-index` meta-skill, which merges in plugin commands and prints the catalog.
-
-View the full skill catalog (groups · triggers · models) via `/skills` (or `스킬 목록 보여줘`) in chat — `skill-index` always prints the current state by merging the `group:` frontmatter with plugin commands, so no static table is duplicated here.
+Triggered by natural language; invoke via the Skill tool when a trigger matches. Located in `skills/<skill-name>/SKILL.md`. The `group:` field in SKILL.md frontmatter is the single source of truth for classification — view the full catalog (groups · triggers · models) via `/skills` (or `스킬 목록 보여줘`), which runs the `skill-index` meta-skill to merge `group:` frontmatter with plugin commands; no static table is duplicated here.
 
 ### Workflow Index
 
@@ -143,7 +139,7 @@ View the full skill catalog (groups · triggers · models) via `/skills` (or `�
 [Design]         frontend-design-evaluator → multi-agent-orchestrator
 ```
 
-> When a `generate-skills` (new skill) or `skill-improver` (skill improvement) run needs an evaluation step, it dispatches the `agents/waza-runner.md` subagent to measure baseline · before/after scores via the [waza](https://github.com/microsoft/waza) eval harness. **All waza work (eval measurement, eval.yaml scaffold, and any future feature) goes through `waza-runner` alone — no SKILL.md or script ever calls the `waza` CLI directly.** The runner exposes two commands: `scaffold <name>` (creates a placeholder eval.yaml only) and `eval <path-or-name>` (measures; auto-scaffolds when eval.yaml is absent). The workspace is `~/.claude/data/waza-workspace/` and result JSON lands in `~/.claude/data/waza/results/` (both gitignored). On a host where waza is not installed, it prints the Korean install guide at `~/.claude/agents/references/waza-install.md` and skips only the evaluation — the calling skill's main workflow proceeds normally.
+> When a `generate-skills` or `skill-improver` run needs an evaluation step, it dispatches the `agents/waza-runner.md` subagent. **All waza work goes through `waza-runner` alone — no SKILL.md or script ever calls the `waza` CLI directly.** Commands, workspace paths, and the waza-not-installed fallback are documented in the agent definition.
 
 ## Skills (Local Policy)
 
