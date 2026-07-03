@@ -1,10 +1,6 @@
 # CLAUDE.md — agent-stuff
 
-Personal AI agent configuration repository. Git submodule of [dotrc](https://github.com/ujuc/dotrc), deployed via symlinks to each tool's expected system location.
-
-## Technical Stack
-
-- Symlink deployment model: `claude/` → `~/.claude` (this repo is a dotrc submodule)
+@AGENTS.md
 
 ## Development Commands
 
@@ -22,19 +18,8 @@ loop is for skill changes:
 - **Types**: feat, fix, docs, style, refactor, test, chore
 - **Scopes**: claude, rules, skills
 
-## Behavioral Guidelines
-
-- `claude/` is symlinked to `~/.claude`; `claude/CLAUDE.md` and `claude/settings.json` are GLOBAL — they load/apply in every Claude Code session, not just this repo. High blast radius.
-- `claude/` mixes tracked config with gitignored runtime state — `.gitignore` is the source of truth for what's runtime. Don't edit gitignored paths (`sessions/`, `cache/`, `file-history/`, `projects/`, …) or `claude/plugins/` (externally installed).
-- `claude/deplicated/` is fully deprecated — do not reference or modify
-- Always edit files in this repository, not at symlink targets
-
 ## Skills
 
 | Skill | Triggers | Model |
 | ----- | -------- | ----- |
 | `maintain` (project-scoped, `.claude/skills/maintain/`) | /maintain, 정비해줘, 헬스체크, 문서 동기화 | opus |
-
-## References
-
-- **[AGENTS.md](./AGENTS.md)** — Full project structure and detailed guide

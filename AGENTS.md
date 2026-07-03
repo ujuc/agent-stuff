@@ -20,20 +20,17 @@ agent-stuff/
 │   ├── agents/              # Global agent definitions
 │   ├── deplicated/          # Deprecated — do not reference or modify
 │   ├── hooks/               # Claude Code hook scripts (polyglot-typecheck, etc.)
-│   ├── plugins/             # Externally installed plugins — treat as read-only
-│   ├── evals/               # waza evaluation suites — one subdirectory per skill
+│   ├── plugins/             # Externally installed plugins
+│   ├── evals/               # waza evaluation suites — one subdirectory per evaluated skill
 │   ├── skills/              # Global skill definitions (each with SKILL.md)
+│   │   └── CLAUDE.md        # Nested config — skill work rules and model-assignment conventions
 │   ├── CLAUDE.md            # Global Claude Code configuration (loaded in every session)
 │   ├── mcp.json             # MCP server configuration
 │   └── settings.json        # Claude Code settings (model, permissions, hooks, statusline)
-├── docs/
-│   ├── plans/               # Implementation plans
-│   └── specs/               # Design specifications
 ├── rules/
 │   └── SOUL.md              # Canonical agent mission and values (Korean)
 ├── AGENTS.md                # This file — project structure and contributor guide
 ├── CLAUDE.md                # Project-scoped Claude Code overrides
-├── LICENSE                  # MIT license
 └── README.md                # Repository overview (Korean)
 ```
 
@@ -46,15 +43,13 @@ agent-stuff/
 | `claude/settings.json` | Global Claude Code settings (model, permissions, hooks, statusline, etc.). |
 | `claude/mcp.json` | MCP (Model Context Protocol) server configuration. Empty by default — servers are typically added via Claude Code UI, not committed here. |
 | `claude/skills/` | Global skill definitions — each in `<name>/SKILL.md` with optional `references/` and `scripts/` / `tools/`. |
-| `.claude/agents/` | Project-scoped agents for repository maintenance. |
-| `.claude/skills/maintain/` | Project-scoped orchestrator skill that dispatches maintenance agents. |
-| `docs/` | Design specs and implementation plans for repository changes. |
 | `CLAUDE.md` | Project-scoped Claude Code overrides (commit rules, work rules). |
 
 ## Operational Gotchas
 
 - `claude/` is symlinked to `~/.claude` — files inside it must NOT use relative paths to reference outside their own tree
-- `claude/CLAUDE.md` is loaded as global config in every Claude Code session, not just within this repo
+- `claude/CLAUDE.md` and `claude/settings.json` are GLOBAL — they load/apply in every Claude Code session, not just within this repo. High blast radius.
+- `claude/` mixes tracked config with gitignored runtime state — the repo `.gitignore` is the source of truth for what is runtime. Never edit gitignored paths (`sessions/`, `cache/`, `file-history/`, `projects/`, …)
 - `claude/plugins/` contains externally installed plugins — treat as read-only, not project code
 
 ## Non-Obvious Conventions
@@ -62,8 +57,7 @@ agent-stuff/
 - Commit scopes map to directories: `claude` → `claude/`, `rules` → `rules/`, `skills` → skill definitions
 - Agent/skill scope split: `.claude/<type>/` is project-scoped (visible only inside this repo), `claude/<type>/` is global (symlinked to `~/.claude/`) — place repo-maintenance agents in `.claude/agents/`, reusable ones in `claude/agents/`
 - Agent Identity in `claude/CLAUDE.md` must stay in sync with `rules/SOUL.md` (marked with `<!-- canonical source -->` comment)
-- Add `.gitkeep` when creating new placeholder directories
-- Add `.gitignore` entries for agent runtime files
+- Add `.gitignore` entries when agents introduce new runtime files under `claude/`
 
 ## Boundaries
 
@@ -71,6 +65,7 @@ agent-stuff/
 
 - Keep `claude/CLAUDE.md` Agent Identity in sync with `rules/SOUL.md`
 - Use correct scope in commit messages matching the directory modified
+- Edit files in this repository, never at symlink targets (`~/.claude`)
 
 ### Ask First
 
