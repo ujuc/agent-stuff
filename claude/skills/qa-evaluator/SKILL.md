@@ -4,7 +4,7 @@ description: "Chrome 통합으로 실행 중인 웹앱을 실제 사용자처럼
 when_to_use: "QA 테스트, 웹앱 테스트, qa-evaluator, 앱 검증해줘, test the running app, evaluate my build, find bugs 요청 시 사용한다. multi-agent-orchestrator의 Evaluator 단계에서도 호출된다."
 group: verify
 model: sonnet
-allowed-tools: Read Glob Grep Bash advisor
+allowed-tools: Read Glob Grep Bash advisor ToolSearch mcp__claude-in-chrome__tabs_context_mcp mcp__claude-in-chrome__tabs_create_mcp mcp__claude-in-chrome__navigate mcp__claude-in-chrome__read_page mcp__claude-in-chrome__get_page_text mcp__claude-in-chrome__find mcp__claude-in-chrome__form_input mcp__claude-in-chrome__javascript_tool mcp__claude-in-chrome__read_console_messages mcp__claude-in-chrome__read_network_requests mcp__claude-in-chrome__resize_window mcp__claude-in-chrome__gif_creator
 ---
 
 # QA Evaluator
