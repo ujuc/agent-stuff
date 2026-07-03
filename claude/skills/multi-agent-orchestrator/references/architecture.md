@@ -24,7 +24,7 @@ Planner → Contract (per sprint) → Generator → Evaluator → [next sprint]
 
 ### V2: Sprint Removal Architecture
 
-Evolved design that removes sprint splitting as a mandatory component. With Opus 4.6's 1M context window, sprint boundaries are unnecessary for context management.
+Evolved design that removes sprint splitting as a mandatory component. With an Opus-class large context window, sprint boundaries are unnecessary for context management.
 
 **Pipeline:**
 ```
@@ -38,7 +38,7 @@ Planner → Contract (single) → Generator → Evaluator → [feedback loop]
 - Relies on compaction instead of sprint boundaries.
 
 **Best for:**
-- Opus 4.6 with sufficient context.
+- Opus-class models with sufficient context.
 - Tasks that can be completed in a single session.
 - Faster iteration with less overhead.
 

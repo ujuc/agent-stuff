@@ -47,7 +47,7 @@ If any toolchain/path/repo check fails, report the issue with an actionable fix 
 
 1. **Argument parsing**: if arguments specify skill or agent names, target those; otherwise sweep all skills in `claude/skills/` and `.claude/skills/`, plus all agent definitions in `agents/claude/agents/` (and equivalents for other hosts).
 2. **Mode classification**: tag each target as `skill` (has `SKILL.md`) or `agent` (`.md` file under `agents/<host>/agents/`). Mode determines which Phase 2 dimensions apply.
-3. **Cross-skill map**: collect ALL skills' descriptions across both `claude/skills/` and `.claude/skills/` in a single pass (needed for B.6 CLAUDE.md sync). Store as name→description map.
+3. **Cross-skill map**: collect ALL skills' descriptions across both `claude/skills/` and `.claude/skills/` in a single pass (needed for B.6 group consistency and cross-skill trigger-overlap checks). Store as name→description map.
 4. **Per-target read**: for each target, parse:
    - Frontmatter: `name`, `description`, `model`, `allowed-tools`, plus optional fields per `frontmatter-spec.md`.
    - Body: core procedure steps, constraints, prohibited actions.
@@ -69,7 +69,7 @@ Run `validate-skill <path>` (Rust binary, not the legacy `.sh`). This single exe
 |------|----------------|-----|
 | **B.1 Description-body alignment** | Description's WHAT clause matches actual procedure steps | Read procedure, compare with description. Flag if description claims capabilities not present in the body, or misses major capabilities |
 | **B.5 Reference integrity** | All file paths in the body point to existing files | Glob/Read each referenced path. Flag broken references. **Skip for agent files** unless body explicitly mentions external paths |
-| **B.6 CLAUDE.md table sync** | Skill's entry in `claude/CLAUDE.md` matches its frontmatter | Compare triggers and model columns against actual frontmatter values. **Tolerate trailing annotations on the model column** (e.g., `sonnet + advisor`, `opus + tool`) — strip ` + <annotation>` before comparing the model token to frontmatter `model:` |
+| **B.6 group classification** | Frontmatter has a valid `group:` (one of planning/analysis/build/verify/docs/writing/llm/meta) and `README.md`'s group map lists the skill under that same group | `group:` is the single source of truth `skill-index` renders for `/skills`; there is **no** per-skill triggers/model table in `claude/CLAUDE.md` to sync. Flag a missing/invalid `group:`, or a README group map that disagrees with the frontmatter. |
 | **B.7 Language policy** | Description Korean, body English, trigger keywords intact | Parse frontmatter description for Korean characters; scan body for non-trivial Korean prose |
 
 > **Scope boundary**: trigger completeness, trigger uniqueness, and model fitness checks belong to the `skill-engineer` agent. Do not duplicate them here. To run those checks, dispatch `Agent("skill-engineer", "<target> [--check trigger|overlap|model|all]")` either inline (after Phase 5 passes) or as a standalone follow-up.
@@ -112,7 +112,7 @@ When the target is an agent `.md` file (not a `SKILL.md`):
 | Output format spec | Conditional | Required if the agent produces structured output |
 | External path references | Optional | Validate via B.5 only when present |
 
-**Skipped vs skill mode**: Dimension A (no agent-side validator), Dimension C (no `scripts/` siblings), B.5 by default (skip unless paths in body), B.6 by default (agents are not in the skills CLAUDE.md table — check `claude/CLAUDE.md`'s Agents section if present, otherwise SKIP).
+**Skipped vs skill mode**: Dimension A (no agent-side validator), Dimension C (no `scripts/` siblings), B.5 by default (skip unless paths in body), B.6 by default (agents carry no skills `group:` frontmatter — SKIP).
 
 ## Phase 3 — Test Execution & Capture
 
@@ -145,7 +145,7 @@ For each FAIL result:
 |----------|---------|-----|
 | Frontmatter corrections | Missing fields, typos, invalid format | Add/correct frontmatter fields |
 | Description WHAT enrichment | B.1 fails | Generate accurate WHAT clause from procedure steps. **Never modify the WHEN clause (trigger phrases) without user approval** |
-| CLAUDE.md table sync | B.6 fails | Update the row in `claude/CLAUDE.md` to match SKILL.md frontmatter (frontmatter is source of truth) |
+| group classification | B.6 fails | Add/fix the `group:` frontmatter to a valid value and align `README.md`'s group map (frontmatter is source of truth; `skill-index` renders it) |
 | Reference path repair | B.5 fails | Fix the path if a similarly-named file exists nearby; otherwise report as manual |
 | Language policy hint | B.7 fails | Report only — never auto-translate without user approval |
 
@@ -190,7 +190,7 @@ Output a changelog table:
 | Target | Tests | Iterations | Status | Changes |
 |--------|-------|------------|--------|---------|
 | commit | 6/6 PASS | 1 | Clean | no changes needed |
-| generate-skills | 5/7 PASS | 2 | Improved | description enriched, CLAUDE.md synced |
+| generate-skills | 5/7 PASS | 2 | Improved | description enriched, group verified |
 ```
 
 If any fixes were applied:
@@ -235,7 +235,7 @@ This phase is skipped for structural-only runs ("스킬 테스트해줘", "test 
 - Validator path is `agents/claude/skills/generate-skills/scripts/validate-skill` (no `.sh` suffix).
 - When run via the `maintain` skill in `full` mode, check for existing skill-engineer output before running redundant checks.
 - Trigger overlap, completeness, and model fitness checks belong to skill-engineer — do not duplicate.
-- Phase 6 timestamp write is the only side effect outside of skill files and CLAUDE.md.
+- Phase 6 timestamp write is the only side effect outside of skill files and the `README.md` group map.
 - All waza interactions go through `waza-runner` — never invoke the `waza` CLI directly from this skill, including for scaffold, version checks, or anything else.
 
 ## Gotchas
@@ -244,7 +244,7 @@ This phase is skipped for structural-only runs ("스킬 테스트해줘", "test 
 
 2. **Description enrichment risk**: auto-generating a WHAT clause can accidentally remove trigger keywords the user placed intentionally. Always show the diff for description changes and never touch the WHEN clause.
 
-3. **CLAUDE.md target**: the skills table lives in `claude/CLAUDE.md`, NOT the project root `CLAUDE.md`. The B.6 sync fix must target the correct file.
+3. **Group sync target**: `group:` frontmatter is the single source of truth (rendered by `skill-index`); there is no per-skill triggers/model table in `claude/CLAUDE.md` to edit. When a group changes, update the group map in `claude/skills/README.md` — not a CLAUDE.md table.
 
 4. **Periodic-run timestamp drift**: if skill-improver crashes mid-Phase 4 without reaching Phase 6, the timestamp is not updated and the user gets re-prompted next session. This is desired (failed runs re-prompt) — do not move the write earlier.
 

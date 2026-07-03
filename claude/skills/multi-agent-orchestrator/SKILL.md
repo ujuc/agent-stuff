@@ -192,15 +192,15 @@ round: [integer, starting at 1]
 
 ## Context Management Strategy
 
-### Opus 4.6 (1M context)
+### Opus-class (large context)
 
-With Opus 4.6's large context window, **compaction is sufficient**. Sprint splitting for context management purposes is unnecessary. The full pipeline state fits comfortably within context.
+With an Opus-class large context window, **compaction is sufficient**. Sprint splitting for context management purposes is unnecessary. The full pipeline state fits comfortably within context.
 
 - Let natural compaction handle context pressure.
 - No need for explicit context resets between stages.
 - The `.harness/` files serve as durable state regardless.
 
-### Sonnet Family (200K context)
+### Sonnet/Haiku-class (limited context)
 
 Context anxiety is a real concern with smaller context windows. Sprint splitting and explicit context resets are recommended.
 
@@ -244,7 +244,7 @@ See [architecture.md](references/architecture.md) for detailed benchmarks.
 |----------|------|------|------|
 | Solo (no harness) | ~20 min | ~$9 | Simple tasks |
 | Generator + Evaluator | ~1-2 hr | ~$50 | Medium tasks |
-| Full pipeline | ~3-6 hr | ~$200 | Complex tasks |
+| Full pipeline | ~3-6 hr | ~$150–200 | Complex tasks (higher end includes design eval) |
 
 ## Chrome Integration
 
@@ -303,6 +303,6 @@ See [harness-tuning-guide.md](references/harness-tuning-guide.md) for the full r
 
 9. **Default tech stack is a suggestion, not a mandate.** React+Vite+FastAPI+SQLite is the default only when the user does not specify. Always respect user-specified stacks.
 
-10. **Opus handles the full pipeline in one session; Sonnet/Haiku do not.** Opus 4.6 and 4.7 (1M context) can complete a full pipeline in one session. Sonnet 4.6 (200K) and Haiku 4.5 require sprint splitting and explicit context resets via `.harness/handoff.md` — running the full pipeline in one go on those models will degrade silently as context pressure mounts.
+10. **Opus handles the full pipeline in one session; Sonnet/Haiku do not.** Opus-class (large context) models can complete a full pipeline in one session. Sonnet/Haiku-class (smaller context) models require sprint splitting and explicit context resets via `.harness/handoff.md` — running the full pipeline in one go on those models will degrade silently as context pressure mounts.
 
 11. **Stage 0 confirmation gate is non-negotiable.** Whether the skill was auto-invoked from a natural-language trigger or explicitly run via slash command, Stage 0 always fires (unless the handoff skip rule applies). Do not bypass it for "obvious" prompts — the gate is also the user's last chance to correct the default tech stack and scope estimate before the pipeline writes anything to `.harness/`.

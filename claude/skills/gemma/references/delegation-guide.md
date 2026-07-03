@@ -1,11 +1,12 @@
 # Gemma Delegation Guide
 
 A calling convention for **other skills** that want to offload mechanical text
-tasks to the local Gemma model via `scripts/query.sh`. This document is the
-single source of truth — skills that delegate to gemma should link here rather
-than redefining the protocol inline.
+tasks to Gemma via `scripts/query.sh`. This document is the single source of
+truth — skills that delegate to gemma should link here rather than redefining
+the protocol inline.
 
-See [models.md](models.md) for variant specifications and benchmarks. This
+See [models.md](models.md) for variant specifications and benchmarks, and
+[backends.md](backends.md) for the LM Studio / Google AI Studio setup. This
 document covers only *how* to call, not *which model* to use.
 
 ## Purpose
@@ -37,7 +38,8 @@ Green-light cases for calling gemma:
 - **Draft generation** — initial boilerplate, structured JSON scaffolds, form
   letters where style matters less than structure.
 - **Sensitive-data processing** — anything the user would not want sent over
-  the network. Gemma runs entirely on localhost:11434.
+  the network. Force on-device execution with `--local` + `GEMMA_NO_FALLBACK=1`
+  so the prompt never reaches the remote Gemini API.
 
 ## When NOT to Delegate
 
@@ -47,8 +49,8 @@ Red-light cases. Keep these on Claude:
   degrade sharply on AIME, GPQA, Codeforces. See [models.md](models.md)
   benchmarks.
 - **Code analysis or generation** — code review, refactoring, bug hunting,
-  architectural judgment. Codeforces ELO for e4b is ~940; for e2b ~633. Use
-  Claude or the 26b/31b variants only if explicitly needed.
+  architectural judgment. Use Claude, or the larger `26b`/`31b` variants (which
+  route to the Gemini API) only if explicitly needed.
 - **Creative writing with voice** — tasks where the user expects Claude's
   specific voice, phrasing, or judgment.
 - **Tasks requiring conversation context** — gemma sees only the prompt string.
@@ -63,7 +65,9 @@ Red-light cases. Keep these on Claude:
 
 ### Invocation
 
-Always call through the bundled script, never assemble curl calls inline:
+Always call through the bundled script, never hit a backend API directly. The
+script routes between local LM Studio and the remote Gemini API, handles
+fallback, and normalizes exit codes:
 
 ```bash
 bash "${CLAUDE_SKILL_DIR}/../gemma/scripts/query.sh" "<prompt>"
@@ -76,10 +80,18 @@ absolute path:
 bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh "<prompt>"
 ```
 
-To select a specific variant (rare — the default `latest` is usually right):
+The default variant (`e4b`, on LM Studio with auto-fallback to Gemini) is
+usually right. Select a specific variant or backend only when needed:
 
 ```bash
-bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh e2b "<prompt>"
+# explicit variant
+bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh e4b "<prompt>"
+
+# force remote (Gemini API)
+bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh --cloud 31b "<prompt>"
+
+# force on-device, fail rather than fall back (privacy-strict)
+GEMMA_NO_FALLBACK=1 bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh --local e4b "<prompt>"
 ```
 
 ### Passing Large Input
@@ -168,32 +180,36 @@ Use `mktemp` + `rm -f` if you need randomness.
 ### Exit Code Contract
 
 `query.sh` distinguishes failure modes with exit codes so the caller can react
-precisely. The full list:
+precisely. The full list mirrors the Error handling table in
+[../SKILL.md](../SKILL.md):
 
-| Code | Meaning                                         | Caller action                               |
-|------|-------------------------------------------------|---------------------------------------------|
-| 0    | Success. stdout contains the response.          | Use stdout.                                 |
-| 2    | Missing dependency (`curl` or `jq` not found).  | Fall back. Inform user once.                |
-| 3    | Ollama not reachable at `$GEMMA_HOST`.          | Fall back silently (see Fallback Policy).   |
-| 4    | No gemma model installed, or variant missing.   | Fall back. Suggest `ollama pull gemma4`.    |
-| 5    | curl failed (e.g., network, timeout).           | Fall back. Mention shortening input.        |
-| 6    | Ollama returned unexpected JSON.                | Fall back. This is a bug — log the response.|
-| 64   | Usage error (empty prompt).                     | Fix the call. This is a caller bug.         |
+| Code | Meaning                                                | Caller action                                          |
+|------|--------------------------------------------------------|--------------------------------------------------------|
+| 0    | Success. stdout contains the response.                 | Use stdout.                                            |
+| 2    | `brew` missing, or dependency install declined.        | Fall back. Inform user once (install Homebrew / re-run with `GEMMA_AUTO_INSTALL=1`). |
+| 3    | LM Studio unavailable and fallback disabled, **or** 1Password not signed in. | Fall back silently (see Fallback Policy).      |
+| 4    | 1Password item not readable.                           | Fall back. Check `GEMMA_OP_REFERENCE` vault/item/field.|
+| 5    | Gemini HTTP failure (network, rate limit, bad key).    | Fall back. Mention shortening input / checking the key.|
+| 6    | Malformed Gemini response (usually a 401/429 text).    | Fall back. This is a bug — log the raw body from stderr.|
+| 64   | Usage error (empty prompt or unknown flag).            | Fix the call. This is a caller bug.                    |
+| 127  | `cargo` not found (Rust toolchain missing).            | Fall back. Suggest installing Rust from <https://rustup.rs>. |
 
 The practical rule for most skills is:
 
 > **exit 0 → use stdout. Any other code → fall back and continue.**
 
-Only more sophisticated skills need to distinguish exit 3 (Ollama down, expected
-in many environments) from exit 4 (missing model, one-time setup issue).
+Only more sophisticated skills need to distinguish exit 3 (backend down /
+not signed in, expected in many environments) from exit 4/5/6 (config or
+remote-API issues).
 
 ### Stdout vs Stderr
 
 - **stdout** contains *only* the gemma response text. Capture it into a
   variable for direct use.
-- **stderr** contains info messages (`info: using model gemma4:latest`) and
-  error messages. Always preserve stderr for debugging. In automated flows,
-  redirect stderr to a log file rather than discarding it.
+- **stderr** contains a single `info:` line reporting the resolved backend and
+  model (e.g. `info: backend=lmstudio model=gemma-3n-e4b-it`), plus any
+  `warn:`/`error:` messages. Always preserve stderr for debugging. In automated
+  flows, redirect stderr to a log file rather than discarding it.
 
 Correct pattern:
 
@@ -215,23 +231,25 @@ still function when gemma is unavailable. The fallback rule is strict:
 2. The fallback must be **silent by default** — do not block the user with an
    error dialog. Log the failure to stderr or an internal note, and proceed.
 3. The user may be informed *once per session* that gemma was unavailable, as
-   a short aside ("note: gemma pre-summarization skipped, Ollama not running").
-   Do not repeat this per call.
+   a short aside ("note: gemma pre-summarization skipped, LM Studio off and
+   remote fallback disabled"). Do not repeat this per call.
 4. The skill must never *fail* because gemma failed. A gemma-dependent skill
    is a broken skill.
 
-This is intentional. Ollama may not be running, may not have a gemma model
-installed, may be on a different port, or may time out on large inputs. The
-caller absorbs all of these as normal conditions, not errors.
+This is intentional. LM Studio may not be running, may not have the gemma model
+loaded, or may time out on large inputs; the remote Gemini fallback may itself
+be disabled (`--local` / `GEMMA_NO_FALLBACK=1`), unauthenticated, or rate
+limited. The caller absorbs all of these as normal conditions, not errors.
 
 ## Result Presentation
 
 When a delegating skill shows gemma output to the user, it must:
 
-1. **Label the source explicitly.** A prefix like `Gemma (gemma4:latest):` or
-   a block quote marker. Users should be able to tell at a glance which words
-   came from gemma vs Claude. The model name can be extracted from stderr's
-   `info: using model <name>` line.
+1. **Label the source explicitly.** A prefix like
+   `Gemma (gemma-3n-e4b-it via LM Studio):` or a block quote marker. Users
+   should be able to tell at a glance which words came from gemma vs Claude.
+   The backend and model are read from the stderr `info: backend=<...>
+   model=<id>` line.
 2. **Show the gemma output verbatim or lightly edited.** Do not launder gemma
    output as Claude's voice.
 3. **Follow up with Claude's own judgment** if the skill uses gemma as a
@@ -241,7 +259,7 @@ When a delegating skill shows gemma output to the user, it must:
 Example of a well-formed presentation:
 
 ```
-Gemma (gemma4:latest) first-pass summary:
+Gemma (gemma-3n-e4b-it via LM Studio) first-pass summary:
 > The diff refactors the auth middleware to use a session token store.
 > Three files changed: auth.ts, session.ts, middleware-test.ts.
 
@@ -262,10 +280,10 @@ Things to avoid when designing a delegation point:
   skill. If you need a pipeline, use Claude to orchestrate and call gemma once
   per stage.
 - **Assuming gemma is available** — no default-to-gemma paths. Every skill's
-  golden path must work with Ollama off.
-- **Hardcoding a specific variant** — prefer the default `latest` resolution.
-  Only specify a variant if the skill has a measured reason (e.g., e2b for
-  throughput on battery, 26b for code-adjacent tasks).
+  golden path must work with the backend off / gemma unavailable.
+- **Hardcoding a specific variant** — prefer the default `e4b` resolution.
+  Only specify a variant if the skill has a measured reason (e.g., `e2b` for
+  throughput on battery, `31b`/`--cloud` for reasoning-adjacent tasks).
 
 ## Minimum Skill Checklist
 

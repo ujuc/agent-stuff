@@ -46,10 +46,10 @@ gemma_summary=$(GEMMA_TIMEOUT=300 bash /Users/ujuc/.claude/skills/gemma/scripts/
 
 ## Fallback rules
 
-**Gemma availability is not assumed.** If Ollama is off, the gemma model isn't installed, or the call times out, the commit procedure must continue normally:
+**Gemma availability is not assumed.** If LM Studio is off / the gemma model isn't loaded (and the remote Gemini fallback is disabled or unavailable), or the call times out, the commit procedure must continue normally:
 
 1. Empty `$gemma_summary` → skip the gemma step, Claude writes the body directly.
-2. Notify the user once per session, briefly (e.g., `note: gemma 사전 요약을 건너뛰었습니다 — Ollama 미가동`).
+2. Notify the user once per session, briefly (e.g., `note: gemma 사전 요약을 건너뛰었습니다 — LM Studio 미가동/모델 미로드`).
 3. The commit must not fail because of this — gemma failure is a **normal path**, not an error.
 
 ## Using the result

@@ -30,6 +30,8 @@ Korean trigger phrases are kept verbatim because they must match user utterances
 
 If intent is ambiguous, ask one clarifying question first: "이 프롬프트를 개선해드릴까요, 아니면 의미를 설명해드릴까요?"
 
+**vs `ecc:prompt-optimizer`:** if that plugin skill is installed, its English trigger surface ("improve my prompt", "optimize prompt") overlaps this skill's. The split: `prompting-assist` **diagnoses and rewrites** the prompt directly against Anthropic best practices; `ecc:prompt-optimizer` is **advisory-only** — it maps the request to ECC components and returns a paste-ready prompt without executing. Prefer `prompting-assist` for "review / improve this prompt"; route to `prompt-optimizer` only when the user explicitly wants ECC-component matching.
+
 ## Workflow
 
 ### Stage 1: Context Collection
@@ -40,11 +42,11 @@ If intent is ambiguous, ask one clarifying question first: "이 프롬프트를 
    - If absent, request once: "어떤 프롬프트를 보고 싶으신가요?"
 
 2. **Collect the minimum necessary context** via `AskUserQuestion` (batch the questions, do not re-ask):
-   - Target model: Claude 4.x family / another LLM / unknown
+   - Target model: Claude family / another LLM / unknown
    - Primary use case: one-shot / agentic / tool-calling / long-context / coding
    - Hard constraints: response length / cost / latency / output format
 
-If the model is unknown, default to Claude 4.6/4.7 and state the assumption explicitly.
+If the model is unknown, default to the latest available Claude model and state the assumption explicitly.
 
 ### Stage 2: Reference Load
 
@@ -99,7 +101,7 @@ Close with a one-line checklist coverage report: "10개 범주 중 7개 합격, 
 - **Evidence-backed.** Do not assert anything outside Anthropic's official guidance. Every recommendation maps to a checklist category (or a section of the fetched Anthropic guide).
 - **Language preservation.** Keep the prompt's original language in the artifact. Diagnosis and explanation follow the conversation language (default Korean).
 - **Brevity.** Diagnosis report: 1–2 lines per category. Strip filler.
-- **Model-version awareness.** Claude 4.5 → 4.6 → 4.7 diverge in non-trivial ways. When the target model is unknown, state the assumption and proceed.
+- **Model-version awareness.** Successive Claude model generations diverge in non-trivial ways. When the target model is unknown, state the assumption and proceed.
 
 ## References
 
@@ -114,7 +116,7 @@ Close with a one-line checklist coverage report: "10개 범주 중 7개 합격, 
 
 3. **Never edit the prompt in place without consent.** `Edit` is in `allowed-tools` for cases where the prompt lives in a file the user asked to be improved. Always show the proposal first, then apply the edit only after explicit confirmation.
 
-4. **Model-version drift.** Claude 4.5 → 4.6 → 4.7 differ enough (extended thinking defaults, parallel tool-call norms, effort tuning) that a checklist pass for 4.5 can be a near-fail for 4.7. When unknown, default to the latest and state the assumption.
+4. **Model-version drift.** Successive Claude generations differ enough (extended thinking defaults, parallel tool-call norms, effort tuning) that a checklist pass tuned for one generation can be a near-fail for another. When unknown, default to the latest available model and state the assumption.
 
 ## Eval Criteria
 

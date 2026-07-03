@@ -1,7 +1,7 @@
 ---
 name: autoresearch
 description: "편집 가능한 대상(프롬프트, 설정, 코드 등)을 반복 실행-평가-변이하여 자율적으로 최적화한다. Karpathy의 autoresearch 방법론(execute → score → mutate → keep/discard) 기반."
-when_to_use: "자동 실험, eval 루프, autoresearch 트리거. /autoresearch 또는 CLAUDE.md Skills 테이블 등록을 통해서만 호출됨."
+when_to_use: "자동 실험, eval 루프, autoresearch 트리거 시. `/autoresearch` 명시 호출로 실행하며, description 매칭 시 자동 호출도 가능하다."
 group: meta
 model: opus
 argument-hint: "[target-path]"
@@ -271,7 +271,7 @@ Stopped at experiment 5 (3 budget remaining) — rubric ceiling reached, simplif
 5. **Overfitting to test inputs.** If the target improves on test inputs but degrades on novel inputs, the test inputs lack variety — go back to context gathering.
 6. **Size creep.** Each kept mutation adds complexity. Periodically check if the target has grown significantly and consolidate if needed.
 7. **Sequential by construction.** This skill implements hill-climbing — each mutation is evaluated against the last KEEP. Do not parallelize candidate mutations; that is beam search and changes the algorithm. If the user wants beam search, treat it as a different skill.
-8. **Trigger phrases live in CLAUDE.md, not `description`.** With `disable-model-invocation: true`, Claude does not auto-trigger from `description`. The Skills table in `~/.claude/CLAUDE.md` is the only source of natural-language triggers. Add new triggers there, not here.
+8. **Triggers come from `description` + `/autoresearch`.** This skill has no `disable-model-invocation` flag, so Claude may auto-trigger it from `description` matches, and it can also be run explicitly via `/autoresearch`. There is no separate per-skill "CLAUDE.md Skills table" — skill classification and discovery are driven by the `group:` frontmatter field rendered by `skill-index`. To adjust triggers, edit this skill's `description` / `when_to_use`.
 
 9. **Meta-recursion: target == this skill itself.** When the target file is autoresearch's own `SKILL.md`, the execution method must NOT be `Skill("autoresearch")` — that would invoke this skill within itself and either deadlock or create unbounded recursion. Pick one instead:
    - **Text-based static rubric** — score the SKILL.md content against new evals (clarity, structure, coverage). `runs=1` is sufficient; static text yields deterministic scores.
