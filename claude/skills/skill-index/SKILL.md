@@ -69,4 +69,5 @@ bash ~/.claude/skills/skill-index/scripts/skill-index.sh --markdown
 
 ## References
 
-- Plan: `~/.claude/plans/agents-claude-plans-claude-skills-recur-enchanted-pudding.md`
+- Group taxonomy & catalog: `../README.md`
+- Plugin command groups: `tools/skill-index/plugin-groups.toml`

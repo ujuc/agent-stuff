@@ -191,6 +191,10 @@ Write the SKILL.md body following the pattern picked in Step 1.
 
 If Step 1 surfaced a similar-pattern skill worth studying, spawn an Explore subagent to dissect it in parallel with drafting. Fold the result into the draft. Follow `references/subagent-guidelines.md` → "Explore-2".
 
+### Dynamic context injection (optional)
+
+If the skill's body needs live shell output injected at load time (e.g. current branch, file listing, date), use the `` !`command` `` syntax documented in `references/dynamic-context.md` — Claude Code runs the command before the prompt reaches the model and substitutes its stdout.
+
 ### Common rules
 
 - **Be specific**: include runnable commands, exact paths, concrete acceptance criteria.
