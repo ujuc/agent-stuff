@@ -104,6 +104,7 @@ Spawn the Blind Reviewer when output includes more than a single root CLAUDE.md 
 
 - `subagent_type`: `general-purpose`
 - `model`: sonnet
+- advisor: the Reviewer calls `advisor()` (opus per settings `advisorModel`) for any criterion it cannot confidently score — a cross-model second opinion. advisor forwards only the reviewer's transcript (the generated files), so the review stays blind.
 - `run_in_background`: false (orchestrator must receive results before final report)
 
 ### What to Provide
@@ -134,6 +135,8 @@ Files to review: {list_of_generated_file_paths}
 5. Nested CLAUDE.md: Does any nested file repeat content from root CLAUDE.md? Does scope exceed its directory? → flag
 6. Size: Is root CLAUDE.md under 100 lines soft / 200 hard (official ceiling)? Nested under 50 (hard limit 100)? Flag any line that fails the prune test ("would removing this cause a mistake?")
 7. Actionability: Is every instruction verifiable? Any vague guidance? → flag with suggestion
+
+For any criterion where your PASS/FAIL call is low-confidence, call advisor() for an independent opus second opinion before finalizing.
 
 Report: PASS/FAIL per criterion. For each FAIL, quote the specific line and explain why.
 Do NOT fix issues — only report them.

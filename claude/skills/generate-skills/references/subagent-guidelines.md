@@ -101,12 +101,16 @@ You did NOT write this skill. Review it independently using these criteria:
 4. Instructions: Are they specific and actionable? Error handling included?
 5. Size: SKILL.md under 500 lines / 5000 words?
 
+For any criterion where your PASS/FAIL call is low-confidence, call advisor() for an independent opus second opinion before finalizing.
+
 Report: PASS/FAIL per criterion, with specific issues for any FAIL.
 Do NOT fix issues — only report them.
 ```
 
 **Agent parameters**:
 - `subagent_type`: `general-purpose`
+- `model`: `sonnet`
+- advisor: the reviewer calls `advisor()` (opus per settings `advisorModel`) for uncertain findings — a cross-model second opinion. advisor forwards only the reviewer's transcript, so the review stays blind.
 - `description`: "Blind review generated skill"
 - `run_in_background`: `false` (must receive results before reporting to user)
 

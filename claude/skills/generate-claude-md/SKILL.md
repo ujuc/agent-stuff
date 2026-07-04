@@ -134,7 +134,7 @@ Three-phase pipeline:
 
 1. **Verifier**: apply the 10-item checklist line by line (`model: sonnet`)
 2. **Iterative Fix**: fix failing items and re-verify (up to 2 iterations)
-3. **Reviewer**: if the output exceeds a single CLAUDE.md, spawn a blind independent review agent (`model: sonnet`). Do not pass Phase 1/2 results to it.
+3. **Reviewer**: if the output exceeds a single CLAUDE.md, spawn a blind independent review agent (`model: sonnet`; it consults `advisor()` for an opus cross-model second opinion on low-confidence findings — see references/stage4-verifier.md). Do not pass Phase 1/2 results to it.
 
 Report verification results to the user. For failing items, quote the line and the reason.
 
@@ -164,7 +164,7 @@ Skill-specific pitfalls that automation cannot catch. Update whenever a new edge
 
 3. **Blind Reviewer must receive no orchestrator context.** If Phase 1 or Phase 2 output leaks into the Reviewer prompt, the review stops being independent and the FAIL filter loses its value. Only generated file contents should be passed in.
 
-4. **`model: opus` is an orchestrator hint, not a subagent default.** Agents spawned in Stage 1, 3, and 4 explicitly request `model: sonnet` to control cost. Do not assume a single model applies throughout the pipeline. Model aliases (`opus`/`sonnet`) resolve to the current generation at runtime (Opus 4.8 today) — never hardcode version IDs like `claude-opus-4-8`. Likewise `effort` is inherited from the session, not pinned in frontmatter; Opus 4.8 exposes `xhigh` via `/effort` for the user to opt into.
+4. **`model: opus` is an orchestrator hint, not a subagent default.** Agents spawned in Stage 1, 3, and 4 explicitly request `model: sonnet` to control cost — the Stage 4 blind Reviewer additionally consults `advisor()` (opus per `advisorModel`) for a cross-model second opinion on uncertain findings. Do not assume a single model applies throughout the pipeline. Model aliases (`opus`/`sonnet`) resolve to the current generation at runtime (Opus 4.8 today) — never hardcode version IDs like `claude-opus-4-8`. Likewise `effort` is inherited from the session, not pinned in frontmatter; Opus 4.8 exposes `xhigh` via `/effort` for the user to opt into.
 
 5. **`disable-model-invocation` is intentionally unset.** The skill is invasive (writes/edits several project files). Because it is registered in CLAUDE.md's Skills table, auto-invocation can still fire from vague user phrasing. If false positives become a problem, flip this flag on and rely on `/generate-claude-md` plus the Skills-table triggers.
 
