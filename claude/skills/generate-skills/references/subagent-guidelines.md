@@ -139,7 +139,7 @@ Steps 2-3: [Main only]
 Step 4: [Explore-2] Analyze ref skill ── done ─┐
         [Main]      Draft SKILL.md ──────────── incorporate results
 
-Step 5: [Main]      Run validate-skill.sh
+Step 5: [Main]      Run validate-skill
         [Reviewer]  Independent review ── results ── fix issues
 ```
 

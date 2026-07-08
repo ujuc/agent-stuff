@@ -1,6 +1,6 @@
 # Skill review checklist
 
-> Only the semantic and trigger checks that the automated validator (`scripts/validate-skill.sh`) cannot do. Form checks (kebab-case, length, reserved prefix, etc.) are already handled there and are not repeated here.
+> Only the semantic and trigger checks that the automated validator (`scripts/validate-skill`) cannot do. Form checks (kebab-case, length, reserved prefix, etc.) are already handled there and are not repeated here.
 
 For full specifications see:
 

@@ -18,7 +18,9 @@ pub const ALLOWED_KEYS: &[&str] = &[
     "model",
     "disable-model-invocation",
     "allowed-tools",
+    "disallowed-tools",
     "argument-hint",
+    "arguments",
     "user-invocable",
     "effort",
     "context",
@@ -29,7 +31,9 @@ pub const ALLOWED_KEYS: &[&str] = &[
     "group",
 ];
 
-pub const ALLOWED_MODELS: &[&str] = &["opus", "sonnet", "haiku"];
+/// Upstream accepts any `/model` value or `inherit`; this list mirrors the
+/// local model-assignment convention (skills/CLAUDE.md) plus `inherit`.
+pub const ALLOWED_MODELS: &[&str] = &["opus", "sonnet", "haiku", "inherit"];
 
 /// Local extension: every SKILL.md must declare exactly one of these slugs
 /// in its `group` field. The `/skills` meta-skill (`skills/skill-index/`)

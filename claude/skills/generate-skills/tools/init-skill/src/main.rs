@@ -13,6 +13,7 @@ name: {name}
 description: |
   TODO: What does this skill do? (WHAT)
   TODO: When should it trigger? Include example phrases. (WHEN)
+group: {group}
 # Optional fields — uncomment and fill in as needed.
 # when_to_use: \"Trigger phrases and example utterances separated from description\"
 # model: opus                        # opus | sonnet | haiku
@@ -62,6 +63,10 @@ struct Args {
     /// Skill name in kebab-case (e.g. my-new-skill)
     name: String,
 
+    /// Catalog group slug (required by validate-skill; never guessed)
+    #[arg(long)]
+    group: String,
+
     /// Target parent directory
     #[arg(long, default_value = DEFAULT_PATH)]
     path: PathBuf,
@@ -109,6 +114,15 @@ fn main() -> Result<ExitCode> {
         return Ok(ExitCode::FAILURE);
     }
 
+    if !rules::ALLOWED_GROUPS.contains(&args.group.as_str()) {
+        eprintln!(
+            "error: unknown group '{}' — allowed: {}",
+            args.group,
+            rules::ALLOWED_GROUPS.join(", ")
+        );
+        return Ok(ExitCode::FAILURE);
+    }
+
     create_skill(&args)?;
     Ok(ExitCode::SUCCESS)
 }
@@ -124,7 +138,9 @@ fn create_skill(args: &Args) -> Result<()> {
         .with_context(|| format!("failed to create {}", skill_dir.display()))?;
 
     let skill_md = skill_dir.join("SKILL.md");
-    let content = SKILL_TEMPLATE.replace("{name}", &args.name);
+    let content = SKILL_TEMPLATE
+        .replace("{name}", &args.name)
+        .replace("{group}", &args.group);
     fs::write(&skill_md, content)
         .with_context(|| format!("failed to write {}", skill_md.display()))?;
 
@@ -146,11 +162,11 @@ fn create_skill(args: &Args) -> Result<()> {
         optional_dirs.push(dirname);
     }
 
-    print_summary(&skill_dir, &args.name, &optional_dirs);
+    print_summary(&skill_dir, &args.name, &args.group, &optional_dirs);
     Ok(())
 }
 
-fn print_summary(skill_dir: &Path, name: &str, optional_dirs: &[&str]) {
+fn print_summary(skill_dir: &Path, name: &str, group: &str, optional_dirs: &[&str]) {
     println!("Created: {}", skill_dir.display());
     println!();
     println!("  {name}/");
@@ -165,5 +181,12 @@ fn print_summary(skill_dir: &Path, name: &str, optional_dirs: &[&str]) {
     println!(
         "     bash agents/claude/skills/generate-skills/scripts/validate-skill {}",
         skill_dir.display()
+    );
+    println!("  3. Register in the catalog group map:");
+    println!(
+        "     bash agents/claude/skills/generate-skills/scripts/register-skill \\"
+    );
+    println!(
+        "       agents/claude/skills/README.md --name {name} --group {group}"
     );
 }

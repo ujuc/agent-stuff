@@ -11,5 +11,6 @@ name = "register-skill"
 path = "src/main.rs"
 
 [dependencies]
+skill-core = { path = "../skill-core" }
 anyhow.workspace = true
 clap.workspace = true

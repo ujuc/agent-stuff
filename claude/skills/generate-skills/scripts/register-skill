@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # register-skill — Thin launcher that defers to the Rust workspace under tools/.
-# Usage: register-skill <claude-md-path> --name <skill> --triggers "<triggers>" --model <model>
+# Usage: register-skill <readme-path> --name <skill> --group <slug>
 
 set -euo pipefail
 

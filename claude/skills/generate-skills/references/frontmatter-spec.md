@@ -1,6 +1,6 @@
 ---
 source_url: https://code.claude.com/docs/en/skills
-last_upstream_check: 2026-04-18
+last_upstream_check: 2026-07-09
 check_interval_days: 14
 ---
 
@@ -50,6 +50,8 @@ Display name for the skill. If omitted, uses the directory name.
 | Reserved prefixes | `claude-*`, `anthropic-*` |
 | Example | `generate-skills`, `notion-setup`, `tdd-workflow` |
 
+`name` only sets the display label in skill listings. The `/command` name comes from the skill **directory** name (plugin-root `SKILL.md` is the one exception, where `name` does set it).
+
 ### `description`
 
 What the skill does and when to use it. Claude uses this to decide when to apply the skill. If omitted, uses the first paragraph of markdown content.
@@ -85,6 +87,16 @@ argument-hint: "[issue-number]"
 - Example values: `[issue-number]`, `[filename] [format]`
 - Appears in the `/` menu autocomplete UI
 
+### `arguments`
+
+Named positional arguments for `$name` substitution in the skill content. Accepts a space-separated string or a YAML list; names map to argument positions in order.
+
+```yaml
+arguments: [issue, branch]
+```
+
+- With the example above, `$issue` expands to the first argument and `$branch` to the second.
+
 ### `disable-model-invocation`
 
 Set to `true` to prevent Claude from automatically loading this skill. Use for workflows you want to trigger manually with `/name`.
@@ -95,6 +107,7 @@ disable-model-invocation: true
 
 - Default: `false` (auto-trigger allowed)
 - Recommended for destructive or high-cost operations
+- Also prevents the skill from being preloaded into subagents, and (v2.1.196+) from running when a scheduled task fires with the skill as its prompt
 
 ### `user-invocable`
 
@@ -112,7 +125,7 @@ user-invocable: false
 Tools Claude can use without asking permission when this skill is active.
 
 ```yaml
-# canonical (space-separated string, per official docs)
+# space-separated string
 allowed-tools: Read Grep Glob
 
 # or YAML list
@@ -121,13 +134,26 @@ allowed-tools:
   - Grep
   - Bash(git add *)
 
-# also accepted in practice (comma-separated with spaces) — de-facto convention
+# or comma-separated string
 allowed-tools: Read, Grep, Bash(git status:*)
 ```
 
-- Official spec lists **space-separated string** or **YAML list**; Claude Code also parses comma-separated-with-spaces, which is the convention used across most real-world skills
+- Accepts a space- or comma-separated string, or a YAML list — all three officially documented
 - Creates a scoped permission grant for the skill's duration; does not restrict which tools are callable, only which skip per-use approval
 - Baseline permission settings still apply to tools not listed
+- `${CLAUDE_PROJECT_DIR}` substitution applies here too (v2.1.196+), so a rule like `Bash(${CLAUDE_PROJECT_DIR}/scripts/lint.sh *)` resolves to the same path the skill body uses
+
+### `disallowed-tools`
+
+Tools removed from Claude's available pool while this skill is active. Use for autonomous skills that should never call certain tools.
+
+```yaml
+disallowed-tools: AskUserQuestion
+```
+
+- Accepts a space- or comma-separated string, or a YAML list
+- The restriction clears on the user's next message
+- For permanent blocks across all skills, use permission deny rules instead
 
 ### `model`
 
@@ -137,9 +163,9 @@ Model to use when this skill is active.
 model: opus
 ```
 
-- Allowed values: `opus`, `sonnet`, `haiku`
-- If unset, inherits from the current session model
-- Use `opus` for complex workflows or creative tasks
+- Upstream accepts the same values as `/model`, or `inherit` to keep the active model; if unset, inherits from the current session model
+- The override applies for the rest of the current turn only and is not saved to settings — the session model resumes on the next prompt
+- Local convention: `opus` for planning/orchestration, `sonnet` for deterministic execution (see `skills/CLAUDE.md`); `validate-skill` accepts `opus`, `sonnet`, `haiku`, `inherit`
 
 ### `effort`
 
@@ -252,6 +278,14 @@ group: planning
 
 ---
 
+## Content Lifecycle
+
+- Invoked skill content enters the conversation once and stays for the session; the file is not re-read on later turns — write standing instructions, not one-time steps.
+- Re-invoking with identical rendered content adds a short "already loaded" note instead of a duplicate copy (v2.1.202+); changed arguments or dynamic-context output append the full content again.
+- Auto-compaction re-attaches the most recent invocation of each skill (first 5,000 tokens each, 25,000-token shared budget, most recent first) — older skills can drop out entirely.
+
+---
+
 ## String Substitutions
 
 Skills support dynamic value substitution in skill content:
@@ -261,8 +295,13 @@ Skills support dynamic value substitution in skill content:
 | `$ARGUMENTS` | All arguments passed when invoking the skill. If not present in content, arguments are appended as `ARGUMENTS: <value>` |
 | `$ARGUMENTS[N]` | Access a specific argument by 0-based index (e.g. `$ARGUMENTS[0]` for first) |
 | `$N` | Shorthand for `$ARGUMENTS[N]` (e.g. `$0` for first argument) |
+| `$name` | Named argument declared in the `arguments` frontmatter list (names map to positions in order) |
 | `${CLAUDE_SESSION_ID}` | Current session ID. Useful for logging or session-specific files |
+| `${CLAUDE_EFFORT}` | Current effort level (`low`–`max`; ultracode reports as `xhigh`). Use to adapt instructions to the active effort |
 | `${CLAUDE_SKILL_DIR}` | Directory containing the skill's SKILL.md. Use in bash injection to reference bundled scripts regardless of working directory |
+| `${CLAUDE_PROJECT_DIR}` | Project root directory (v2.1.196+) — same path hooks receive. Applies to the body and `allowed-tools` |
+
+Indexed arguments use shell-style quoting (`/my-skill "hello world" second` → `$0` = `hello world`). To include a literal `$` before a digit, `ARGUMENTS`, or a declared name, escape with a single backslash: `\$1.00`.
 
 ### Example
 
@@ -294,6 +333,6 @@ After writing frontmatter, verify:
 - [ ] `description` includes WHAT; WHEN lives in `description` or `when_to_use`
 - [ ] If `context` is set: value is `fork`
 - [ ] If `agent` is set: `context: fork` is also set
-- [ ] If `allowed-tools` is set: space-separated string or YAML list (not comma-separated)
+- [ ] If `allowed-tools` / `disallowed-tools` is set: space- or comma-separated string, or YAML list
 - [ ] If `paths` is set: glob patterns only apply to auto-activation, not manual `/` invocation
 - [ ] `group` field is present and equals one of `planning`, `analysis`, `build`, `verify`, `docs`, `writing`, `llm`, `meta` (local-required)

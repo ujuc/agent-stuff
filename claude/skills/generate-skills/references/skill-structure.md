@@ -54,8 +54,8 @@ Hold detailed reference docs that SKILL.md links to.
 
 Hold automation / validation scripts.
 
-- Shell scripts, Python scripts, etc.
-- Make them executable (`chmod +x`).
+- Follow the repo's tool-language policy: Rust in a Cargo workspace under `tools/` with thin bash launchers in `scripts/` (this skill's own layout); Python via `uv` (PEP 723 inline metadata) when the task genuinely needs it. Bash is for launchers/wrappers only.
+- Make launchers executable (`chmod +x`).
 - When SKILL.md references a script, include the full invocation.
 
 ### `assets/`

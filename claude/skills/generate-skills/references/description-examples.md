@@ -124,7 +124,7 @@ description: >-
 
 ## Length tips
 
-- **Hard max**: 1024 characters (truncated above this).
+- **Hard max**: 1,536 characters — `description` + `when_to_use` combined (truncated above this).
 - **Recommended**: 100–300 characters (just the essentials).
 - Drop empty modifiers: "sophisticated", "comprehensive", "advanced", ...
 - Front-load concrete trigger phrases.

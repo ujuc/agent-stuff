@@ -121,14 +121,14 @@ Follow `references/skill-structure.md`.
 Run `scripts/init-skill` (thin bash launcher over the Rust workspace in `tools/`):
 
 ```bash
-bash agents/claude/skills/generate-skills/scripts/init-skill <skill-name> --path <target-path>
+bash agents/claude/skills/generate-skills/scripts/init-skill <skill-name> --group <slug> --path <target-path>
 ```
 
-By default this creates only `SKILL.md` with a template that includes commented-out placeholders for every optional frontmatter field (`when_to_use`, `paths`, `shell`, `effort`, `context`, `agent`, etc.). If the skill needs Tier-3 resources, pass `--with-references`, `--with-scripts`, and/or `--with-assets`. Fill in the body in Steps 3–4.
+`--group` is required (one of the 8 slugs — see `references/frontmatter-spec.md` → `group`); the validator fails without it, and it must be a deliberate choice, never guessed. By default this creates only `SKILL.md` with the required fields filled in plus commented-out placeholders for every optional frontmatter field (`when_to_use`, `paths`, `shell`, `effort`, `context`, `agent`, etc.). If the skill needs Tier-3 resources, pass `--with-references`, `--with-scripts`, and/or `--with-assets`. Fill in the body in Steps 3–4.
 
 Requires `cargo` (install via <https://rustup.rs>). First invocation compiles the binary (~6–30s); later runs are instant via Cargo's incremental cache.
 
-### Manual scaffold (when init-skill.py is unavailable)
+### Manual scaffold (when cargo / init-skill is unavailable)
 
 **Required:**
 
@@ -160,7 +160,10 @@ Use `references/frontmatter-spec.md` together with `references/description-examp
    - WHAT: what the skill does (from Step 1's problem / scenario).
    - WHEN: when it should trigger (from Step 1's trigger phrases).
    - If omitted, the first paragraph of the markdown body is used.
-3. Decide optional fields by category:
+3. Set `group` (**required** — local extension): one of the 8 slugs in
+   `references/frontmatter-spec.md` → `group`. Never guess — confirm with the
+   user when the placement is unclear.
+4. Decide optional fields by category:
 
    **Invocation control:**
    - `disable-model-invocation`: `true` for destructive or expensive skills.
@@ -173,13 +176,15 @@ Use `references/frontmatter-spec.md` together with `references/description-examp
    - `agent`: subagent type when `context: fork` is set (`Explore`, `Plan`, `general-purpose`, ...).
 
    **Tools / permissions:**
-   - `allowed-tools`: comma-separated list of tools usable without confirmation while the skill is active.
+   - `allowed-tools`: tools usable without confirmation while the skill is active.
+   - `disallowed-tools`: tools removed from the pool while the skill is active (e.g. `AskUserQuestion` for autonomous loops).
 
    **Other:**
    - `argument-hint`: autocomplete hint (e.g., `[issue-number]`).
+   - `arguments`: named positional arguments for `$name` substitution.
    - `hooks`: hooks scoped to the skill's lifecycle.
 
-Mechanical checks (kebab-case, length, reserved prefix, etc.) are handled by `validate-skill.sh` in Step 5. Here, only check semantics: **does `description` contain both WHAT and WHEN?**
+Mechanical checks (kebab-case, length, reserved prefix, etc.) are handled by `validate-skill` in Step 5. Here, only check semantics: **does `description` contain both WHAT and WHEN?**
 
 ---
 
@@ -321,22 +326,16 @@ When in doubt, follow the trigger-tuning guide in `references/review-checklist.m
 
 ### Registration
 
-Once validation passes, add a row to the Skills table in the appropriate CLAUDE.md. Use the `register-skill` launcher — it is idempotent, so re-running after an already-registered skill is a no-op:
+Once validation passes, register the skill in the catalog group map in `claude/skills/README.md`. The `group:` frontmatter is the single source of truth (rendered by `skill-index` for `/skills`); the README table mirrors it and must stay in sync. Use the `register-skill` launcher — it is idempotent (re-running is a no-op) and errors if the skill is already listed under a different group:
 
 ```bash
 bash agents/claude/skills/generate-skills/scripts/register-skill \
-  <path-to-CLAUDE.md> \
+  claude/skills/README.md \
   --name <skill-name> \
-  --triggers "<trigger phrases>" \
-  --model <sonnet|opus|haiku>
+  --group <group-slug>
 ```
 
-Choose the target CLAUDE.md carefully:
-
-- `agents/claude/CLAUDE.md` — user-level Claude Code skills registered for the whole environment.
-- `agents/claude/skills/CLAUDE.md` — scope-specific rules that only apply when Claude is operating inside the `skills/` directory.
-
-Most new skills belong in the first one. Manual edit is still valid if you need non-trivial layout changes the launcher can't produce.
+The `--group` value must match the skill's `group:` frontmatter. Manual edit is still valid for layout changes the launcher can't produce (e.g. reordering entries within a row).
 
 ### Distribution (optional)
 
@@ -348,8 +347,8 @@ For team-wide distribution, see `references/distribution-guide.md` — repo chec
 
 Skill-specific pitfalls that validator automation cannot catch. Update this section whenever a new edge case is discovered.
 
-1. **`disable-model-invocation: true` with natural-language triggers in `description`.**
-   When this flag is set, Claude cannot auto-load the skill from `description`. Trigger phrases still work only because the parent CLAUDE.md's Skills table explicitly lists them, letting Claude invoke via the `Skill` tool. If you remove the CLAUDE.md row, the skill becomes `/name`-only.
+1. **`disable-model-invocation: true` removes the description from model context.**
+   When this flag is set, the skill's `description` is not loaded into context, so its natural-language trigger phrases cannot auto-fire — the skill is effectively `/name`-only (or an explicit user request to run it). It also blocks subagent preloading and scheduled-task prompts (v2.1.196+). Keep trigger phrases in `description` anyway: they document intent and surface in the `/skills` catalog via `skill-index`.
 
 2. **Reference paths are relative to SKILL.md, not the invocation cwd.**
    `references/<name>.md` in SKILL.md always resolves relative to the skill directory. Avoid `../` paths — if you need content from outside the skill tree, copy it into `references/` so the skill stays self-contained.
@@ -395,6 +394,8 @@ EVAL 4: Body size budget
             at most 500 lines?
   Pass: ≤ 500 lines.
   Fail: > 500 lines — split detail into `references/` files.
+        (`validate-skill` reports overage as a warning, not an error;
+        this eval still counts it as a failure.)
 
 EVAL 5: Validator pass
   Question: Does `bash scripts/validate-skill <skill-dir>` exit with
