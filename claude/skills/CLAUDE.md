@@ -22,7 +22,7 @@ Skill definitions for Claude Code. Each skill is `SKILLNAME/SKILL.md` with optio
 - **`disable-model-invocation: true`** for invasive skills (multi-file writes, long autonomous sessions — currently `generate-skills`); restricts auto-invocation so only explicit slash commands and Skills-table triggers fire. `multi-agent-orchestrator` permits auto-invocation but enforces a Stage 0 user-confirmation gate before running the pipeline.
 - **Shared artifact directories** created/consumed by skills: `.plans/plan-*.md` (`annotate-plan`, `implement-plan`), `.research/research-*.md` (`deep-read`), `.sprint/contract.md` (`sprint-contract-negotiator`), `spec.md` (`spec-planner`)
 - **Chrome-dependent skills** (`qa-evaluator`, `frontend-design-evaluator`) use MCP deferred tools — schemas must be loaded via `ToolSearch` at skill start. Listing tool IDs in `allowed-tools` only pre-grants permission; the schema still requires a `ToolSearch` call to become callable
-- **Periodic invocation**: `skill-improver` is driven by the 7-day cadence defined in `~/.claude/CLAUDE.md` "Skills (Local Policy)" — do not register it via cron or hooks
+- **Periodic invocation**: `skill-improver` is driven by the SessionStart hook `~/.claude/hooks/skill-improver-cadence.sh` (7-day cadence, consent-gated) — do not additionally register it via cron
 
 ## References
 

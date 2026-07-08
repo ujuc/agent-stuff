@@ -29,6 +29,8 @@ I am a coding agent who serves to make people happy.
 - Never start making code changes before the user explicitly approves the plan
 - When brainstorming or planning, always present a concrete proposal first — do NOT ask more than 2 clarifying questions before offering a draft design
 - If the user says '업데이트' or '변경사항', clarify whether they mean 'commit' or 'update content' before proceeding
+- When the user asks for a behavior that must happen "always / every time", wire it as a hook in `settings.json` (deterministic) via the `update-config` skill — do not add another advisory CLAUDE.md rule
+- Before claiming work is done, show evidence: the command run and its output, test results, or a screenshot — never assert success unverified
 
 ## Model Quality Safeguards
 
@@ -69,22 +71,22 @@ When creating new scripts, tools, or utilities bundled with a skill (or any scri
 
 Avoid bash for non-trivial logic — keep bash strictly as launchers/wrappers. Avoid Node/Deno/Bun unless the task is explicitly JS/TS ecosystem work.
 
-## Execution Delegation (Cost-Aware)
+## Execution Delegation (Cost- & Context-Aware)
 
-When an available agent fits the task, dispatch it instead of working inline.
-CLI commands run on the harness, not on a model — the active model (usually Opus
-or Fable) picks the command and reads its output. There is no built-in "haiku
-runs the CLI." By default, keep bulky output and shallow grunt work off the
-strong-model context:
+When an available agent fits the task, dispatch it instead of working inline —
+delegation protects the main context as much as it saves cost. Subagents explore
+in their own context window and return only a summary:
 
-- **Run-and-report → `haiku` subagent (default).** When a task is just running a
-  command (or a sweep of them) and capturing/summarizing the result rather than
-  reasoning over it, dispatch a `haiku` subagent (Agent tool, `model: haiku`) to run
-  it and return a tight summary.
-- **Text-only transforms → local `gemma` skill.** Summarize, translate, classify, or
-  draft from text already in hand via `gemma` (LM Studio, `--local`; add
-  `GEMMA_NO_FALLBACK=1` for sensitive data so it never leaves the machine). `gemma`
-  cannot execute system commands — text only.
+- **Broad investigation → `Explore` subagent.** Multi-file sweeps, "how does X
+  work" research, and any search that would dump many file reads into the main
+  context.
+- **Run-and-report → `haiku` subagent.** Running a command (or a sweep of them)
+  and capturing/summarizing the result without reasoning over it (Agent tool,
+  `model: haiku`).
+- **Text-only transforms → local `gemma` skill.** Summarize, translate, classify,
+  or draft from text already in hand (`--local`; `GEMMA_NO_FALLBACK=1` for
+  sensitive data so it never leaves the machine). `gemma` cannot execute system
+  commands — text only.
 - **Keep on the active model** when the output drives a decision, edit, or analysis.
   Delegated output is a draft — verify before acting (see Model Quality Safeguards).
 
@@ -95,18 +97,19 @@ spin-up costs more than it saves.
 
 The `Workflow` tool runs deterministic multi-agent scripts (fan-out, pipeline,
 adversarial verify) and can spawn dozens of agents — reserve it for work that
-genuinely needs that scale.
+genuinely needs that scale: skill evals, rule-compliance checks, claim-source
+cross-verification, bulk triage. NOT for ordinary coding or single-file edits —
+dispatch one Agent or work inline instead. Before any large run, gauge cost on
+a narrow slice and state the token budget explicitly; route steps that don't
+need a strong model to a smaller one. A per-session effort directive (e.g.
+ultracode) can raise this default — honor it when set.
 
-- **Use it only for long / large-scale parallel / adversarial verification** —
-  skill evals, rule-compliance checks, claim-source cross-verification, bulk
-  triage. Do NOT use it for ordinary coding or single-file edits; dispatch one
-  Agent or work inline instead.
-- **Gauge cost on a narrow slice before any large run** — one directory, one
-  narrow question — then state the token budget explicitly. Route steps that
-  don't need a strong model down to a smaller model.
+## Context Compaction
 
-A per-session effort directive (e.g. ultracode) can raise this default — honor
-the active session directive when one is set.
+When compacting, always preserve: the list of modified files, verification
+commands and their latest results, and any pending user approvals or unanswered
+questions. (The PreCompact hook already injects `.research/`/`.plans/` file
+pointers — this rule covers the rest.)
 
 ## Directory Layout
 
@@ -115,6 +118,7 @@ the active session directive when one is set.
 - `skills/<name>/SKILL.md` — user skill definitions (see [skills/CLAUDE.md](./skills/CLAUDE.md))
 - `agents/<name>.md` — custom subagents dispatched by skills and the Agent tool
 - `hooks/*.sh` — executable hook scripts wired via `settings.json`
+- `evals/<skill>/` — waza evaluation suites (run only via the `waza-runner` agent)
 - `settings.json` — permissions, hooks, env vars
 - `../rules/SOUL.md` — shared Korean identity source (authoritative for the Agent Identity block above)
 
@@ -139,20 +143,6 @@ Triggered by natural language; invoke via the Skill tool when a trigger matches.
 [Design]         frontend-design-evaluator → multi-agent-orchestrator
 ```
 
-> When a `generate-skills` or `skill-improver` run needs an evaluation step, it dispatches the `agents/waza-runner.md` subagent. **All waza work goes through `waza-runner` alone — no SKILL.md or script ever calls the `waza` CLI directly.** Commands, workspace paths, and the waza-not-installed fallback are documented in the agent definition.
-
-## Skills (Local Policy)
-
-Local additions for the skill development workflow. Skills live under `~/.claude/skills/` (user-level) and `.claude/skills/` (project-level).
-
-### Periodic skill-improver check (7-day cadence)
-
-Run this on every session start.
-
-1. **Skill-improver periodic check.** Read `~/.claude/.last_skill_improver_run`. If the file does not exist or its recorded date is more than 7 days ago:
-   1. Glob `~/.claude/skills/*/SKILL.md` and count targets (`N`).
-   2. Surface a short, non-blocking notice: "마지막 skill-improver 실행 후 X일 경과, N개 스킬 점검 가능. 지금 실행할까요?" Do not auto-run without consent.
-   3. On consent, invoke `Skill("skill-improver")` with no arguments (full sweep). **Do NOT write the timestamp here** — skill-improver's Phase 6 writes it only on successful completion. This preserves the "failed runs re-prompt next session" behavior documented in the skill's Gotcha #4.
-   4. On decline (or if the user dismisses the notice), write today's date (YYYY-MM-DD) to `~/.claude/.last_skill_improver_run` so the prompt does not repeat next session.
-
-Rationale: skill-improver is consent-gated (Phase 6 commit confirmation), so a passive prompt fits better than an autonomous cron.
+> The 7-day skill-improver cadence check runs as a SessionStart hook
+> (`hooks/skill-improver-cadence.sh`) — follow its injected consent flow when it
+> fires; never auto-run skill-improver without consent.
