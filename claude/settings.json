@@ -52,6 +52,17 @@
     "disableBypassPermissionsMode": "disable"
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/skill-improver-cadence.sh"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [],
     "PostToolUse": [
       {
@@ -149,13 +160,12 @@
   "language": "한국어",
   "spinnerTipsEnabled": false,
   "alwaysThinkingEnabled": true,
-  "effortLevel": "medium",
+  "effortLevel": "xhigh",
   "advisorModel": "opus",
   "tui": "fullscreen",
   "theme": "dark-ansi",
   "editorMode": "normal",
   "teammateMode": "tmux",
   "skipAutoPermissionPrompt": true,
-  "useAutoModeDuringPlan": true,
-  "model": "claude-fable-5[1m]"
+  "useAutoModeDuringPlan": true
 }
