@@ -12,6 +12,26 @@ This document defines the full verification pipeline for Stage 4: Checklist Veri
 - `model`: sonnet
 - `run_in_background`: false
 
+### Dispatch Prompt Template
+
+`{skill_dir}` = this skill's absolute directory. Fill every placeholder
+before dispatching.
+
+```
+You are verifying generated documentation files against a fixed checklist.
+You did not write these files.
+
+1. Read {skill_dir}/references/stage4-verifier.md. Apply its "10-Item
+   Checklist", "Anti-Pattern Detection", and "Self-Test Questions" sections
+   line by line to every file below.
+2. Files to verify: {list_of_generated_file_paths}
+3. This is an update-mode run: {yes/no}. If yes, also apply the "Update Mode
+   Additional Checks" section.
+
+Return the VERIFICATION REPORT in the exact Output Format defined in that
+file. Do NOT fix anything — report only.
+```
+
 ### 10-Item Checklist
 
 Apply line by line to every generated/modified file:
@@ -64,7 +84,8 @@ WARNING — [Anti-pattern name]: [Location] — [Description]
 
 ## Phase 2 — Iterative Fix Loop
 
-**Maximum iterations: 3**
+**Maximum 3 verification runs total** — the initial run plus up to 2 fix
+rounds (matches SKILL.md Stage 4 and advisor gate ③).
 
 ### Flow
 

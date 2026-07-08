@@ -17,12 +17,51 @@
 
 ## What the Orchestrator Provides
 
-The orchestrator passes the following inputs to this agent:
+The orchestrator pastes the following into the dispatch prompt:
 
+- **Authoritative constraints**: the include/exclude table, prune test, and
+  size budget from claude-code-best-practices.md (live-fetched result
+  preferred — paste the text, since the fetch happened in the orchestrator's
+  context, not the agent's)
 - **Stage 1 summary**: Detected project facts (tech stack, monorepo structure, submodules, existing files)
 - **Stage 2 answers**: User decisions (which nested CLAUDE.md to generate, scope boundaries)
 - **Target files**: List of files to create or update (Root CLAUDE.md, AGENTS.md, contributing-docs/, nested CLAUDE.md, .claude/rules/)
-- **Generation principles**: Condensed from the guideline files (SOUL, entry-router-guidelines)
+
+The agent reads the rule files itself (this file, SOUL.md,
+entry-router-guidelines.md) — do not re-condense them into the prompt.
+
+## Dispatch Prompt Template
+
+`{skill_dir}` = this skill's absolute directory (the orchestrator knows it
+from reading this file). Fill every placeholder before dispatching.
+
+```
+You are generating project documentation files. You did not analyze this
+project yourself — rely only on the inputs below and the rule files you read.
+
+1. Read {skill_dir}/references/stage3-generator.md. Follow its Common
+   Writing Rules and the per-file section (A–E) for each target.
+2. Read {skill_dir}/references/SOUL.md. If the targets include governance
+   content (AGENTS.md Boundaries, behavioral guidelines), also read
+   {skill_dir}/references/entry-router-guidelines.md.
+
+Authoritative constraints (live-fetched from the Claude Code docs — these
+override anything else you know about CLAUDE.md):
+{authoritative_constraints}
+
+Confirmed project facts (Stage 1):
+{stage1_summary}
+
+User decisions (Stage 2):
+{stage2_answers}
+
+Targets to write: {target_file_list}
+
+Rules of engagement:
+- Confirmed facts only — no assumptions, no "nice to have" content.
+- Create files with Write; never touch files outside the target list.
+- When done, report each written file path with its line count.
+```
 
 ---
 

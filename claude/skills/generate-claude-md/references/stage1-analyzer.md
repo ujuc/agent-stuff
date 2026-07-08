@@ -1,6 +1,8 @@
 # Stage 1: Project Analyzer
 
-> Defines how 3 parallel Explore agents analyze a target project. Adopts the deep-read `.partial/` pattern.
+> Defines how 3 parallel Explore agents analyze a target project. Explore agents
+> are read-only (no Write/Edit tool) — findings return as each agent's final
+> message, which the orchestrator receives as the Agent tool result.
 > Tier 2 reference — loaded during Stage 1 execution.
 
 ---
@@ -33,7 +35,14 @@ For simple projects, read files directly and proceed to the Merge Protocol secti
 
 ## Agent Definitions
 
-Spawn all three agents simultaneously with `run_in_background: true`. They are fully independent read-only tasks.
+Spawn all three agents **in one message** with `run_in_background: true`. They
+are fully independent read-only tasks.
+
+**Collection rule**: the `Explore` agent type has no Write/Edit tool — never
+instruct these agents to write files. Each returns its findings as its final
+message; the orchestrator collects them from the Agent tool results (use
+`TaskOutput` for background runs). If an agent dies or returns nothing, note
+the gap and continue with what exists.
 
 ### Agent 1: config-explorer
 
@@ -62,7 +71,7 @@ For each found file, record:
 - Key fields (scripts section, dependencies count, test command, main entry point)
 Do NOT include raw file contents — summarize only.
 
-Write your findings to .research/partials/claude-md-config.md using this structure:
+Return your findings as your final message — raw markdown, no preamble — using this structure:
 
 # Config Explorer Findings
 
@@ -107,7 +116,7 @@ Investigate:
 Report: structure type (monorepo / single-package / hybrid / config-only), list of independent units with their detected tech stack.
 Do NOT recursively read all files — observe patterns from names and top-level structure.
 
-Write your findings to .research/partials/claude-md-structure.md using this structure:
+Return your findings as your final message — raw markdown, no preamble — using this structure:
 
 # Structure Explorer Findings
 
@@ -159,7 +168,7 @@ For each found file, provide a one-line summary.
 For existing CLAUDE.md files, note section headings and line count.
 Do NOT include full file contents.
 
-Write your findings to .research/partials/claude-md-docs.md using this structure:
+Return your findings as your final message — raw markdown, no preamble — using this structure:
 
 # Docs Explorer Findings
 
@@ -213,7 +222,7 @@ Address these specific open questions:
 Provide file:line references wherever relevant.
 Do NOT reproduce raw file contents — cite and summarize.
 
-Write your findings to .research/partials/claude-md-deep.md using this structure:
+Return your findings as your final message — raw markdown, no preamble — using this structure:
 
 # Deep Explorer Findings
 
@@ -238,13 +247,18 @@ Write your findings to .research/partials/claude-md-deep.md using this structure
 
 After all launched agents complete, execute the following steps before advancing to Stage 2.
 
-### Step 1: Read Partials
+### Step 1: Collect Findings
 
-Read each file that exists:
-- `.research/partials/claude-md-config.md`
-- `.research/partials/claude-md-structure.md`
-- `.research/partials/claude-md-docs.md`
-- `.research/partials/claude-md-deep.md` (if spawned)
+Gather each launched agent's final message from its Agent tool result
+(`TaskOutput` for background runs):
+
+- config-explorer findings
+- structure-explorer findings
+- docs-explorer findings
+- Explore-Deep findings (if spawned)
+
+If a result is missing (agent skipped, died, or returned nothing), record the
+gap explicitly and continue with what exists.
 
 ### Step 2: Classify Discoverability
 
@@ -284,15 +298,5 @@ Show the merged analysis before proceeding to Stage 2. Include:
 4. Items that need Stage 2 questions
 5. Nested CLAUDE.md candidate table (if applicable)
 
----
-
-## Cleanup
-
-After the Merge Protocol is complete and the summary has been presented:
-
-1. Delete `.research/partials/claude-md-config.md`
-2. Delete `.research/partials/claude-md-structure.md`
-3. Delete `.research/partials/claude-md-docs.md`
-4. Delete `.research/partials/claude-md-deep.md` (if it exists)
-
-The `.research/partials/` directory may be removed if empty. The merged analysis exists only in the main agent's context — it is not persisted to disk.
+Nothing is persisted to disk — the merged analysis exists only in the main
+agent's context. There is no cleanup step.

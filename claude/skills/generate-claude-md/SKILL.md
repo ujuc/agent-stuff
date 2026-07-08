@@ -4,46 +4,82 @@ description: 프로젝트용 CLAUDE.md, AGENTS.md, contributing-docs/, .claude/r
 when_to_use: "문서 생성/갱신 요청일 때. 트리거: '/generate-claude-md', 'CLAUDE.md 업데이트', 'AGENTS.md 갱신', 'rules 생성', 'contributing-docs 추가', 'update CLAUDE.md', 'refresh AGENTS.md'. 단일 파일 편집은 Edit 도구를 직접 쓰고 이 스킬을 호출하지 않는다."
 group: docs
 model: opus
-allowed-tools: Read, Write, Edit, Glob, Grep, Agent, WebFetch, advisor
+allowed-tools: Read Write Edit Glob Grep Agent AskUserQuestion ToolSearch WebFetch TaskOutput advisor
 ---
 
 # CLAUDE.md Generator — Orchestrator
 
+Generate or refine project documentation — root CLAUDE.md, AGENTS.md,
+contributing-docs/, nested CLAUDE.md, `.claude/rules/` — under one governing
+rule: **document only what an agent cannot discover by reading the code.**
+
+## Pipeline Map
+
+Execute stages strictly in order. Update mode swaps in U1–U3
+(references/update-mode.md) at the marked points but keeps the same order.
+
+| Stage | Purpose | Executed by | Reference |
+|-------|---------|-------------|-----------|
+| 0 | Live-fetch guidance, route generate/update, pick targets | Orchestrator | this file |
+| 1 | Analyze project; classify discoverable vs undiscoverable | 3 Explore agents (complex) or direct reads (simple); update adds U1 audit | references/stage1-analyzer.md |
+| 2 | Interview user on unresolved items | Orchestrator via AskUserQuestion; update adds U2 drift report | this file + references/update-mode.md |
+| 3 | Write files | 1 general-purpose agent; update mode: U3 surgical edits by orchestrator | references/stage3-generator.md |
+| 4 | Verify: checklist → fix loop → blind review | sonnet subagents + advisor | references/stage4-verifier.md |
+
 ## Stage 0: Bootstrap & Routing
 
 This skill is the **"refine over time"** layer on top of the built-in `/init`
-command. `/init` is a user-only slash command — it **cannot** be invoked
-programmatically here — so the integration is to **consume its output** (an
-existing CLAUDE.md) as the baseline, exactly as the official docs prescribe:
-*"Run `/init` to generate a starter CLAUDE.md ... then refine over time."* See
-references/claude-code-best-practices.md.
+command. `/init` is a user-only slash command — it cannot be invoked
+programmatically — so this skill consumes its output (an existing CLAUDE.md)
+as the baseline, exactly as the official docs prescribe: *"Run `/init` to
+generate a starter CLAUDE.md ... then refine over time."*
 
-### Routing precedence
+### Step 0-1 — Load authoritative guidance (live fetch, loud fallback)
 
-Decide the branch from two signals — keyword **and** whether a target CLAUDE.md
-already exists. **File existence overrides the keyword default:**
+references/claude-code-best-practices.md is the **single authoritative
+source** for the ✅ include / ❌ exclude table, the prune test (*"Would
+removing this cause Claude to make mistakes? If not, cut it"*), the 200-line
+ceiling, `@import` semantics, AGENTS.md loading, and the over-specified
+CLAUDE.md failure pattern. Its upstream changes often, so fetch live on every
+run:
+
+1. Call `ToolSearch` with query `select:WebFetch`. WebFetch is a **deferred
+   tool**: `allowed-tools` only pre-grants permission — until the schema is
+   loaded, calling it fails with a validation error that is *not* a network
+   error.
+2. `WebFetch` the `source_url` in that file's frontmatter (plus
+   `secondary_source_url` when CLAUDE.md sizing or `/init` behavior is in
+   scope).
+3. Success → use the fetched text; if it differs materially from the cached
+   snapshot, update the cache and bump `last_upstream_check`.
+4. **Any** failure (tool not loaded, offline, rate limit, layout change) →
+   use the cached snapshot **and** tell the user in one line:
+   *"best-practices 라이브 로드 실패, 캐시 사용 (last check: <date>)."*
+   Never fall back silently.
+
+### Step 0-2 — Route generate vs update
+
+Two signals: keyword and whether a target CLAUDE.md exists.
+**File existence overrides the keyword default.**
 
 | Signal | Branch |
 |--------|--------|
-| `$ARGUMENTS` contains `업데이트` / `수정` / `갱신` / `update` / `refresh` | **Update mode** (refine path) |
-| No keyword **+ target CLAUDE.md exists** | **Update mode** (treat the existing file as the `/init` baseline) |
-| No keyword **+ no CLAUDE.md** | **Generate mode** (full Stage 1→4), after the `/init` recommendation below |
+| `$ARGUMENTS` contains `업데이트` / `수정` / `갱신` / `update` / `refresh` | **Update mode** (U1→U3 refine path) |
+| No keyword + target CLAUDE.md exists | **Update mode** — the existing file is the `/init` baseline; never regenerate |
+| No keyword + no CLAUDE.md | **Generate mode** (full Stage 1→4), after the recommendation below |
 
-- **Refine path = the existing update-mode** (U1 audit → U2 drift → U3 surgical
-  edit). It is *not* a new mechanism. Route every "file exists" case through it.
-- **No-baseline recommendation**: when no CLAUDE.md exists, surface a one-line
-  recommendation before generating — state that no baseline was found and that
-  running `/init` first (the official "/init then refine" workflow) is preferred,
-  then ask whether to proceed with full generation now or re-invoke after `/init`.
-  Render this prompt in the user's language. If the user proceeds, run full
-  generation (Stage 1→4) as the standalone fallback.
-- **Light refine when the baseline is rich**: if the existing CLAUDE.md came from
-  `/init`'s `CLAUDE_CODE_NEW_INIT=1` flow (it already did subagent exploration +
-  interview), skip the heavy Stage 1 deep-explore. Apply only the skill's
-  differentiators: discoverability filter, AGENTS.md, contributing-docs/, rules/,
-  blind review.
+- **No-baseline recommendation**: state in one line that no baseline was found
+  and that running `/init` first (the official "/init then refine" workflow)
+  is preferred, then ask whether to proceed with full generation now or
+  re-invoke after `/init`. Render the prompt in the user's language. If the
+  user proceeds, run Stage 1→4 as the standalone fallback.
+- **Light refine for rich baselines**: if the existing CLAUDE.md came from
+  `/init`'s `CLAUDE_CODE_NEW_INIT=1` flow (it already did subagent exploration
+  + interview), skip heavy Stage 1 exploration and apply only this skill's
+  differentiators: discoverability filter, AGENTS.md, contributing-docs/,
+  rules/, blind review.
 
-### Target Identification
+### Step 0-3 — Identify targets
 
 | Keyword in `$ARGUMENTS` | Target |
 |-------------------------|--------|
@@ -52,95 +88,125 @@ already exists. **File existence overrides the keyword default:**
 | `rules` | `.claude/rules/` only |
 | `업데이트` with no specific file name | All 5 file types |
 
-If `$ARGUMENTS` is empty, apply the routing precedence above against the current
-working directory.
-
----
+Empty `$ARGUMENTS` → apply Step 0-2 against the current working directory.
 
 ## Generation Philosophy
 
-Principles that govern every stage of this skill.
-
-**Authoritative guidance** (references/claude-code-best-practices.md — **live-fetched**): the official Anthropic ✅ include / ❌ exclude table, the prune test (*"Would removing this cause Claude to make mistakes? If not, cut it"*), the 200-line ceiling, `@import` semantics, AGENTS.md loading, and the "over-specified CLAUDE.md" failure pattern. On skill start, **first load WebFetch with `ToolSearch` (query `select:WebFetch`) — it is a deferred tool and is not callable until its schema is loaded, even though `allowed-tools` pre-grants permission — then** WebFetch the upstream URLs in that file's frontmatter. On **any** failure (tool not loaded, offline, rate limit, layout change), fall back to its cached snapshot and tell the user in one line.
-
-**Content principles & research rationale**: the *why* behind "include only undiscoverable information" — AGENTS.md is a diagnostic list of problems code has not yet solved. Performance evidence: auto-generated context → success rate −2–3%, cost +20%; human-written gotchas → +4% (ETH Zurich). Every line must justify its existence. (For the operative include/exclude rule itself, defer to the authoritative source above.)
-
-**Governance principle** (references/entry-router-guidelines.md): when autonomous-agent safeguards are required, reflect the Entry Router CORE rules in AGENTS.md Boundaries and CLAUDE.md behavioral guidelines.
-
-**Workflow-usage policy** (undiscoverable info — document *conditionally*): when Stage 1/2 reveal the target project does large-scale parallel/adversarial orchestration (eval harnesses, rule-compliance verification, claim-source cross-checking, bulk triage, multi-agent pipelines), have Section A emit a short "Workflow Orchestration" policy in the generated CLAUDE.md. For projects without such workloads, **omit it** — it fails the prune test and burns the size budget.
-
-**Soul** (references/SOUL.md): the foundation of agent identity and attitude. This is a static seed copy used when generating project files — not a pointer to the live identity file (`../rules/SOUL.md`).
-
-**LLM context**: code patterns are discoverable, so style rules are unnecessary — exclude them. Write instructions as verifiable success criteria.
-
----
+- **Undiscoverable information only.** AGENTS.md is a diagnostic list of
+  problems the code has not yet solved. Research evidence: auto-generated
+  context → success rate −2–3%, cost +20%; human-written gotchas → +4%
+  (ETH Zurich). Every line must justify its existence. The operative
+  include/exclude rule lives in the authoritative source (Step 0-1).
+- **Code patterns are discoverable** — style rules are unnecessary; exclude
+  them. Write instructions as verifiable success criteria.
+- **Governance** (references/entry-router-guidelines.md): when
+  autonomous-agent safeguards are required, reflect the Entry Router CORE
+  rules in AGENTS.md Boundaries and CLAUDE.md behavioral guidelines.
+- **Workflow-usage policy — document conditionally**: when Stage 1/2 reveal
+  large-scale parallel/adversarial orchestration (eval harnesses,
+  rule-compliance verification, claim-source cross-checking, bulk triage,
+  multi-agent pipelines), have Section A emit its short "Workflow
+  Orchestration" policy block. Otherwise **omit it** — it fails the prune
+  test and burns the size budget.
+- **Soul** (references/SOUL.md): the agent-identity seed used when generating
+  project files — a static copy, not a pointer to the live identity file.
 
 ## Stage 1: Project Analysis
 
-**Reference**: references/stage1-analyzer.md (full procedure, including agent prompts).
+**Reference**: references/stage1-analyzer.md (complexity criteria, agent
+prompt templates, merge protocol).
 
-Detect package/build/test/lint config, repository structure (monorepo/submodule), documentation/CI layout, and existing `.claude/rules/` in the target directory.
+Detect package/build/test/lint config, repository structure
+(monorepo/submodule), documentation/CI layout, and existing `.claude/rules/`
+in the target directory.
 
-**Complexity judgment**: 3+ config file types, monorepo, or submodules present → complex project.
+- **Complex project** (any of: 3+ config file types, monorepo, submodules) →
+  spawn 3 Explore agents (`model: sonnet`) in one message: config-explorer,
+  structure-explorer, docs-explorer. Explore agents are **read-only** — each
+  returns findings as its final message; collect from Agent tool results
+  (TaskOutput for background runs).
+- **Simple project** → read directly, no subagents.
 
-- **Complex project**: spawn 3 Explore agents (`model: sonnet`) — Explore-Config, Explore-Structure, Explore-Docs
-- **Simple project**: detect directly, no subagent
+Merge findings, classify each as discoverable vs undiscoverable, separate
+facts from `[ASSUMPTION]`s, and present the summary to the user.
 
-Classify findings as discoverable vs. undiscoverable and present them to the user. Distinguish facts from assumptions.
+**advisor() gate ①**: monorepo with 5+ packages, 3+ submodules, or an
+existing CLAUDE.md with complex structure → validate the analysis strategy.
 
-**advisor() call condition ①**: Stage 1 reveals a monorepo with 5+ packages, 3+ submodules, or an existing CLAUDE.md with complex structure → call advisor() to validate the analysis strategy.
+**Effort note**: the orchestrator inherits the session model/effort — do not
+pin `effort` in frontmatter. If analysis itself is the bottleneck on a very
+large monorepo, suggest the user raise the session effort level and re-run.
 
-**Effort note (Opus 4.8)**: the orchestrator inherits the session model/effort — do not hardcode `effort` in frontmatter. For very large monorepos where the analysis itself is the hard part, suggest the user raise effort (`/effort xhigh`, available on Opus 4.8/4.7) before re-running, rather than forcing it.
+## Stage 2: Interview (orchestrator only — do not delegate)
 
----
-
-## Stage 2: Interview (run directly — cannot delegate to subagents)
-
+`AskUserQuestion` runs only in the main orchestrator context (Gotcha 1).
 Ask only about items Stage 1 could not resolve:
 
 - **WHY**: project purpose / role
-- **WHAT**: monorepo package roles, submodule relationships, external service dependencies
-- **HOW**: work rules / workflow, whether agents make repeated mistakes, approval for generating nested CLAUDE.md files
+- **WHAT**: monorepo package roles, submodule relationships, external service
+  dependencies
+- **HOW**: work rules / workflow, recurring agent mistakes, approval for
+  nested CLAUDE.md files
 
-For ambiguous items, present candidate interpretations and ask the user to choose. Confirm Stage 1 assumptions with the user.
+Present candidate interpretations for ambiguous items and let the user
+choose. Confirm every Stage 1 `[ASSUMPTION]`.
 
-**Deep exploration (optional)**: while `AskUserQuestion` is pending and the project is a large monorepo (5+ packages) with unresolved questions, spawn an Explore-Deep agent (`model: sonnet`) in the background. Skip when Stage 1 results are sufficient.
+**Deep exploration (optional)**: while AskUserQuestion is pending and the
+project is a large monorepo (5+ packages) with unresolved questions, spawn
+Explore-Deep (`model: sonnet`) in the background. Skip when Stage 1 results
+suffice.
 
-**Update mode**: integrate U1 (audit) and U2 (compare) from references/update-mode.md into this stage. Present the U2 comparison report and confirm the update scope with the user.
+**Non-interactive session**: if AskUserQuestion is unavailable (headless
+run), skip the interview, generate from confirmed facts only, and list every
+unresolved question in the final report. Never write assumptions into
+generated files.
 
-**advisor() call condition ②**: the user's answers contradict Stage 1 detection, or update mode surfaces 10+ drift items.
+**Update mode**: run U1 (audit) and U2 (drift comparison) in this stage
+(references/update-mode.md). Present the U2 comparison report and confirm the
+update scope with the user.
 
----
+**advisor() gate ②**: user answers contradict Stage 1 detection, or update
+mode surfaces 10+ drift items.
 
 ## Stage 3: Generation
 
-**Reference**: references/stage3-generator.md (per-file rules A–E, common writing rules).
+**Reference**: references/stage3-generator.md (dispatch prompt template,
+per-file rules A–E, common writing rules).
 
-Spawn a single general-purpose agent (`model: sonnet`) to generate files.
+Spawn one general-purpose agent (`model: sonnet`) using the dispatch prompt
+template. The agent Reads the rule files itself; the orchestrator pastes into
+the prompt only the live-fetched authoritative constraints, the Stage 1
+summary, the Stage 2 answers, and the target list.
 
-**What to pass**: Stage 1 summary, Stage 2 answers, target file list, and the core principles from the guideline files — the **authoritative include/exclude table + prune test + 200-line budget** (references/claude-code-best-practices.md, live-fetched result preferred), plus entry-router and SOUL.
+**5 possible targets**: root CLAUDE.md, AGENTS.md, contributing-docs/,
+nested CLAUDE.md, `.claude/rules/`. Generate only the applicable ones.
 
-**5 generation targets**: Root CLAUDE.md, AGENTS.md, contributing-docs/, nested CLAUDE.md, `.claude/rules/`. Generate only the applicable ones.
-
-**Update mode**: run U3 (apply) from references/update-mode.md. Use the Edit tool for surgical modifications only — never regenerate entire files.
-
----
+**Update mode**: run U3 instead (references/update-mode.md) — the
+orchestrator applies surgical Edits, one user-confirmed change at a time.
+Never regenerate whole files.
 
 ## Stage 4: Verification
 
-**Reference**: references/stage4-verifier.md (10-item checklist, anti-patterns, Reviewer prompt). The checklist's size/staleness items enforce the authoritative prune test and 200-line ceiling from references/claude-code-best-practices.md.
+**Reference**: references/stage4-verifier.md (verifier dispatch template,
+10-item checklist, anti-patterns, reviewer prompt). The checklist's
+size/staleness items enforce the authoritative prune test and 200-line
+ceiling from Step 0-1.
 
-Three-phase pipeline:
+1. **Verifier** (`model: sonnet`): apply the 10-item checklist line by line
+   via the dispatch template.
+2. **Fix loop**: the orchestrator fixes FAIL items, then re-verifies.
+   Maximum **3 verification runs total** (initial + up to 2 fix rounds);
+   after that, report remaining FAILs to the user and proceed.
+3. **Blind Reviewer** (`model: sonnet`, consults advisor): spawn when output
+   exceeds a single root CLAUDE.md. Pass generated file contents **only** —
+   no Stage 1/2 results, no verifier output (Gotcha 3). The Reviewer calls
+   advisor() for an opus cross-model second opinion on low-confidence
+   findings.
 
-1. **Verifier**: apply the 10-item checklist line by line (`model: sonnet`)
-2. **Iterative Fix**: fix failing items and re-verify (up to 2 iterations)
-3. **Reviewer**: if the output exceeds a single CLAUDE.md, spawn a blind independent review agent (`model: sonnet`; it consults `advisor()` for an opus cross-model second opinion on low-confidence findings — see references/stage4-verifier.md). Do not pass Phase 1/2 results to it.
+Report verification results to the user; for each FAIL, quote the line and
+the reason.
 
-Report verification results to the user. For failing items, quote the line and the reason.
-
-**advisor() call condition ③**: Reviewer returns FAIL and 2 orchestrator fix iterations still cannot reach PASS.
-
----
+**advisor() gate ③**: Reviewer FAIL persists after the 2 fix rounds.
 
 ## Advisor Escalation Summary
 
@@ -148,81 +214,64 @@ Report verification results to the user. For failing items, quote the line and t
 |---|------|---------|
 | ① | After Stage 1 | Monorepo 5+ packages, 3+ submodules, or complex existing CLAUDE.md |
 | ② | During Stage 2 | User answer ↔ detection mismatch, or 10+ drift items in update mode |
-| ③ | During Stage 4 | Reviewer FAIL followed by 2 fix iterations still not PASS |
+| ③ | During Stage 4 | Reviewer FAIL persists after 2 fix rounds |
 
-**When not to call advisor()**: simple project generation, 1–2 target files, verification passes on the first iteration, or the user gave unambiguous instructions.
+**When not to call advisor()**: simple project generation, 1–2 target files,
+verification passes on the first run, or the user gave unambiguous
+instructions.
 
----
+## Red Flags — STOP
+
+| You are about to… | Do instead |
+|-------------------|------------|
+| Regenerate an existing CLAUDE.md from scratch | Route to update mode — the existing file is the `/init` baseline |
+| Call WebFetch before loading its schema | `ToolSearch` `select:WebFetch` first (Step 0-1) |
+| Use the cached best-practices without saying so | Announce the fallback in one line |
+| Give the blind Reviewer anything beyond the generated files | Generated file contents only |
+| Apply an update-mode edit the user has not seen | Show the exact change; get per-file confirmation (U3) |
+| Tell a Stage 1 Explore agent to write a file | Explore is read-only — findings return as final messages |
+| Claim completion without Stage 4 output | Report checklist/reviewer results with quoted failures |
 
 ## Gotchas
 
-Skill-specific pitfalls that automation cannot catch. Update whenever a new edge case is discovered.
+Skill-specific pitfalls automation cannot catch. Update whenever a new edge
+case is discovered.
 
-1. **Stage 2 cannot be delegated to a subagent.** It requires `AskUserQuestion`, which only runs in the main orchestrator context. Explore-Deep can overlap with the user's typing, but the question flow itself must stay in the main agent.
-
-2. **`references/SOUL.md` is a static seed copy, not the live identity file.** The user's identity lives at `~/.config/dotrc/rules/SOUL.md` (`../rules/SOUL.md`). The copy bundled here is a frozen snapshot so generation is reproducible across environments. Do not substitute the live identity file at runtime.
-
-3. **Blind Reviewer must receive no orchestrator context.** If Phase 1 or Phase 2 output leaks into the Reviewer prompt, the review stops being independent and the FAIL filter loses its value. Only generated file contents should be passed in.
-
-4. **`model: opus` is an orchestrator hint, not a subagent default.** Agents spawned in Stage 1, 3, and 4 explicitly request `model: sonnet` to control cost — the Stage 4 blind Reviewer additionally consults `advisor()` (opus per `advisorModel`) for a cross-model second opinion on uncertain findings. Do not assume a single model applies throughout the pipeline. Model aliases (`opus`/`sonnet`) resolve to the current generation at runtime (Opus 4.8 today) — never hardcode version IDs like `claude-opus-4-8`. Likewise `effort` is inherited from the session, not pinned in frontmatter; Opus 4.8 exposes `xhigh` via `/effort` for the user to opt into.
-
-5. **`disable-model-invocation` is intentionally unset.** The skill is invasive (writes/edits several project files). Because it is registered in CLAUDE.md's Skills table, auto-invocation can still fire from vague user phrasing. If false positives become a problem, flip this flag on and rely on `/generate-claude-md` plus the Skills-table triggers.
-
-6. **advisor() takes no parameters; the entire transcript is forwarded.** Calling it before Stage 1 results are visible is premature. Prefer calling it right after orchestrator-internal reasoning has crystallized.
-
-7. **Update mode assumes existing files were generated by this skill.** Hand-crafted CLAUDE.md files with unusual structures may register as drift when they are intentional. Confirm with the user before removing sections that look "redundant" but carry project-specific meaning.
-
-8. **An existing CLAUDE.md is the `/init` baseline, and its existence overrides the keyword default.** No update keyword + a CLAUDE.md already on disk → route to update mode (refine), never regenerate from scratch. This both matches the "/init then refine" workflow and fixes the old "empty arguments → generate mode" path that would clobber an existing file. `/init` itself cannot be called programmatically — only its output is consumed.
-
-9. **best-practices is live-fetched, so a fetch failure must degrade loudly, not silently.** WebFetch is a **deferred tool** — load its schema with `ToolSearch select:WebFetch` before the first call, or the call fails with a validation error that is *not* a network failure. Treat **any** failure (not-loaded, offline, rate limit, layout change) the same way: fall back to the cached snapshot in references/claude-code-best-practices.md **and** say so in one line. Silently using a stale cache hides that the authoritative guidance may have moved.
-
----
+1. **Stage 2 cannot be delegated to a subagent.** `AskUserQuestion` only runs
+   in the main orchestrator context. Explore-Deep can overlap with the user's
+   typing, but the question flow itself stays in the main agent.
+2. **references/SOUL.md is a static seed copy, not the live identity file.**
+   The live identity is `~/.config/dotrc/rules/SOUL.md` (`../rules/SOUL.md`).
+   The bundled copy keeps generation reproducible across environments — do
+   not substitute the live file at runtime.
+3. **Blind Reviewer independence is the whole point.** If Phase 1/2 output or
+   Stage 1/2 context leaks into the Reviewer prompt, the review becomes
+   confirmation and the FAIL filter loses its value.
+4. **`model: opus` is an orchestrator hint, not a pipeline default.** Stage
+   1/3/4 subagents explicitly request `model: sonnet` for cost; the Stage 4
+   Reviewer additionally consults advisor() (opus per `advisorModel`) on
+   low-confidence findings. Model aliases (`opus`/`sonnet`) resolve to the
+   current generation at runtime — never hardcode version IDs. `effort` is
+   inherited from the session, never pinned in frontmatter.
+5. **`disable-model-invocation` is intentionally unset.** The skill is
+   invasive (writes/edits several project files); auto-invocation can still
+   fire from vague phrasing via the Skills-table triggers. If false positives
+   become a problem, flip the flag on and rely on `/generate-claude-md`.
+6. **advisor() takes no parameters; the entire transcript is forwarded.**
+   Calling it before the relevant results are visible in the transcript is
+   premature. Call it right after the reasoning it should review has
+   crystallized.
+7. **Update mode may misread hand-crafted files as drift.** Unusual
+   structures can be intentional. Confirm with the user before removing
+   sections that look redundant but may carry project-specific meaning.
+8. **Explore agents are read-only.** The Agent tool's `Explore` type has no
+   Write/Edit tool. Collect Stage 1 / Explore-Deep findings from their final
+   messages (Agent tool result, or TaskOutput for background runs) — never
+   instruct them to write `.research/` files.
 
 ## Eval Criteria
 
-Five binary checks for any generation or update run. Autoresearch may reuse these when optimizing autonomously.
-
-```
-EVAL 1: Mode routing
-  Question: Does the run pick the correct branch per the Stage 0 routing
-            precedence — keyword OR an existing CLAUDE.md routes to update
-            (refine), no keyword + no CLAUDE.md routes to generate after
-            the /init recommendation — and identify the right target files?
-  Pass: Chosen branch matches the precedence table (file existence overrides
-        the keyword default); generated/modified file list matches targets.
-  Fail: An existing CLAUDE.md was regenerated from scratch, wrong branch,
-        or target file list drifts from stated intent.
-
-EVAL 2: Discoverability discipline
-  Question: Every line in the generated/modified output passes the
-            "Can an agent discover this by reading the code?" test.
-  Pass: No discoverable content included in CLAUDE.md, AGENTS.md,
-        contributing-docs/, or rules/.
-  Fail: One or more lines restate facts readable from package.json,
-        source tree, or standard linter rules.
-
-EVAL 3: Size budgets
-  Question: Root CLAUDE.md ≤ 100 lines soft / 200 hard (official ceiling,
-            source: claude-code-best-practices.md), nested CLAUDE.md
-            ≤ 50 lines (hard 100), individual rule file ≤ 50 lines. Every
-            retained line passes the prune test.
-  Pass: Produced files stay within soft limits, or within hard limits
-        with a user-approved rationale; no line fails the prune test.
-  Fail: Any file exceeds the hard limit without user approval, or a line
-        survives that would not cause a mistake if removed.
-
-EVAL 4: Reference integrity
-  Question: All cross-file references (CLAUDE.md → AGENTS.md,
-            AGENTS.md → contributing-docs/, nested → parent,
-            rules/ globs) resolve to existing paths.
-  Pass: Every reference is a live path.
-  Fail: Any reference is broken or a glob targets non-existent paths.
-
-EVAL 5: Blind reviewer
-  Question: When output is more than a single root CLAUDE.md, does
-            Phase 3 Reviewer return PASS on all 7 criteria (or all
-            FAILs are resolved in subsequent iterations)?
-  Pass: Final Reviewer run returns PASS, or initial FAILs were resolved
-        before the final output.
-  Fail: Unresolved Reviewer FAILs at skill completion.
-```
+references/eval-criteria.md defines 5 binary checks — mode routing,
+discoverability discipline, size budgets, reference integrity, blind
+review — for any generation or update run. skill-improver / autoresearch /
+waza reuse them when optimizing this skill.
