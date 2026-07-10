@@ -46,8 +46,21 @@
       "Skill(commit)",
       "Skill(commit:*)"
     ],
-    "deny": [],
-    "ask": [],
+    "deny": [
+      "Edit(~/.claude/deplicated/**)",
+      "Write(~/.claude/deplicated/**)",
+      "Edit(~/.claude/sessions/**)",
+      "Write(~/.claude/sessions/**)",
+      "Edit(~/.claude/cache/**)",
+      "Write(~/.claude/cache/**)",
+      "Edit(~/.claude/file-history/**)",
+      "Write(~/.claude/file-history/**)",
+      "Edit(~/.claude/telemetry/**)",
+      "Write(~/.claude/telemetry/**)"
+    ],
+    "ask": [
+      "Bash(git push:*)"
+    ],
     "defaultMode": "auto",
     "disableBypassPermissionsMode": "disable"
   },
@@ -59,6 +72,17 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/skill-improver-cadence.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/clarify-update-word.sh"
           }
         ]
       }
@@ -113,7 +137,7 @@
     "ecc@ecc": true,
     "typescript-lsp@claude-plugins-official": true,
     "pyright-lsp@claude-plugins-official": true,
-    "explanatory-output-style@claude-plugins-official": true,
+    "explanatory-output-style@claude-plugins-official": false,
     "remember@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true
   },
@@ -151,6 +175,7 @@
     }
   },
   "language": "한국어",
+  "outputStyle": "explanatory-concise",
   "spinnerTipsEnabled": false,
   "alwaysThinkingEnabled": true,
   "effortLevel": "xhigh",
@@ -163,5 +188,6 @@
   "inputNeededNotifEnabled": true,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
-  "useAutoModeDuringPlan": true
+  "useAutoModeDuringPlan": true,
+  "model": "claude-fable-5[1m]"
 }
