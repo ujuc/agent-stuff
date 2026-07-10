@@ -106,6 +106,12 @@ overridden without explicit approval.
 
 Triggered by natural language; invoke via the Skill tool when a trigger matches. Located in `skills/<skill-name>/SKILL.md`. The `group:` field in SKILL.md frontmatter is the single source of truth for classification — view the full catalog (groups · triggers · models) via `/skills` (or `스킬 목록 보여줘`), which runs the `skill-index` meta-skill to merge `group:` frontmatter with plugin commands; no static table is duplicated here.
 
+Skills are cross-harness assets: Codex and Amp consume the same `SKILL.md` files
+(user-global and project `.claude/skills/`) via the shared AGENTS.md "Skills
+(Shared Catalog)" rule. Keep skill bodies portable — when a step depends on a
+Claude-only feature (Skill/Agent tool, subagents, hooks), name a fallback the
+other harnesses can follow.
+
 ### Workflow Index
 
 ```

@@ -68,6 +68,23 @@ For new scripts, tools, or utilities:
 Keep bash strictly for launchers/wrappers. Use Node/Deno/Bun only for explicitly
 JS/TS ecosystem work.
 
+## Skills (Shared Catalog)
+
+Skills are reusable workflow definitions — `SKILL.md` files with `name`/
+`description` frontmatter — authored once for every agent on this machine:
+
+- User-global: `~/.claude/skills/<name>/SKILL.md`
+  (canonical: `~/.config/dotrc/agents/claude/skills/`)
+- Per-project: `<repo>/.claude/skills/<name>/SKILL.md` — overrides a
+  user-global skill with the same name.
+
+Agents with native skill loading invoke them directly. Any other agent
+(Codex, Amp): when a request matches a skill's `description` or names one
+(`/commit`, "커밋해줘"), read that SKILL.md first and execute it as the
+workflow. Substitute local equivalents for tools that exist only in another
+harness; if a step has no equivalent, skip it and tell the user which step
+was skipped.
+
 ## Boundaries
 
 **Always**
