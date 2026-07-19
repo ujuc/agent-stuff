@@ -41,7 +41,7 @@ bash skill-index/scripts/skill-index.sh --workflow  # 워크플로우 색인만
 
 ## Harness Pipeline
 
-5개 harness 스킬이 단일 파이프라인을 구성한다 (`build` / `verify` / `planning`에 분포):
+4개 컴포넌트 스킬과 Generator 단계가 단일 파이프라인을 구성한다 (`build` / `verify` / `planning`에 분포):
 
 ```
 [User Prompt]
