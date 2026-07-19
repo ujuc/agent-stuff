@@ -7,38 +7,43 @@ model: haiku
 allowed-tools: Bash
 ---
 
-# /skills — 그룹별 스킬 카탈로그
+# /skills — Skill Catalog by Group
 
-자체 스킬과 플러그인 명령을 8개 그룹으로 분류해 마크다운 표로 출력한다. 사용자가 트리거 키워드를 잊었거나, 어떤 단계에서 어떤 스킬을 쓸지 모를 때 호출한다.
+Renders self-authored skills and plugin commands as a markdown table across 8
+groups. Invoked when the user has forgotten trigger keywords or does not know
+which skill fits the current stage of work.
 
 ## When to invoke
 
-- 사용자가 `/skills`, `스킬 목록`, `스킬 그룹`, `어떤 스킬 있어`, `스킬 보여줘` 같이 직접 카탈로그를 요청할 때
-- 사용자가 작업 흐름 중간에 "다음에 뭐 쓰지" 식으로 막혔을 때
-- 그룹 필터링: `/skills 기획`, `/skills planning`, `/skills 검증`
+- The user directly requests the catalog: `/skills`, `스킬 목록`, `스킬 그룹`, `어떤 스킬 있어`, `스킬 보여줘`
+- The user stalls mid-workflow with a "다음에 뭐 쓰지"-style question
+- Group filtering: `/skills 기획`, `/skills planning`, `/skills 검증`
 
-이 메타스킬을 자체적으로 추론·요약하지 말고 **반드시 `bash scripts/skill-index.sh` 를 호출**하여 그 출력을 그대로 사용자에게 보여준다. 스킬 목록의 진실은 frontmatter이며 이 스크립트만이 그 진실을 읽는다.
+Do not reason about or summarize this catalog yourself — **always run
+`bash scripts/skill-index.sh`** and show its output to the user verbatim. The
+frontmatter is the source of truth for the skill list, and this script is the
+only reader of that truth.
 
 ## Usage
 
 ```bash
-# 전체 8 그룹 + 워크플로우 색인
+# Full 8 groups + workflow index
 bash ~/.claude/skills/skill-index/scripts/skill-index.sh
 
-# 그룹 필터 (한글 라벨 또는 영문 slug)
+# Group filter (Korean label or English slug)
 bash ~/.claude/skills/skill-index/scripts/skill-index.sh 기획
 bash ~/.claude/skills/skill-index/scripts/skill-index.sh planning
 
-# 워크플로우 색인만
+# Workflow index only
 bash ~/.claude/skills/skill-index/scripts/skill-index.sh --workflow
 
-# README 자동생성용 마크다운
+# Markdown for README auto-generation
 bash ~/.claude/skills/skill-index/scripts/skill-index.sh --markdown
 ```
 
 ## Group definitions
 
-| slug | 한글 라벨 | 포함 스킬 |
+| slug | Korean label | skills |
 |---|---|---|
 | `planning` | 🧭 기획·스펙 | spec-planner, sprint-contract-negotiator |
 | `analysis` | 📐 분석·계획 | deep-read, annotate-plan |
@@ -49,23 +54,25 @@ bash ~/.claude/skills/skill-index/scripts/skill-index.sh --markdown
 | `llm` | 🤖 외부 LLM | gemma, codex:* |
 | `meta` | 🧪 메타·관리 | generate-skills, skill-improver, autoresearch, maintain, skill-index |
 
-플러그인 명령은 `tools/skill-index/plugin-groups.toml` 에서 동일 8 그룹에 매핑된다.
+Plugin commands are mapped to the same 8 groups in
+`tools/skill-index/plugin-groups.toml`.
 
 ## Output contract
 
-- stdout 마크다운만 — stderr는 warn(누락된 group 필드 등) 전용
-- 종료 코드: 정상 0, 빌드 실패 1
-- 출력은 결정적(deterministic) — 같은 입력에 같은 출력. 회사·집 머신에서 재현 가능.
+- stdout carries markdown only — stderr is reserved for warnings (missing `group` fields, etc.)
+- Exit codes: 0 on success, 1 on build failure
+- Output is deterministic — same input, same output; reproducible across machines.
 
 ## Adding a new skill
 
-1. `~/.config/dotrc/agents/claude/skills/<new-skill>/SKILL.md` frontmatter에 `group: <slug>` 추가
-2. `/skills` 호출 — 해당 그룹에 자동 노출
-3. `~/.config/dotrc/agents/claude/CLAUDE.md` Skills 섹션 갱신은 별도 (수동 또는 향후 자동화)
+1. Add `group: <slug>` to the frontmatter of `~/.config/dotrc/agents/claude/skills/<new-skill>/SKILL.md`
+2. Run `/skills` — the skill appears under its group automatically
+3. Updating the Skills section of `~/.config/dotrc/agents/claude/CLAUDE.md` is a separate step (manual, or future automation)
 
-## Plugin command 추가
+## Adding a plugin command
 
-플러그인 명령(`prefix:command`)은 SKILL.md 수정 권한이 없으므로 `tools/skill-index/plugin-groups.toml` 의 해당 그룹 `commands` 배열에 추가한다.
+Plugin commands (`prefix:command`) expose no SKILL.md to edit, so add them to
+the group's `commands` array in `tools/skill-index/plugin-groups.toml`.
 
 ## References
 
