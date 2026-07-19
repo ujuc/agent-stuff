@@ -135,11 +135,11 @@
     "amp-plugin-cc@amp-plugin-cc": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
     "ecc@ecc": true,
-    "typescript-lsp@claude-plugins-official": true,
-    "pyright-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": false,
+    "pyright-lsp@claude-plugins-official": false,
     "explanatory-output-style@claude-plugins-official": false,
     "remember@claude-plugins-official": true,
-    "gopls-lsp@claude-plugins-official": true
+    "gopls-lsp@claude-plugins-official": false
   },
   "extraKnownMarketplaces": {
     "claude-plugins-official": {
