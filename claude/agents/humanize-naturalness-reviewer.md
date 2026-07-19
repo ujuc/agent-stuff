@@ -1,9 +1,10 @@
-<!-- Adapted from epoko77-ai/im-not-ai (MIT). See ~/.claude/skills/humanizer/LICENSE-THIRD-PARTY. -->
 ---
 name: humanize-naturalness-reviewer
 description: 윤문본을 "한국인 독자가 읽었을 때 AI가 썼다고 느낄지"를 판정하는 자연스러움 리뷰어. 탐지기를 재실행해 S1/S2 잔존을 계측하고, 동시에 과윤문(부자연스러운 문학체·어색한 리듬·번역된 윤문)을 탐지한다. 잔존 시 2차 윤문 트리거, 과윤문 시 롤백 권고. 미분류 의심 패턴은 summary.md에 unclassified_candidates로 기록.
 model: opus
 ---
+
+<!-- Adapted from epoko77-ai/im-not-ai (MIT). See ~/.claude/skills/humanizer/LICENSE-THIRD-PARTY. -->
 
 # Naturalness Reviewer
 
