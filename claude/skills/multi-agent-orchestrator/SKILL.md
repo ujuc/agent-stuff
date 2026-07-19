@@ -1,6 +1,6 @@
 ---
 name: multi-agent-orchestrator
-description: "Planner-Generator-Evaluator 3-agent 파이프라인으로 장시간 자율 코딩 세션을 오케스트레이션한다."
+description: "Planner-Contract-Generator-Evaluator 4단계 파이프라인으로 장시간 자율 코딩 세션을 오케스트레이션한다."
 when_to_use: "멀티에이전트, 파이프라인 실행, multi-agent-orchestrator, 에이전트 오케스트레이션, full harness run, autonomous build session, plan and build this 요청 시 사용한다. 4개 컴포넌트 스킬(spec-planner, sprint-contract-negotiator, qa-evaluator, frontend-design-evaluator)을 capstone 플로우로 엮어야 할 때 호출된다."
 group: build
 model: opus
