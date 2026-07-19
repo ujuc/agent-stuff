@@ -1,6 +1,7 @@
 ---
 name: maintain
 description: "agent-stuff 저장소의 구조 정합성, 문서 동기화, 스킬 품질을 점검하고 유지보수한다. /maintain, 정비해줘, 헬스체크, 문서 동기화, 스킬 점검, 스킬 감사 요청 시 반드시 이 스킬을 사용할 것."
+group: meta
 model: opus
 allowed-tools: Agent, Read, Glob, Grep, Bash, Edit, Write, TaskCreate, TaskUpdate
 user-invocable: true
