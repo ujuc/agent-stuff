@@ -110,7 +110,7 @@ Before finalizing any response, verify:
 
 ---
 
-## When to Apply in generate-claude-md
+## When to Apply in generate-agent-docs
 
 ### Strong indicators (include governance section)
 

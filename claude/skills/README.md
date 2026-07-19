@@ -19,7 +19,7 @@ bash skill-index/scripts/skill-index.sh --workflow  # 워크플로우 색인만
 | `analysis` | 📐 분석·계획 | `deep-read`, `annotate-plan` |
 | `build` | 🛠 구현·실행 | `implement-plan`, `multi-agent-orchestrator` |
 | `verify` | ✅ 검증·QA | `qa-evaluator`, `frontend-design-evaluator` |
-| `docs` | 📝 문서·커밋 | `commit`, `generate-claude-md` |
+| `docs` | 📝 문서·커밋 | `commit`, `generate-agent-docs` |
 | `writing` | ✍️ 글쓰기 | `humanizer`, `prompting-assist` |
 | `llm` | 🤖 외부 LLM | `gemma`, `codex:setup`, `codex:rescue` |
 | `meta` | 🧪 메타·관리 | `skill-index`, `generate-skills`, `skill-improver`, `autoresearch` |

@@ -1,6 +1,6 @@
-name: generate-claude-md-eval
-description: Auto-generated eval for generate-claude-md.
-skill: generate-claude-md
+name: generate-agent-docs-eval
+description: Auto-generated eval for generate-agent-docs.
+skill: generate-agent-docs
 version: "1.0"
 config:
   trials_per_task: 1

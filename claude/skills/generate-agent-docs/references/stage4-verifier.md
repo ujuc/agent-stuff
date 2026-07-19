@@ -40,8 +40,8 @@ Apply line by line to every generated/modified file:
 2. **Linter role**: Is this a code style rule? → Delete and recommend replacing with a linter or hook
 3. **Speculation exclusion**: Does it include anything not confirmed in Stage 1–2? → If so, delete
 4. **Verifiability**: Can compliance with each instruction be verified? → If not, make it concrete
-5. **Size constraints**: Root CLAUDE.md under 100 lines soft / **200 hard** (official ceiling, claude-code-best-practices.md)? Nested CLAUDE.md under 50 lines (hard limit 100)? Individual instructions under 50 items? → If exceeded, consolidate, delete, or split into `.claude/rules/`
-6. **Hierarchy / Scope**: Does CLAUDE.md reference contributing-docs/ directly (should go via AGENTS.md)? Does AGENTS.md contain Claude-specific content only? Does a nested CLAUDE.md cover content outside its directory or repeat parent content? Do rules/ files duplicate CLAUDE.md content? Are glob-scopeable rules using alwaysApply: true? Do rules/ files overlap in role with contributing-docs/? Can alwaysApply: true rules without path scoping be moved to CLAUDE.md? → If any, move/delete or replace with parent reference
+5. **Size constraints**: CLAUDE.md + imported AGENTS.md **combined** under 100 lines soft / **200 hard** (official ceiling, claude-code-best-practices.md)? Nested CLAUDE.md under 50 lines (hard limit 100)? Individual instructions under 50 items? → If exceeded, consolidate, delete, or split into `.claude/rules/`
+6. **Hierarchy / Role split**: Does CLAUDE.md start with the `@AGENTS.md` import instead of restating project content? Does CLAUDE.md carry project-general content that belongs in AGENTS.md (fails the Claude-only test)? Does AGENTS.md contain harness-specific content (Claude-only tools, hooks, skills, plan mode) or YAML frontmatter? Does CLAUDE.md reference contributing-docs/ directly (should go via AGENTS.md)? Does a nested CLAUDE.md cover content outside its directory or repeat parent content? Do rules/ files duplicate CLAUDE.md content, use legacy `globs`/`alwaysApply` frontmatter instead of `paths`, or overlap in role with contributing-docs/? Can unconditional rules (no `paths`) be moved to CLAUDE.md? → If any, move/delete/migrate or replace with parent reference
 7. **Reference integrity**: Are relative paths in nested CLAUDE.md valid? → Verify relative paths
 8. **Discoverability**: Can an agent learn this by reading the code? → If yes, delete
 9. **Staleness risk**: Does the line reference specific versions, tool names, or dependencies that may become inaccurate within 6 months? → If risky, delete or add expiry comment
@@ -59,7 +59,9 @@ Warn the user when any of the following are detected:
 ### Self-Test Questions
 
 - "Would a senior engineer look at this CLAUDE.md and say 'this is too much'?"
-- "Is the CLAUDE.md → AGENTS.md → contributing-docs/ hierarchy and the CLAUDE.md → .claude/rules/ path clearly separated?"
+- "Is the CLAUDE.md (`@AGENTS.md` import + Claude-only) → AGENTS.md → contributing-docs/ hierarchy and the CLAUDE.md → .claude/rules/ path clearly separated?"
+- "Would a Codex or Amp session, which reads only AGENTS.md (+ contributing-docs/), miss anything it needs to work safely in this repo?" → If yes, the missing content is misplaced in a Claude-only file
+- "Does every line of CLAUDE.md below the import pass the Claude-only test ('meaningless to a non-Claude agent')?"
 - "Would root CLAUDE.md alone be sufficient for work in a nested directory, making the nested file removable?" → If sufficient, recommend deleting the nested file
 - "Do any nested CLAUDE.md files contradict each other?"
 - "If this line were deleted, would an agent reading the code reach the same conclusion?" → If yes, delete
@@ -151,10 +153,10 @@ Files to review: {list_of_generated_file_paths}
 
 1. Discoverability: Does each line pass the test "Can an agent learn this by reading the code?" If yes → flag for removal
 2. Staleness risk: Does any line reference specific versions, tool names, or dependencies that may become inaccurate within 6 months? → flag with reason
-3. Redundancy: Is any content duplicated between CLAUDE.md, AGENTS.md, and contributing-docs/? → flag the duplicate
-4. Hierarchy: Does CLAUDE.md reference contributing-docs/ directly (should go through AGENTS.md)? → flag
+3. Redundancy: Is any content duplicated between CLAUDE.md, AGENTS.md, and contributing-docs/? (CLAUDE.md imports AGENTS.md via `@AGENTS.md` — restating imported content is duplication) → flag the duplicate
+4. Hierarchy / role split: Does CLAUDE.md start with `@AGENTS.md` and contain only Claude Code-specific content below it (hooks, skills, subagents, plan mode)? Is AGENTS.md harness-neutral (no Claude-only tools/features, no YAML frontmatter)? Does CLAUDE.md reference contributing-docs/ directly (should go through AGENTS.md)? Do .claude/rules/ files use `paths` frontmatter (not legacy `globs`/`alwaysApply`)? → flag
 5. Nested CLAUDE.md: Does any nested file repeat content from root CLAUDE.md? Does scope exceed its directory? → flag
-6. Size: Is root CLAUDE.md under 100 lines soft / 200 hard (official ceiling)? Nested under 50 (hard limit 100)? Flag any line that fails the prune test ("would removing this cause a mistake?")
+6. Size: Are CLAUDE.md + imported AGENTS.md combined under 100 lines soft / 200 hard (official ceiling)? Nested under 50 (hard limit 100)? Flag any line that fails the prune test ("would removing this cause a mistake?")
 7. Actionability: Is every instruction verifiable? Any vague guidance? → flag with suggestion
 
 For any criterion where your PASS/FAIL call is low-confidence, call advisor() for an independent opus second opinion before finalizing.

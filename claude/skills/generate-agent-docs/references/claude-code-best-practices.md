@@ -1,7 +1,7 @@
 ---
 source_url: https://code.claude.com/docs/en/best-practices.md
 secondary_source_url: https://code.claude.com/docs/en/memory.md
-last_upstream_check: 2026-05-30
+last_upstream_check: 2026-07-19
 check_interval_days: 0  # 0 = fetch on every run (user preference: always live; the doc changes often). WebFetch caches per-URL for ~15 min, so this is cheap.
 ---
 
@@ -34,11 +34,12 @@ the orchestrator:
 
 The split across two pages is deliberate: the include/exclude table, prune-test,
 and failure patterns live on `best-practices`; the 200-line budget, `/init`
-behavior, and AGENTS.md loading live on `memory`.
+behavior, the AGENTS.md import pattern, and the `.claude/rules/` format live on
+`memory`.
 
 ---
 
-## Cached snapshot (last verified 2026-05-30)
+## Cached snapshot (last verified 2026-07-19)
 
 ### ✅ Include / ❌ Exclude (source: best-practices)
 
@@ -61,6 +62,11 @@ behavior, and AGENTS.md loading live on `memory`.
 This is the single most important verification criterion. Every produced line of
 CLAUDE.md (and every retained line in update mode) must pass it.
 
+Adjacent guidance: CLAUDE.md is loaded every session, so it holds only what
+applies broadly. *"For domain knowledge or workflows that are only relevant
+sometimes, use skills instead"* — recommend a skill, not a CLAUDE.md section,
+for sometimes-relevant workflows.
+
 ### Size budget (source: memory)
 
 > **Size**: target under 200 lines per CLAUDE.md file. Longer files consume more
@@ -68,8 +74,11 @@ CLAUDE.md (and every retained line in update mode) must pass it.
 
 - Root CLAUDE.md: soft target ~100 lines (keep it tight), **hard ceiling 200**.
 - "Files over 200 lines consume more context and may reduce adherence." When a
-  file grows past the ceiling, split into path-scoped `.claude/rules/` or
-  `@`-imports rather than letting CLAUDE.md sprawl.
+  file grows past the ceiling, split into path-scoped `.claude/rules/` rather
+  than letting CLAUDE.md sprawl.
+- The budget covers what loads at launch: a CLAUDE.md that `@`-imports
+  AGENTS.md spends the **combined** line count of both files. Apply the soft
+  ~100 / hard 200 budget to CLAUDE.md + imported AGENTS.md together.
 
 ### Imports (source: best-practices + memory)
 
@@ -78,23 +87,63 @@ CLAUDE.md (and every retained line in update mode) must pass it.
 - Imported files are **expanded and loaded in full at launch** — `@import` aids
   organization but does **not** reduce context. Use it only for content that
   genuinely belongs in every session.
-- This is why the skill keeps AGENTS.md as an on-demand pointer (markdown link),
-  **not** an `@import`: AGENTS.md is progressive-disclosure detail, not
-  every-session context.
+- Relative paths resolve relative to the importing file, not the working
+  directory. Recursive imports allowed, maximum depth 4 hops.
+- Import parsing skips code spans and fenced code blocks — wrap a path in
+  backticks (`` `@README` ``) to mention it without importing it.
 
-### AGENTS.md loading (source: memory)
+### AGENTS.md — the official cross-agent pattern (source: memory)
 
-> Claude Code reads `CLAUDE.md`, not `AGENTS.md`.
+> Claude Code reads `CLAUDE.md`, not `AGENTS.md`. If your repository already
+> uses `AGENTS.md` for other coding agents, **create a `CLAUDE.md` that imports
+> it so both tools read the same instructions without duplicating them. You can
+> also add Claude-specific instructions below the import.** Claude loads the
+> imported file at session start, then appends the rest.
 
-- AGENTS.md is not auto-loaded. For Claude Code to read it every session, a
-  CLAUDE.md must `@AGENTS.md`-import it or be a symlink to it.
-- The skill's design intentionally does **not** auto-load AGENTS.md: CLAUDE.md
-  links to it as a pointer so agents read it on demand. Preserve this — do not
-  convert the pointer into an `@import` unless the user wants AGENTS.md in every
-  session's context.
-- `/init` in a repo with an existing AGENTS.md (or `.cursorrules` /
-  `.windsurfrules`) reads it and incorporates relevant parts into the generated
-  CLAUDE.md.
+Official recommended shape (verbatim example from memory.md):
+
+```markdown
+@AGENTS.md
+
+## Claude Code
+
+Use plan mode for changes under `src/billing/`.
+```
+
+- A symlink (`ln -s AGENTS.md CLAUDE.md`) also works when there is no
+  Claude-specific content to add. On Windows prefer the `@AGENTS.md` import
+  (symlinks need Administrator/Developer Mode).
+- **This skill adopts the import pattern as its default**: AGENTS.md is the
+  primary cross-harness project document (Codex and Amp load it natively),
+  CLAUDE.md is the Claude-specific layer on top of the import
+  (stage3-generator.md Sections A–B).
+- `/init` in a repo with an existing AGENTS.md reads it and incorporates the
+  relevant parts into the generated CLAUDE.md; it also reads other tool
+  configs (`.cursorrules`, `.devin/rules/`, `.windsurfrules`).
+
+> Note: snapshots before 2026-07 recorded a "keep AGENTS.md a pointer link, do
+> not `@import` it" stance. The upstream guidance above **supersedes** it for
+> repositories whose AGENTS.md serves multiple agents.
+
+### `.claude/rules/` format (source: memory)
+
+- Rule files are plain markdown; the only documented frontmatter field is
+  `paths` (a glob array). Rules **without** `paths` load unconditionally at
+  launch, with the same priority as `.claude/CLAUDE.md`.
+- Path-scoped rules trigger when Claude reads files matching the pattern (not
+  on every tool use). Brace expansion is supported (`src/**/*.{ts,tsx}`).
+- `.md` files are discovered recursively; symlinked rule files/directories are
+  resolved normally (shareable across projects).
+- The legacy `description` / `globs` / `alwaysApply` fields are **not** part of
+  the documented format — never emit them; migrate them on update.
+
+### CLAUDE.md locations & comments (source: memory)
+
+- Project file may live at `./CLAUDE.md` **or** `./.claude/CLAUDE.md`; personal
+  gitignored notes in `./CLAUDE.local.md`; user-global in `~/.claude/CLAUDE.md`.
+- Block-level HTML comments (`<!-- ... -->`) are stripped before context
+  injection — free channel for human-maintainer notes (preserved inside code
+  blocks, though).
 
 ### Advisory vs. deterministic — convert rules to hooks (source: best-practices)
 
@@ -123,6 +172,10 @@ hook instead of a CLAUDE.md line.
   subagent exploration + interview — so the skill's refine pass should be **light**
   (discoverability filter, AGENTS.md / contributing-docs/ / rules/, blind review),
   not a full Stage 1 re-analysis.
+- `/doctor` (v2.1.206+) proposes trims for a checked-in CLAUDE.md: cuts
+  derivable content (directory layouts, dependency lists, architecture
+  overviews), keeps pitfalls, rationale, and non-default conventions —
+  complementary to this skill's update mode.
 
 ### Over-specified CLAUDE.md — the failure to avoid (source: best-practices)
 

@@ -27,11 +27,11 @@ keep the refine light — do not re-run heavy Stage 1 deep-exploration.
 
    | File | Details to Check |
    |------|-----------------|
-   | Root `CLAUDE.md` | Line count, section list (parse `#`/`##` headers), validity of reference paths |
-   | `AGENTS.md` | Frontmatter fields, section list, validity of `contributing-docs/` references, presence of Boundaries section |
+   | Root `CLAUDE.md` | Line count, section list (parse `#`/`##` headers), presence of the `@AGENTS.md` import, project-general content that belongs in AGENTS.md (fails the Claude-only test), validity of reference paths |
+   | `AGENTS.md` | Legacy YAML frontmatter (flag for removal — plain markdown per the agents.md convention), section list, harness-specific content (Claude-only tools/features — flag for move to CLAUDE.md), validity of `contributing-docs/` references, presence of Boundaries section |
    | `contributing-docs/` | File list, line count per file, whether each file is referenced from `AGENTS.md` |
    | Nested `CLAUDE.md` | Location, line count, validity of parent reference paths, content overlap with parent `CLAUDE.md` |
-   | `.claude/rules/` | File list, `description`/`globs`/`alwaysApply` per file, content overlap with `CLAUDE.md` |
+   | `.claude/rules/` | File list, `paths` per file (flag legacy `description`/`globs`/`alwaysApply` for migration), content overlap with `CLAUDE.md` |
 
 2. **Present audit summary table** to the user:
 
@@ -40,7 +40,7 @@ keep the refine light — do not re-run heavy Stage 1 deep-exploration.
    | `CLAUDE.md` | N | exists | N sections |
    | `AGENTS.md` | N | exists | N sections, contributing-docs refs valid |
    | `contributing-docs/architecture.md` | N | exists | referenced from AGENTS.md |
-   | `.claude/rules/typescript.md` | N | exists | globs: `**/*.ts` |
+   | `.claude/rules/typescript.md` | N | exists | paths: `**/*.ts` |
    | … | … | … | … |
 
 3. **If no files are found**: ask the user via AskUserQuestion:
@@ -68,25 +68,26 @@ Compare the current codebase state (Stage 1 results) against existing documentat
 | `AGENTS.md` | Operational Gotchas vs. current code | Resolved gotchas still present; new gotchas needed |
 | `contributing-docs/` | Each doc's content vs. actual structure/config | Structure or strategy changed |
 | Nested `CLAUDE.md` | Directory-specific tech/commands vs. documentation | Subdirectory changed |
-| `.claude/rules/` | `globs` patterns vs. actual file paths | Scoped paths no longer exist |
+| `.claude/rules/` | `paths` patterns vs. actual file paths | Scoped paths no longer exist |
 
 ### Axis 2: Principle Re-application
 
 Re-apply the Stage 3 generation philosophy to every line of existing files:
 
 - **Discoverability test**: Identify items that are now discoverable through improved code (and therefore should be removed)
-- **Size constraint**: Flag if Root `CLAUDE.md` exceeds 100 lines or any nested `CLAUDE.md` exceeds 50 lines
+- **Role-split check (cross-harness)**: Project-general content in `CLAUDE.md` → move to `AGENTS.md`; Claude-only content (hooks, skills, subagents, plan mode) in `AGENTS.md` → move to `CLAUDE.md`; both files exist but `CLAUDE.md` lacks the `@AGENTS.md` import → flag; `AGENTS.md` YAML frontmatter or legacy rules/ frontmatter (`globs`/`alwaysApply`) → migrate per stage3-generator.md Sections B/E
+- **Size constraint**: Flag if `CLAUDE.md` + imported `AGENTS.md` combined exceed 100 lines or any nested `CLAUDE.md` exceeds 50 lines
 - **Staleness risk**: Flag specific version numbers, tool names, or dependency names that no longer match the current state
-- **Redundancy check**: Identify content duplicated across files (`CLAUDE.md` ↔ `rules/`, parent ↔ nested, `AGENTS.md` ↔ `contributing-docs/`)
+- **Redundancy check**: Identify content duplicated across files (`CLAUDE.md` ↔ `AGENTS.md` (below the import), `CLAUDE.md` ↔ `rules/`, parent ↔ nested, `AGENTS.md` ↔ `contributing-docs/`)
 
 ### Axis 3: Structural Integrity
 
 Validate cross-file reference relationships:
 
-- `CLAUDE.md` → `AGENTS.md` reference path resolves correctly
+- `CLAUDE.md` → `@AGENTS.md` import resolves (the file exists at the imported path)
 - `AGENTS.md` → `contributing-docs/` references match actual files present
 - Nested `CLAUDE.md` → parent reference path is correct
-- `.claude/rules/` `globs` patterns point to paths that actually exist
+- `.claude/rules/` `paths` patterns point to paths that actually exist
 
 ### Comparison Report Format
 

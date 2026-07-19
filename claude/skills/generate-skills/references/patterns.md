@@ -247,7 +247,7 @@ Use when the path depends on user input or environment state.
 
 Complex skills often combine patterns:
 
-- **Interview + linear**: collect requirements, then run a fixed sequence (e.g., `generate-claude-md`).
+- **Interview + linear**: collect requirements, then run a fixed sequence (e.g., `generate-agent-docs`).
 - **Linear + validation**: generate, then quality-check (e.g., `generate-skills`).
 - **Tool orchestration + validation**: run automation, then verify the result.
 - **Sequential + conditional**: a fixed flow that branches based on situation (e.g., update if config exists, create otherwise).

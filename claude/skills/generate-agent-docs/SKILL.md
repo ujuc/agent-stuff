@@ -1,17 +1,20 @@
 ---
-name: generate-claude-md
-description: 프로젝트용 CLAUDE.md, AGENTS.md, contributing-docs/, .claude/rules/ 파일을 발견 불가능 정보 원칙에 따라 생성하거나 업데이트한다.
-when_to_use: "문서 생성/갱신 요청일 때. 트리거: '/generate-claude-md', 'CLAUDE.md 업데이트', 'AGENTS.md 갱신', 'rules 생성', 'contributing-docs 추가', 'update CLAUDE.md', 'refresh AGENTS.md'. 단일 파일 편집은 Edit 도구를 직접 쓰고 이 스킬을 호출하지 않는다."
+name: generate-agent-docs
+description: 프로젝트용 CLAUDE.md(Claude 전용 레이어), AGENTS.md(Codex·Amp 겸용 크로스하네스 주 문서), contributing-docs/, .claude/rules/ 파일을 발견 불가능 정보 원칙에 따라 생성하거나 업데이트한다. (구 명칭 generate-claude-md)
+when_to_use: "문서 생성/갱신 요청일 때. 트리거: '/generate-agent-docs', 'CLAUDE.md 업데이트', 'AGENTS.md 갱신', 'rules 생성', 'contributing-docs 추가', 'update CLAUDE.md', 'refresh AGENTS.md'. 단일 파일 편집은 Edit 도구를 직접 쓰고 이 스킬을 호출하지 않는다."
 group: docs
 model: opus
 allowed-tools: Read Write Edit Glob Grep Agent AskUserQuestion ToolSearch WebFetch TaskOutput advisor
 ---
 
-# CLAUDE.md Generator — Orchestrator
+# Agent Docs Generator — Orchestrator
 
 Generate or refine project documentation — root CLAUDE.md, AGENTS.md,
 contributing-docs/, nested CLAUDE.md, `.claude/rules/` — under one governing
 rule: **document only what an agent cannot discover by reading the code.**
+Role split: **AGENTS.md is the primary cross-harness document** (Codex/Amp
+read it natively; Claude Code loads it via the `@AGENTS.md` import), and
+**CLAUDE.md is the Claude Code-specific layer** on top of that import.
 
 ## Pipeline Map
 
@@ -39,8 +42,9 @@ generate a starter CLAUDE.md ... then refine over time."*
 references/claude-code-best-practices.md is the **single authoritative
 source** for the ✅ include / ❌ exclude table, the prune test (*"Would
 removing this cause Claude to make mistakes? If not, cut it"*), the 200-line
-ceiling, `@import` semantics, AGENTS.md loading, and the over-specified
-CLAUDE.md failure pattern. Its upstream changes often, so fetch live on every
+ceiling, `@import` semantics, the AGENTS.md import pattern, the
+`.claude/rules/` `paths` format, and the over-specified CLAUDE.md failure
+pattern. Its upstream changes often, so fetch live on every
 run:
 
 1. Call `ToolSearch` with query `select:WebFetch`. WebFetch is a **deferred
@@ -97,6 +101,12 @@ Empty `$ARGUMENTS` → apply Step 0-2 against the current working directory.
   context → success rate −2–3%, cost +20%; human-written gotchas → +4%
   (ETH Zurich). Every line must justify its existence. The operative
   include/exclude rule lives in the authoritative source (Step 0-1).
+- **Cross-harness role split.** AGENTS.md is the primary project document,
+  consumed by every harness (Codex/Amp natively; Claude Code through the
+  `@AGENTS.md` import that opens CLAUDE.md) — keep it harness-neutral and
+  plain markdown (no frontmatter). CLAUDE.md holds only Claude Code-specific
+  content below the import. The operative placement test lives in
+  stage3-generator.md Common Writing Rules.
 - **Code patterns are discoverable** — style rules are unnecessary; exclude
   them. Write instructions as verifiable success criteria.
 - **Governance** (references/entry-router-guidelines.md): when
@@ -105,9 +115,9 @@ Empty `$ARGUMENTS` → apply Step 0-2 against the current working directory.
 - **Workflow-usage policy — document conditionally**: when Stage 1/2 reveal
   large-scale parallel/adversarial orchestration (eval harnesses,
   rule-compliance verification, claim-source cross-checking, bulk triage,
-  multi-agent pipelines), have Section A emit its short "Workflow
-  Orchestration" policy block. Otherwise **omit it** — it fails the prune
-  test and burns the size budget.
+  multi-agent pipelines), have Section B emit its short "Workflow
+  Orchestration" policy block into AGENTS.md (harness-neutral phrasing).
+  Otherwise **omit it** — it fails the prune test and burns the size budget.
 - **Soul** (references/SOUL.md): the agent-identity seed used when generating
   project files — a static copy, not a pointer to the live identity file.
 
@@ -225,6 +235,7 @@ instructions.
 | You are about to… | Do instead |
 |-------------------|------------|
 | Regenerate an existing CLAUDE.md from scratch | Route to update mode — the existing file is the `/init` baseline |
+| Put project-general content in CLAUDE.md, or Claude-only content in AGENTS.md | Apply the placement test (stage3-generator.md Common Writing Rules) — AGENTS.md is cross-harness, CLAUDE.md is `@AGENTS.md` + Claude-only |
 | Call WebFetch before loading its schema | `ToolSearch` `select:WebFetch` first (Step 0-1) |
 | Use the cached best-practices without saying so | Announce the fallback in one line |
 | Give the blind Reviewer anything beyond the generated files | Generated file contents only |
@@ -241,9 +252,10 @@ case is discovered.
    in the main orchestrator context. Explore-Deep can overlap with the user's
    typing, but the question flow itself stays in the main agent.
 2. **references/SOUL.md is a static seed copy, not the live identity file.**
-   The live identity is `~/.config/dotrc/rules/SOUL.md` (`../rules/SOUL.md`).
-   The bundled copy keeps generation reproducible across environments — do
-   not substitute the live file at runtime.
+   The live identity is `~/.config/dotrc/agents/rules/SOUL.md` (last synced
+   2026-07-19). The bundled copy keeps generation reproducible across
+   environments — do not substitute the live file at runtime; re-sync it
+   deliberately during skill updates when the live identity has changed.
 3. **Blind Reviewer independence is the whole point.** If Phase 1/2 output or
    Stage 1/2 context leaks into the Reviewer prompt, the review becomes
    confirmation and the FAIL filter loses its value.
@@ -256,7 +268,7 @@ case is discovered.
 5. **`disable-model-invocation` is intentionally unset.** The skill is
    invasive (writes/edits several project files); auto-invocation can still
    fire from vague phrasing via the Skills-table triggers. If false positives
-   become a problem, flip the flag on and rely on `/generate-claude-md`.
+   become a problem, flip the flag on and rely on `/generate-agent-docs`.
 6. **advisor() takes no parameters; the entire transcript is forwarded.**
    Calling it before the relevant results are visible in the transcript is
    premature. Call it right after the reasoning it should review has

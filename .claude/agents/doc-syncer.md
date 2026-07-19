@@ -46,7 +46,7 @@ When invoked after health-checker, you will receive a health report. Focus on fi
 
 ## Delegation
 
-For large-scale documentation regeneration (rebuilding CLAUDE.md or AGENTS.md from scratch), invoke the `generate-claude-md` skill via the Skill tool rather than rewriting manually.
+For large-scale documentation regeneration (rebuilding CLAUDE.md or AGENTS.md from scratch), invoke the `generate-agent-docs` skill via the Skill tool rather than rewriting manually.
 
 ## Principles
 

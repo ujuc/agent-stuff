@@ -1,4 +1,4 @@
-# Eval Criteria — generate-claude-md
+# Eval Criteria — generate-agent-docs
 
 Five binary checks for any generation or update run. Referenced from
 SKILL.md; skill-improver / autoresearch / waza reuse these when optimizing
@@ -16,17 +16,24 @@ EVAL 1: Mode routing
   Fail: An existing CLAUDE.md was regenerated from scratch, wrong branch,
         or target file list drifts from stated intent.
 
-EVAL 2: Discoverability discipline
+EVAL 2: Discoverability & placement discipline
   Question: Every line in the generated/modified output passes the
-            "Can an agent discover this by reading the code?" test.
-  Pass: No discoverable content included in CLAUDE.md, AGENTS.md,
-        contributing-docs/, or rules/.
+            "Can an agent discover this by reading the code?" test AND
+            sits on the right side of the cross-harness split —
+            harness-neutral project content in AGENTS.md /
+            contributing-docs/, Claude-only content in CLAUDE.md (below
+            the @AGENTS.md import) / rules/.
+  Pass: No discoverable content anywhere; no Claude-only content
+        (hooks, skills, plan mode, tool names) in AGENTS.md; no
+        project-general content in CLAUDE.md.
   Fail: One or more lines restate facts readable from package.json,
-        source tree, or standard linter rules.
+        source tree, or standard linter rules — or content sits on the
+        wrong side of the harness split.
 
 EVAL 3: Size budgets
-  Question: Root CLAUDE.md ≤ 100 lines soft / 200 hard (official ceiling,
-            source: claude-code-best-practices.md), nested CLAUDE.md
+  Question: CLAUDE.md + imported AGENTS.md combined ≤ 100 lines soft /
+            200 hard (official ceiling, source:
+            claude-code-best-practices.md), nested CLAUDE.md
             ≤ 50 lines (hard 100), individual rule file ≤ 50 lines. Every
             retained line passes the prune test.
   Pass: Produced files stay within soft limits, or within hard limits
@@ -35,9 +42,9 @@ EVAL 3: Size budgets
         survives that would not cause a mistake if removed.
 
 EVAL 4: Reference integrity
-  Question: All cross-file references (CLAUDE.md → AGENTS.md,
+  Question: All cross-file references (CLAUDE.md → @AGENTS.md import,
             AGENTS.md → contributing-docs/, nested → parent,
-            rules/ globs) resolve to existing paths.
+            rules/ `paths` globs) resolve to existing paths.
   Pass: Every reference is a live path.
   Fail: Any reference is broken or a glob targets non-existent paths.
 

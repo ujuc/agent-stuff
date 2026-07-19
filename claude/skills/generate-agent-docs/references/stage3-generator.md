@@ -41,9 +41,10 @@ project yourself — rely only on the inputs below and the rule files you read.
 
 1. Read {skill_dir}/references/stage3-generator.md. Follow its Common
    Writing Rules and the per-file section (A–E) for each target.
-2. Read {skill_dir}/references/SOUL.md. If the targets include governance
-   content (AGENTS.md Boundaries, behavioral guidelines), also read
-   {skill_dir}/references/entry-router-guidelines.md.
+2. Read {skill_dir}/references/SOUL.md. If the targets include AGENTS.md,
+   also read {skill_dir}/references/agents-md-best-practices.md. If they
+   include governance content (AGENTS.md Boundaries, behavioral guidelines),
+   also read {skill_dir}/references/entry-router-guidelines.md.
 
 Authoritative constraints (live-fetched from the Claude Code docs — these
 override anything else you know about CLAUDE.md):
@@ -74,66 +75,128 @@ the freshest copy of it; the rules below are the operative shorthand.
 - Do not include code snippets directly — use `file:line` references only
 - **Discoverability test**: For every line, ask "Can an agent discover this by reading the code?" If yes, omit it
 - **Prune test** (authoritative gate): ask "Would removing this cause Claude to make mistakes?" If not, cut it. Bloated files cause Claude to ignore real instructions
+- **Placement test (cross-harness split)**: harness-neutral project content →
+  AGENTS.md (detail → contributing-docs/); Claude Code-only content →
+  CLAUDE.md below the `@AGENTS.md` import, or `.claude/rules/` when
+  path-scoped
 - No auto-generated summaries: Do not include LLM-generated summaries of code as-is
 - A must-run-every-time rule (e.g., lint before commit) belongs in a **hook**, not a CLAUDE.md line — recommend the hook instead
 
 ---
 
-## Section A: Root CLAUDE.md
+## Section A: Root CLAUDE.md — Claude Code-Specific Layer
+
+### Role
+
+CLAUDE.md does not carry general project documentation — that lives in
+AGENTS.md (Section B), which Codex and Amp load natively and Claude Code loads
+through the `@AGENTS.md` import (official pattern,
+claude-code-best-practices.md → "AGENTS.md — the official cross-agent
+pattern"). CLAUDE.md holds only:
+
+1. The `@AGENTS.md` import (first content line)
+2. Content meaningful **only** to Claude Code: hooks, skills, subagents,
+   plan-/permission-mode rules, output styles, MCP notes, compaction
+   instructions, `.claude/rules/` interplay
 
 ### Generation Principles
 
-- Include only universal content that applies to every session and every task
-- Target line count: ~100 lines (soft). **Hard ceiling: 200 lines** — the official limit (claude-code-best-practices.md): files over 200 lines consume more context and reduce adherence. Past the ceiling, split into `.claude/rules/` or `@`-imports rather than letting CLAUDE.md sprawl
-- Do not include code style rules (delegate to linters/formatters)
-- Reference AGENTS.md only (do not reference contributing-docs/ directly)
-- Include only **confirmed facts** from Stages 1 and 2. Exclude assumptions or "nice to have" items
-- Before adding any instruction, ask: **"Will Claude make a mistake without this?"**
+- **Import first**: `@AGENTS.md` as the first content line. Claude loads the
+  import at session start, then appends the rest.
+- **Claude-only test**: for every line below the import, ask *"Would this line
+  mean anything to an agent that is not Claude Code?"* If yes → it belongs in
+  AGENTS.md (or contributing-docs/), not here.
+- **No duplication**: never restate AGENTS.md content below the import.
+- **Combined size budget**: CLAUDE.md + imported AGENTS.md load together every
+  session — soft ~100 lines combined, **hard ceiling 200**
+  (claude-code-best-practices.md). Budget most of it for AGENTS.md; past the
+  ceiling, split into `.claude/rules/` rather than letting either file sprawl.
+- **Nearly-empty is valid**: if the project has no Claude-specific behavior,
+  the correct CLAUDE.md is the import line alone — or recommend
+  `ln -s AGENTS.md CLAUDE.md` instead of a file. Never pad with project
+  content to make the file look substantial.
+- Include only **confirmed facts** from Stages 1 and 2. Before adding any
+  instruction, ask: **"Will Claude make a mistake without this?"**
 
 ### Structure Template
 
 ```markdown
-# Project Overview
-(WHY: 1-2 lines describing project purpose — only if not already in README)
+@AGENTS.md
 
-# Tech Stack
-(WHAT: List only core technologies — only if not obvious from package.json/go.mod/etc. Omit section if obvious)
+## Claude Code
 
-# Development Commands
-(HOW: Build, test, lint commands — only if not in README/Makefile)
+(Claude-specific rules only — omit any line that fails the Claude-only test. E.g.:)
+- Use plan mode for changes under `src/billing/`
+- Hooks: `post-edit-lint` runs on PostToolUse — do not re-run lint manually
+- Prefer the `/release` skill for deployment steps
 
-# Work Rules
-(HOW: Universal rules for branching, commits, PRs)
-
-# Behavioral Guidelines
-(Undiscoverable project-specific constraints. E.g., "Always confirm before running DB migrations")
-
-# References
-- **[AGENTS.md](./AGENTS.md)** — Undiscoverable operational info, detailed guides
-(Also list any subdirectories with nested CLAUDE.md)
+## References
+(Only if nested CLAUDE.md files exist — list their directories.
+`.claude/rules/` needs no listing; rules load automatically.)
 ```
-
-**Pointer vs. `@import`** (claude-code-best-practices.md): Claude Code reads
-CLAUDE.md, **not** AGENTS.md. Keep the AGENTS.md reference a markdown **link**
-(read on demand) — do **not** use `@AGENTS.md`, which would load AGENTS.md in full
-every session and defeat progressive disclosure. Use `@import` only for content
-that genuinely belongs in every session. If the project relies on Claude Code
-auto-reading AGENTS.md, surface the tradeoff and let the user choose.
 
 ### Do-NOT-Include List
 
+- Project overview, tech stack, dev commands, architecture, git workflow —
+  AGENTS.md content (Section B); the import already delivers it
+- Anything meaningful to non-Claude harnesses (fails the Claude-only test)
 - Code examples or syntax demonstrations
 - Information directly readable from config files (package.json, go.mod, etc.)
 - Rules that a linter or formatter already enforces
-- Content duplicated in AGENTS.md or contributing-docs/
+- Content duplicated from AGENTS.md or contributing-docs/
+
+---
+
+## Section B: AGENTS.md — Primary Cross-Harness Project Document
+
+### Overview
+
+The project's main agent documentation, consumed by **every** harness: Codex
+and Amp read AGENTS.md natively; Claude Code loads it via the `@AGENTS.md`
+import in CLAUDE.md (Section A). Points to detailed documents in
+contributing-docs/. Standard-level guidance (format, monorepo nesting,
+lifecycle) lives in references/agents-md-best-practices.md.
+
+### Generation Principles
+
+- **Harness-neutral and self-contained**: never reference features that exist
+  in only one harness (Skill/Agent tools, hooks, plan mode, slash commands,
+  Claude-specific settings). When a workflow depends on a harness-specific
+  feature, describe the goal in tool-agnostic terms and name a fallback any
+  agent can follow. Claude-only instructions go to CLAUDE.md (Section A).
+- **Plain markdown, no YAML frontmatter**: the agents.md convention is plain
+  markdown; frontmatter is inert noise to the harnesses that read it. In
+  update mode, flag existing frontmatter for removal.
+- **Every-session context**: through native loading (Codex/Amp) and the
+  CLAUDE.md import (Claude), AGENTS.md is loaded in full each session. The
+  prune test applies line by line, and the combined CLAUDE.md + AGENTS.md
+  budget (Section A) constrains its size — detail belongs in
+  contributing-docs/, read on demand.
+- **Treat AGENTS.md as a codesmell list**: each gotcha entry should ideally be
+  resolved via code, linters, or CI. Remove entries when the underlying code
+  improves.
+- If an existing AGENTS.md exists, re-apply the discoverability test to all
+  entries and identify candidates for removal.
+
+### Structure
+
+- **Project Overview**: Project purpose (only if not in README)
+- **Operational Gotchas**: Traps agents cannot discover from code (external system behavior, non-obvious ordering requirements, environment-specific constraints)
+- **Non-Obvious Conventions**: Conventions not inferable from code patterns (only what linters do not enforce)
+- **Build & Test Gotchas**: Non-obvious build/test requirements only (exclude standard commands)
+- **Git Workflow**: Branch strategy, commit conventions (only if not in CONTRIBUTING.md)
+- **Boundaries**: Always Do / Ask First / Never Do
+- **Contributing Docs**: Reference section listing detailed documents in contributing-docs/
 
 ### Conditional Block: Workflow Orchestration (Cost-Aware)
 
-Emit this block in the generated CLAUDE.md **only** when Stages 1–2 show the
+Emit this block in the generated AGENTS.md **only** when Stages 1–2 show the
 project does large-scale parallel/adversarial orchestration — eval/benchmark
-harnesses, rule- or policy-conformance verification, claim-source cross-checking,
-bulk triage, or multi-agent pipelines. Otherwise **omit** it (prune test: a
-project that never orchestrates gains nothing from it).
+harnesses, rule- or policy-conformance verification, claim-source
+cross-checking, bulk triage, or multi-agent pipelines. Otherwise **omit** it
+(prune test: a project that never orchestrates gains nothing from it). Keep
+the phrasing harness-neutral — "multi-agent workflows / parallel agents",
+never Claude-specific tool names.
 
 Template to emit (adapt the parenthetical examples to the project's real workloads):
 
@@ -150,32 +213,6 @@ Template to emit (adapt the parenthetical examples to the project's real workloa
 
 ---
 
-## Section B: AGENTS.md
-
-### Overview
-
-Project guide following the agents.md standard. Referenced from CLAUDE.md; points to detailed documents in contributing-docs/.
-
-### Generation Principles
-
-- Use a universal format accessible to all AI agents
-- Implement progressive disclosure by referencing contributing-docs/
-- **Treat AGENTS.md as a codesmell list**: each entry should ideally be resolved via code, linters, or CI. Remove entries when the underlying code improves
-- If an existing AGENTS.md exists, re-apply the discoverability test to all entries and identify candidates for removal
-
-### Structure
-
-- YAML frontmatter: `name`, `description`, `version`, `standard`
-- **Project Overview**: Project purpose (only if not in README)
-- **Operational Gotchas**: Traps agents cannot discover from code (external system behavior, non-obvious ordering requirements, environment-specific constraints)
-- **Non-Obvious Conventions**: Conventions not inferable from code patterns (only what linters do not enforce)
-- **Build & Test Gotchas**: Non-obvious build/test requirements only (exclude standard commands)
-- **Git Workflow**: Branch strategy, commit conventions (only if not in CONTRIBUTING.md)
-- **Boundaries**: Always Do / Ask First / Never Do
-- **Contributing Docs**: Reference section listing detailed documents in contributing-docs/
-
----
-
 ## Section C: contributing-docs/ Separate Documents
 
 Generate as separate documents the detailed content referenced from AGENTS.md. Create only the documents applicable to the project:
@@ -187,7 +224,9 @@ Generate as separate documents the detailed content referenced from AGENTS.md. C
 - `contributing-docs/conventions.md`: Code conventions, naming rules (only what linters cannot enforce)
 - `contributing-docs/behavioral.md`: Project-specific behavioral constraints (only if applicable)
 
-Each separate document must also be concise and follow the common writing rules.
+Each separate document must also be concise and follow the common writing
+rules — including harness neutrality: contributing-docs/ serves every agent
+and human contributor, so no harness-specific feature references.
 
 ---
 
@@ -208,8 +247,12 @@ Generate **only** for directories that satisfy **all** of the following:
 Inherit principles from Section A, with the following additions:
 
 - **Scope restriction**: Cover only context within this directory
-- **No duplication**: Do not repeat content from the parent CLAUDE.md. Describe only differences
+- **No duplication**: Do not repeat content from the parent CLAUDE.md (or the
+  AGENTS.md it imports). Describe only differences
 - **Parent reference**: Reference the parent CLAUDE.md by explicit relative path for shared rules
+- **Local AGENTS.md**: if the directory has its own AGENTS.md (e.g., a
+  submodule that is itself a cross-harness repo), the nested CLAUDE.md
+  imports it (`@AGENTS.md`) exactly as Section A prescribes for the root
 - **Target line count**: 50 lines or fewer. Hard limit: 100 lines
 - **Self-contained title**: Begin with `# CLAUDE.md — {package/submodule name}`
 
@@ -231,7 +274,7 @@ Inherit principles from Section A, with the following additions:
 
 ## References
 - **[../CLAUDE.md](../CLAUDE.md)** — Project-wide common rules
-(Reference local AGENTS.md if present; omit otherwise)
+(Import local AGENTS.md via `@AGENTS.md` if present; omit otherwise)
 ```
 
 ### Reference Path Rules
@@ -251,13 +294,13 @@ Auto-injected path-scoped rule files loaded by Claude Code each session. If cont
 Generate **only** when one or more of the following is found in Stages 1–2:
 
 1. **Path scoping needed**: Rules exist that apply only to specific directories
-2. **CLAUDE.md exceeds size limit**: Non-universal rules need extraction because 100 lines will be exceeded
+2. **CLAUDE.md exceeds size limit**: Non-universal rules need extraction because the combined CLAUDE.md + AGENTS.md budget will be exceeded
 3. **3+ independent concerns**: 3 or more unrelated rule groups are identified
 
 ### Generation Principles
 
-- **Path scoping first**: Rules that can specify `globs` must always include globs
-- **Minimize alwaysApply**: Rules needed in every session go in CLAUDE.md first. In rules/, `alwaysApply: true` only when CLAUDE.md size limit is exceeded
+- **Path scoping first**: Rules that can specify `paths` must always include `paths`
+- **Minimize unconditional rules**: Rules needed in every session go in CLAUDE.md (or AGENTS.md when harness-neutral) first. A rules/ file without `paths` (= loaded every session) is justified only when the CLAUDE.md size limit forces extraction
 - **One concern per file**: Do not mix multiple concerns in a single file
 - **File naming**: `{concern}.md` (e.g., `api-conventions.md`, `testing.md`, `database-safety.md`)
 - **Size limit**: 50 lines or fewer per file
@@ -267,13 +310,21 @@ Generate **only** when one or more of the following is found in Stages 1–2:
 
 ```markdown
 ---
-description: (One-line description of this rule)
-globs: ["src/api/**/*.ts"]    # Optional: path scoping
-alwaysApply: false            # If true, always loaded in every session
+paths:
+  - "src/api/**/*.ts"
 ---
 
-(Rule content — undiscoverable information only)
+(Rule content — undiscoverable, Claude-specific information only)
 ```
+
+- `paths` (glob array) is the **only** documented frontmatter field
+  (claude-code-best-practices.md → "`.claude/rules/` format"); brace expansion
+  is supported (`src/**/*.{ts,tsx}`). A rule without `paths` — omit the
+  frontmatter block entirely — loads unconditionally at launch, same priority
+  as `.claude/CLAUDE.md`.
+- Never emit the legacy `description` / `globs` / `alwaysApply` fields. In
+  update mode, migrate: `globs` → `paths`; `alwaysApply: true` → drop the
+  frontmatter (unconditional); `alwaysApply: false` + `globs` → `paths`.
 
 ### Role Distinction: contributing-docs/ vs rules/
 
@@ -281,5 +332,5 @@ alwaysApply: false            # If true, always loaded in every session
 | ---------------- | ------------------------------------------ | ------------------------------- |
 | Audience         | All AI agents + human developers           | Claude Code only                |
 | Load mechanism   | Referenced from AGENTS.md, read on demand  | Auto-injected each session      |
-| Path scoping     | Not possible                               | Possible via globs              |
+| Path scoping     | Not possible                               | Possible via `paths`            |
 | Content          | Detailed documents (architecture, testing) | Short behavior rules            |

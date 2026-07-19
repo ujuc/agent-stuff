@@ -4,7 +4,7 @@ description: Auto-generated positive-trigger task.
 tags:
   - positive-trigger
 inputs:
-  prompt: "Use generate-claude-md to help me complete this task"
+  prompt: "Use generate-agent-docs to help me complete this task"
 expected:
   should_trigger: true
 graders:
