@@ -46,18 +46,7 @@
       "Skill(commit)",
       "Skill(commit:*)"
     ],
-    "deny": [
-      "Edit(~/.claude/deplicated/**)",
-      "Write(~/.claude/deplicated/**)",
-      "Edit(~/.claude/sessions/**)",
-      "Write(~/.claude/sessions/**)",
-      "Edit(~/.claude/cache/**)",
-      "Write(~/.claude/cache/**)",
-      "Edit(~/.claude/file-history/**)",
-      "Write(~/.claude/file-history/**)",
-      "Edit(~/.claude/telemetry/**)",
-      "Write(~/.claude/telemetry/**)"
-    ],
+    "deny": [],
     "ask": [
       "Bash(git push:*)"
     ],
@@ -174,8 +163,8 @@
       }
     }
   },
-  "language": "한국어",
   "outputStyle": "explanatory-concise",
+  "language": "한국어",
   "spinnerTipsEnabled": false,
   "alwaysThinkingEnabled": true,
   "effortLevel": "xhigh",
@@ -188,6 +177,5 @@
   "inputNeededNotifEnabled": true,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
-  "useAutoModeDuringPlan": true,
-  "model": "claude-fable-5[1m]"
+  "useAutoModeDuringPlan": true
 }
