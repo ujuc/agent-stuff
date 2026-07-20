@@ -80,6 +80,8 @@ claude/daemon.log
 claude/daemon
 claude/jobs
 claude/security
+claude/daemon*
+claude/remote*
 **/.last_*
 **/.last-*
 **/*log*
