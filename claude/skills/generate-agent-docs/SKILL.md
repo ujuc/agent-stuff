@@ -1,7 +1,7 @@
 ---
 name: generate-agent-docs
-description: 프로젝트용 CLAUDE.md(Claude 전용 레이어), AGENTS.md(Codex·Amp 겸용 크로스하네스 주 문서), contributing-docs/, .claude/rules/ 파일을 발견 불가능 정보 원칙에 따라 생성하거나 업데이트한다. (구 명칭 generate-claude-md)
-when_to_use: "문서 생성/갱신 요청일 때. 트리거: '/generate-agent-docs', 'CLAUDE.md 업데이트', 'AGENTS.md 갱신', 'rules 생성', 'contributing-docs 추가', 'update CLAUDE.md', 'refresh AGENTS.md'. 단일 파일 편집은 Edit 도구를 직접 쓰고 이 스킬을 호출하지 않는다."
+description: 프로젝트용 CLAUDE.md(Claude 전용 레이어), AGENTS.md(Codex·Amp 겸용 크로스하네스 주 문서), contributing-docs/, .claude/rules/ 파일을 발견 불가능 정보 원칙에 따라 생성하거나 업데이트한다. 파일명을 특정하지 않은 포괄적인 '문서 업데이트' 요청도 대상을 한 줄로 확인한 뒤 여기서 처리한다. (구 명칭 generate-claude-md)
+when_to_use: "문서 생성/갱신 요청일 때. 트리거: '/generate-agent-docs', '문서 업데이트해줘', '문서 갱신해줘', '문서 최신화', 'CLAUDE.md 업데이트', 'AGENTS.md 갱신', 'rules 생성', 'contributing-docs 추가', 'update the docs', 'update CLAUDE.md', 'refresh AGENTS.md'. 파일명이 없는 포괄 요청은 Stage 0-3의 대상 확인을 먼저 거친다. README·API 문서·CHANGELOG처럼 에이전트 문서가 아닌 대상이거나 단일 파일 편집이면 Edit 도구를 직접 쓰고 이 스킬을 호출하지 않는다."
 group: docs
 model: opus
 allowed-tools: Read Write Edit Glob Grep Agent AskUserQuestion ToolSearch WebFetch TaskOutput advisor
@@ -102,8 +102,17 @@ Two signals: keyword and whether a target CLAUDE.md exists.
 | `AGENTS.md` | AGENTS.md + contributing-docs/ |
 | `rules` | `.claude/rules/` only |
 | `업데이트` with no specific file name | All 5 file types |
+| Generic `문서` / `docs` with no file named | All 5 file types — after the confirmation below |
 
 Empty `$ARGUMENTS` → apply Step 0-2 against the current working directory.
+
+**Generic-request confirmation.** "문서 업데이트해줘" / "update the docs" does
+not say *which* docs, and this skill is expensive to aim at the wrong target.
+Before Stage 1, state in one line what it covers — CLAUDE.md, AGENTS.md,
+contributing-docs/, `.claude/rules/` — and ask whether that is the target. If
+the user meant README, API docs, a CHANGELOG, or any other project document,
+hand the task back rather than generating agent docs they did not ask for.
+Skip this confirmation when `$ARGUMENTS` already names a file or target type.
 
 ## Generation Philosophy
 
