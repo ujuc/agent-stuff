@@ -22,13 +22,18 @@ EVAL 2: Discoverability & placement discipline
             sits on the right side of the cross-harness split —
             harness-neutral project content in AGENTS.md /
             contributing-docs/, Claude-only content in CLAUDE.md (below
-            the @AGENTS.md import) / rules/.
+            the @AGENTS.md import) / rules/ — AND on the right context
+            layer (context-engineering-claude5.md C4): a sometimes-relevant
+            multi-step procedure is a recommended skill plus one reference
+            line, not an inline section (C2).
   Pass: No discoverable content anywhere; no Claude-only content
         (hooks, skills, plan mode, tool names) in AGENTS.md; no
-        project-general content in CLAUDE.md.
+        project-general content in CLAUDE.md; no sometimes-relevant
+        procedure written out inline.
   Fail: One or more lines restate facts readable from package.json,
         source tree, or standard linter rules — or content sits on the
-        wrong side of the harness split.
+        wrong side of the harness split, or a sometimes-relevant
+        procedure is spelled out inline instead of delegated to a skill.
 
 EVAL 3: Size budgets
   Question: CLAUDE.md + imported AGENTS.md combined ≤ 100 lines soft /
@@ -63,7 +68,11 @@ EVAL 6: Instruction-authoring constraints
             suppressing reasoning (W2), severity/confidence filter bars
             (W5), effort or thinking configuration (D2) — and does every
             scoped rule name its scope rather than implying it (W3)?
-  Pass: None of the four rejected patterns appears; every path-bound rule
+            Also free of the two line shapes
+            context-engineering-claude5.md rejects — an absolute
+            prohibition that fails its Reconciliation test (C1) and any
+            memory / notes / session-log / changelog instruction (C3)?
+  Pass: None of the six rejected patterns appears; every path-bound rule
         states its paths or lives in .claude/rules/ with `paths`.
   Fail: Any rejected pattern survives, or a rule's scope is left implied.
 ```

@@ -29,9 +29,11 @@ Execute stages strictly in order. Update mode swaps in U1–U3
 | 3 | Write files | 1 general-purpose agent; update mode: U3 surgical edits by orchestrator | references/stage3-generator.md |
 | 4 | Verify: checklist → fix loop → blind review | sonnet subagents + advisor | references/stage4-verifier.md |
 
-references/model-prompting-guides.md cuts across Stages 3–4: its `[W]` rules
-constrain how every documented instruction is phrased, and Stage 4 rejects the
-lines that violate them.
+Two reference files cut across Stages 3–4, constraining every documented
+instruction while Stage 4 rejects the lines that violate them:
+references/model-prompting-guides.md (`[W]` rules — how an instruction is
+phrased) and references/context-engineering-claude5.md (`C1–C4` — whether the
+instruction belongs in a doc at all).
 
 ## Stage 0: Bootstrap & Routing
 
@@ -65,12 +67,17 @@ run:
    *"best-practices 라이브 로드 실패, 캐시 사용 (last check: <date>)."*
    Never fall back silently.
 
-**Second source, different cadence**: references/model-prompting-guides.md
-holds the per-model instruction-authoring rules (4 `source_urls` in its own
-frontmatter). It is **staleness-gated**, not per-run — re-fetch only when
-`today - last_upstream_check > check_interval_days`, because four URLs every
-run is real cost and those pages move more slowly than the Claude Code docs.
+**Staleness-gated sources, different cadence**: three reference files carry
+their own `source_url(s)` + `check_interval_days` in frontmatter and re-fetch
+only when `today - last_upstream_check > check_interval_days` — fetching them
+every run is real cost and they move more slowly than the Claude Code docs.
 Same loud-fallback rule on failure.
+
+| Reference | Holds | Interval |
+|-----------|-------|----------|
+| references/model-prompting-guides.md | Per-model instruction-authoring rules (4 `source_urls`; the secondary URL only for cross-model questions) | 14d |
+| references/agents-md-best-practices.md | agents.md standard — fetch only when AGENTS.md is a target | 30d |
+| references/context-engineering-claude5.md | Claude 5 context-engineering rules C1–C4 (judgment framing, skill-over-section, no memory lines, four-layer placement) | 90d |
 
 ### Step 0-2 — Route generate vs update
 
@@ -145,6 +152,14 @@ Skip this confirmation when `$ARGUMENTS` already names a file or target type.
   scaffolding, reasoning-visibility commands, severity filter bars — and
   require every scoped rule to name its scope. Its `[S]` rules govern this
   skill's own upkeep and must never reach a project file.
+- **Claude 5 context-engineering rules**
+  (references/context-engineering-claude5.md): four additive constraints on
+  *what* gets documented — C1 anchor an instruction to an observable signal
+  instead of forbidding a behavior outright (its Reconciliation section names
+  the prohibitions that still survive under this repo's Rule Authoring
+  Policy), C2 turn a sometimes-relevant multi-step procedure into a skill plus
+  one reference line, C3 never emit memory-management lines (auto-memory owns
+  that now), C4 place a finding across four layers, not two.
 - **Soul** (references/SOUL.md): the agent-identity seed used when generating
   project files — a static copy, not a pointer to the live identity file.
 
@@ -270,6 +285,8 @@ instructions.
 | Tell a Stage 1 Explore agent to write a file | Explore is read-only — findings return as final messages |
 | Write a "double-check your work" line or pre-response checklist into a generated doc | Delete it (model-prompting-guides.md W1) — it causes over-verification; a real must-run gate becomes a hook |
 | Emit an instruction to show, or to suppress, the agent's reasoning | Never (W2) — risks `reasoning_extraction` refusals one way, internal-tag leakage the other |
+| Emit a sometimes-relevant multi-step procedure as a CLAUDE.md / AGENTS.md section | Recommend a skill and emit one reference line (C2) — every-session budget is for always-relevant content |
+| Write a Memory / Notes / Session Log / Changelog section into an agent-config file | Delete it (C3) — auto-memory owns that content, and a hand-maintained log fails the prune test as soon as it goes stale |
 | Claim completion without Stage 4 output | Report checklist/reviewer results with quoted failures |
 
 ## Gotchas

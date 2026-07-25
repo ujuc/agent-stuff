@@ -76,6 +76,7 @@ Re-apply the Stage 3 generation philosophy to every line of existing files:
 - **Staleness risk**: Flag specific version numbers, tool names, or dependency names that no longer match the current state
 - **Redundancy check**: Identify content duplicated across files (`CLAUDE.md` ↔ `AGENTS.md` (below the import), `CLAUDE.md` ↔ `rules/`, parent ↔ nested, `AGENTS.md` ↔ `contributing-docs/`)
 - **Instruction-authoring anti-patterns**: existing files predate the current guidance, so flag lines that instruct self-verification or re-checking, command reasoning visibility either way, set a severity/confidence filter bar, or leave a rule's scope implied (model-prompting-guides.md W1/W2/W3/W5). These are the most likely stale content in a hand-maintained CLAUDE.md
+- **Superseded context-engineering patterns** (context-engineering-claude5.md): flag a `Memory` / `Notes` / `Session Log` / `Changelog` section, or an instruction to keep the file updated as a memory store, for removal — auto-memory replaced that workflow (C3); flag a written-out multi-step procedure needed only sometimes and propose extracting it to a skill with one reference line (C2); flag an absolute prohibition that fails the C1 Reconciliation test and propose the positive form
 
 ### Axis 3: Structural Integrity
 

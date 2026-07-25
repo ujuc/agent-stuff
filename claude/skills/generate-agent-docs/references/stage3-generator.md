@@ -44,7 +44,11 @@ project yourself — rely only on the inputs below and the rule files you read.
 2. Read {skill_dir}/references/model-prompting-guides.md. Apply every rule
    tagged [W] to the lines you write. Ignore the [S] rules — those govern the
    skill itself, not your output.
-3. Read {skill_dir}/references/SOUL.md. If the targets include AGENTS.md,
+3. Read {skill_dir}/references/context-engineering-claude5.md. Apply C1–C4 —
+   they decide whether a candidate line belongs in a doc at all, where [W]
+   decides how a kept line is phrased. Read its Reconciliation section before
+   you rewrite or drop any prohibition.
+4. Read {skill_dir}/references/SOUL.md. If the targets include AGENTS.md,
    also read {skill_dir}/references/agents-md-best-practices.md. If they
    include governance content (AGENTS.md Boundaries, behavioral guidelines),
    also read {skill_dir}/references/entry-router-guidelines.md.
@@ -91,6 +95,15 @@ the freshest copy of it; the rules below are the operative shorthand.
   filter bar on findings (W5). The two that shape a kept line: state its scope
   explicitly, since a model does not generalize a rule from one item to
   another (W3), and carry one clause of *why* when the why is non-obvious (W4)
+- **Context-engineering constraints** (context-engineering-claude5.md) decide
+  whether a line belongs in a doc at all: **C1** — replace an absolute
+  prohibition with the observable signal the agent should match, unless its
+  Reconciliation test keeps the line as a guard; **C2** — a sometimes-relevant
+  multi-step procedure becomes a recommended skill plus one reference line,
+  never a section; **C3** — never write memory, notes, session-log, or
+  changelog instructions into an agent-config file; **C4** — place a finding
+  across four layers (harness / config file / skill / referenced doc), and
+  reference an executable spec rather than paraphrasing it into prose
 
 ---
 
@@ -160,6 +173,12 @@ pattern"). CLAUDE.md holds only:
   risks `reasoning_extraction` refusals, the latter internal-tag leakage
 - Effort, thinking, or model-tier configuration (D2) — API/harness settings,
   not project knowledge, and they go stale per tier
+- Memory / Notes / Session Log / Changelog sections, and any instruction to
+  record decisions or learnings into this file (C3) — auto-memory owns that
+  content, and a hand-maintained log goes stale
+- A sometimes-relevant multi-step procedure — release runbook, migration
+  steps, verification sequence (C2) — recommend a skill and leave at most one
+  reference line
 
 ---
 
