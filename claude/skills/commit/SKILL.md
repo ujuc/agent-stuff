@@ -54,12 +54,12 @@ rules without editing this user-level skill.
 
 ## Format
 
-`<type>(<scope>): <한국어 제목 -하다>`
+`<type>(<scope>): <한국어 제목 -다>`
 
 - **scope**: follow the scopes defined in the project's CLAUDE.md.
 - **Subject ≤ 50 characters** (including `<type>(<scope>):` prefix).
 - **Body wrapped at 72 characters**, blank line separating subject and body.
-- **Imperative `-하다` ending** on the subject — no trailing period.
+- **Verb declarative `-다` ending** on the subject — any verb stem, no trailing period.
 - Full rule set, type table, footer syntax, breaking-change notation, and
   anti-patterns live in `references/gitmessage.md`. Consult it for any case
   not covered by the one-line summary above.
@@ -190,7 +190,7 @@ The summary block is shown to the user, so the labels stay in Korean.
 - Do NOT pack multiple changes into one subject with `·`, `및`, `그리고` — split into separate commits instead.
 - Do NOT commit submodule pointer updates with a body-less catch-all subject (`서브모듈을 업데이트하다` alone). Always include a one-line body describing *what the submodule changed and why*.
 - Do NOT default to `chore` when `feat` / `fix` / `refactor` / `perf` actually fits.
-- Do NOT run humanizer on the commit subject — the `-하다` imperative is a format rule, not prose, and any edit risks the 50-char budget.
+- Do NOT run humanizer on the commit subject — the `-다` verb-declarative ending is a format rule, not prose, and any edit risks the 50-char budget.
 
 ## Maintenance — rule source sync
 
@@ -201,7 +201,7 @@ editor). Items that must stay aligned across both files:
 
 - Type list (`feat · fix · refactor · perf · style · docs · test · build · ci · chore`)
 - 50 / 72 character limits
-- `-하다` imperative ending rule
+- `-다` verb declarative ending rule
 - Body "Why / How" hint structure
 - Footer token syntax (`Closes #`, `Refs #`, `Acked-by:`)
 - Breaking change notation (`<type>!:` or `BREAKING CHANGE:` footer)
@@ -230,6 +230,6 @@ Opt-in audit pass over the commit body to strip AI writing patterns. Trigger whe
 
 ### Scope
 
-- **Body only.** The subject follows a strict format (`<type>(<scope>): 한국어 제목 -하다`) and a 50-char budget; humanizer's prose rules do not apply, and edits risk breaking the budget.
+- **Body only.** The subject follows a strict format (`<type>(<scope>): 한국어 제목 -다`) and a 50-char budget; humanizer's prose rules do not apply, and edits risk breaking the budget.
 - **P1 only.** Commit bodies are short technical summaries. P2 patterns like `K16 한자어 남용` misfire on natural technical writing (e.g., "캐시를 활용하다" is idiomatic, not AI-ish). P1 is the minimum false-positive threshold.
 - **Skip for `revert` and `chore(agents)` submodule pointer bodies** — those are factual one-liners that should not be paraphrased.

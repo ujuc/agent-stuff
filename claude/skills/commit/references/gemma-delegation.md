@@ -56,5 +56,5 @@ gemma_summary=$(GEMMA_TIMEOUT=300 bash /Users/ujuc/.claude/skills/gemma/scripts/
 
 1. Even with `$gemma_summary` in hand, do not paste it directly. Claude reads and **verifies accuracy** first.
 2. Treat it as a reference draft only — Claude owns the final body.
-3. Conventional Commits format and the Korean `-하다` ending rule are still applied by Claude.
+3. Conventional Commits format and the Korean verb-declarative `-다` ending rule are still applied by Claude.
 4. When explaining the commit diff to the user, label the gemma-derived part (e.g., `gemma 사전 요약에 따르면: ...`). The subject and final commit message stay in Claude's voice.

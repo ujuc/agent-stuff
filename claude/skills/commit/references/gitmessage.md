@@ -7,7 +7,7 @@ When this file changes, also update `/Users/ujuc/.config/dotrc/gitmessage`
 ## Sources
 
 Synthesized from three primary references, adapted for Korean Conventional
-Commits ending in `-하다`:
+Commits ending in a Korean verb declarative `-다`:
 
 - [thoughtbot — Better Commit Messages with a .gitmessage Template](https://thoughtbot.com/blog/better-commit-messages-with-a-gitmessage-template)
 - [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/)
@@ -24,7 +24,7 @@ Commits ending in `-하다`:
 ## Format
 
 ```
-<type>(<scope>): <한국어 제목 -하다>
+<type>(<scope>): <한국어 제목 -다>
 
 <본문>
 
@@ -36,8 +36,10 @@ Commits ending in `-하다`:
 Each rule is a hard check. Fail any one → rewrite the subject.
 
 1. **50 characters or fewer**, including the `<type>(<scope>):` prefix.
-2. **End with the imperative `-하다` verb form** (Korean equivalent of English
-   imperative mood): `추가하다`, `수정하다`, `제거하다`, `개선하다`.
+2. **End with a Korean verb declarative `-다`** (equivalent of the English
+   imperative mood): `추가하다`, `수정하다`, `걷어내다`, `지우다`. Any verb stem is
+   fine — the hook checks the literal `다` only. Noun endings (`업데이트`,
+   `정리함`) and English subjects fail.
 3. **No trailing period.**
 4. **Blank line between subject and body** when a body exists.
 5. **Subject states *what*, body states *why*.** Do not cram "why" into the

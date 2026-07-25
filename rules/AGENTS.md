@@ -30,9 +30,10 @@ How rules in this file (and its per-agent extensions) are written:
 
 ## Git Operations
 
-- Write Korean conventional commit messages ending in `-하다`
-  (e.g. `feat: 스킬 생성 기능을 추가하다`). Types: feat, fix, refactor, perf, style,
-  docs, test, build, ci, chore. Subject ≤ 50 chars, no trailing period.
+- Write Korean conventional commit messages ending in a verb declarative `-다`
+  (e.g. `feat: 스킬 생성 기능을 추가하다`, `fix: 사족을 걷어내다`). Types: feat, fix,
+  refactor, perf, style, docs, test, build, ci, chore. Subject ≤ 50 chars, no
+  trailing period.
 - For repos with submodules, commit and push the submodule first, then the parent.
 - Keep the user in the loop for pushes: run them in an interactive terminal
   (SSH passphrase prompts) and only push when the user asked for it.

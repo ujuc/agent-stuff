@@ -18,7 +18,7 @@ When the format must be followed exactly:
 **ALWAYS use this exact template:**
 
 ```
-<type>(<scope>): <Korean subject ending with -하다>
+<type>(<scope>): <Korean subject ending with a verb declarative -다>
 
 <body if needed, 72 chars per line>
 ```
@@ -88,7 +88,7 @@ Good:
 - `refactor(db): 쿼리 빌더를 단순화하다`
 
 Bad:
-- `Added login` — English, no -하다 ending
+- `Added login` — English, no -다 ending
 - `fix: 버그 수정` — no scope, content unclear
 - `feat(auth): 사용자가 소셜 계정으로 로그인할 수 있는 기능을 추가했습니다.` — too long, has period
 ~~~

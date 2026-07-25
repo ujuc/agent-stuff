@@ -50,7 +50,7 @@ agent-stuff/
 
 ## Operational Gotchas
 
-- `.githooks/commit-msg` rejects any subject not ending in the literal `하다` — verbs like `걷어내다` or `드러내다` fail. It applies only where `core.hooksPath` is set
+- `.githooks/commit-msg` requires the subject to end in a Korean verb declarative — the literal `다` (`.+다$`), so any verb stem passes (`추가하다`, `걷어내다`, `지우다`). Noun endings (`업데이트`, `정리함`), a trailing period, and English subjects fail. It applies only where `core.hooksPath` is set
 - `claude/` is symlinked to `~/.claude` — files inside it must NOT use relative paths to reference outside their own tree
 - `claude/CLAUDE.md` and `claude/settings.json` are GLOBAL — they load/apply in every Claude Code session, not just within this repo. High blast radius.
 - `claude/` mixes tracked config with gitignored runtime state — the repo `.gitignore` is the source of truth for what is runtime. Never edit gitignored paths (`sessions/`, `cache/`, `file-history/`, `projects/`, …)
