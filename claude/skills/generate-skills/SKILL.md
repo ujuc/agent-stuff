@@ -118,10 +118,16 @@ Follow `references/skill-structure.md`.
 
 ### Auto-init (preferred)
 
-Run `scripts/init-skill` (thin bash launcher over the Rust workspace in `tools/`):
+Run `scripts/init-skill` (thin bash launcher over the Rust workspace in `tools/`).
+Launcher paths are anchored on `$DOTRCDIR` so they resolve from any working
+directory — this skill is global, and CWD-relative paths break outside the dotrc
+repo. `zshrc` exports `DOTRCDIR`, but only for interactive shells; each snippet
+re-derives it so the command also works from cron, CI, or a bare non-interactive
+shell.
 
 ```bash
-bash agents/claude/skills/generate-skills/scripts/init-skill <skill-name> --group <slug> --path <target-path>
+DOTRCDIR="${DOTRCDIR:-${XDG_CONFIG_HOME:-$HOME/.config}/dotrc}"
+bash "${DOTRCDIR}/agents/claude/skills/generate-skills/scripts/init-skill" <skill-name> --group <slug> --path <target-path>
 ```
 
 `--group` is required (one of the 8 slugs — see `references/frontmatter-spec.md` → `group`); the validator fails without it, and it must be a deliberate choice, never guessed. By default this creates only `SKILL.md` with the required fields filled in plus commented-out placeholders for every optional frontmatter field (`when_to_use`, `paths`, `shell`, `effort`, `context`, `agent`, etc.). If the skill needs Tier-3 resources, pass `--with-references`, `--with-scripts`, and/or `--with-assets`. Fill in the body in Steps 3–4.
@@ -280,7 +286,8 @@ When done, proceed to Step 5 (validation).
 Run `scripts/validate-skill` (thin bash launcher over the Rust workspace in `tools/`):
 
 ```bash
-bash agents/claude/skills/generate-skills/scripts/validate-skill <skill-directory>
+DOTRCDIR="${DOTRCDIR:-${XDG_CONFIG_HOME:-$HOME/.config}/dotrc}"
+bash "${DOTRCDIR}/agents/claude/skills/generate-skills/scripts/validate-skill" <skill-directory>
 ```
 
 First invocation compiles the validator (~6–30s, debug profile); later runs are instant via Cargo's incremental cache. Requires `cargo` (install via <https://rustup.rs>).
@@ -326,11 +333,12 @@ When in doubt, follow the trigger-tuning guide in `references/review-checklist.m
 
 ### Registration
 
-Once validation passes, register the skill in the catalog group map in `claude/skills/README.md`. The `group:` frontmatter is the single source of truth (rendered by `skill-index` for `/skills`); the README table mirrors it and must stay in sync. Use the `register-skill` launcher — it is idempotent (re-running is a no-op) and errors if the skill is already listed under a different group:
+Once validation passes, register the skill in the catalog group map in `${DOTRCDIR}/agents/claude/skills/README.md`. The `group:` frontmatter is the single source of truth (rendered by `skill-index` for `/skills`); the README table mirrors it and must stay in sync. Use the `register-skill` launcher — it is idempotent (re-running is a no-op) and errors if the skill is already listed under a different group:
 
 ```bash
-bash agents/claude/skills/generate-skills/scripts/register-skill \
-  claude/skills/README.md \
+DOTRCDIR="${DOTRCDIR:-${XDG_CONFIG_HOME:-$HOME/.config}/dotrc}"
+bash "${DOTRCDIR}/agents/claude/skills/generate-skills/scripts/register-skill" \
+  "${DOTRCDIR}/agents/claude/skills/README.md" \
   --name <skill-name> \
   --group <group-slug>
 ```
