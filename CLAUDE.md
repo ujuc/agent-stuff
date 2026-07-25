@@ -14,12 +14,5 @@ loop is for skill changes:
 ## Work Rules
 
 - Commit directly to `main` (no branches/PRs)
-- Korean Conventional Commits ending with `-하다`, e.g. `feat(skills): 새 스킬을 추가하다`
-- **Types**: feat, fix, docs, style, refactor, test, chore
 - **Scopes**: claude, rules, skills
-
-## Skills
-
-| Skill | Triggers | Model |
-| ----- | -------- | ----- |
-| `maintain` (project-scoped, `.claude/skills/maintain/`) | /maintain, 정비해줘, 헬스체크, 문서 동기화 | opus |
+- Subject format and the allowed type list are enforced by `.githooks/commit-msg` — read the regex there instead of restating it
