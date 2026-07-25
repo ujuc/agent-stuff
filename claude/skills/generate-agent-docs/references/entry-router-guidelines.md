@@ -42,13 +42,18 @@ Six invariant rules that cover major accident scenarios for autonomous agents:
 
 ---
 
-## WORKFLOW (Fixed Process)
-
-Four-step pipeline for all non-trivial tasks:
+## WORKFLOW (Conditional)
 
 ```
 0) Classify task type/risk → 1) Plan if non-trivial → 2) Execute minimal → 3) Verify + Evidence
 ```
+
+**Emit this pipeline into a generated doc only when the project actually needs
+structured execution** — agent-triggered CI/CD, production or infrastructure
+access, or multiple agents on one codebase. For every other project it fails
+the prune test: current models already plan, scope, and verify by default, and
+a documented pipeline they would follow anyway only adds noise
+(model-prompting-guides.md S1).
 
 ### Step 0: Classify
 
@@ -69,8 +74,9 @@ Enter Plan Mode when ANY of these apply:
 
 ### Step 3: Verify
 
-- Evidence summary
-- Final self-check (see below)
+- Evidence summary (CORE rule 6). Do **not** add a "final self-check" or
+  "re-verify before responding" step — that is the over-verification pattern
+  model-prompting-guides.md W1 rejects.
 
 ---
 
@@ -95,18 +101,6 @@ Plan → Change summary → Verification method → Evidence
 ```
 
 Optional task tracking (`tasks/todo.md`, `tasks/lessons.md`) only when explicitly requested.
-
----
-
-## Self-Check Checklist
-
-Before finalizing any response, verify:
-
-1. **No CORE violations** — secrets, approval, guardrail bypass, test bypass?
-2. **No scope creep** — unrelated refactoring or formatting mixed in?
-3. **Project-specific constraints respected** — check project's own behavioral rules
-4. **Verification performed** — or non-execution reason and impact clearly stated?
-5. **Sensitive info masked** — logs/snippets use `***` for credentials?
 
 ---
 
@@ -135,5 +129,5 @@ When generating AGENTS.md, incorporate Entry Router principles into:
 
 When generating CLAUDE.md behavioral guidelines:
 - Include relevant CORE rules as non-negotiable constraints
-- Include WORKFLOW steps if the project benefits from structured execution
-- Include Self-Check items relevant to the project's risk profile
+- Include WORKFLOW steps only under the conditions stated in that section
+- Never emit a pre-response checklist — model-prompting-guides.md W1

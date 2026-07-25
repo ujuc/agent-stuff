@@ -15,7 +15,7 @@ Run a quick glob before spawning agents to determine whether the project is comp
 
 Criteria — any one sufficient:
 
-- 3 or more distinct config file types present (package.json, Cargo.toml, pyproject.toml, go.mod, Gemfile, pom.xml, etc.)
+- 3 or more distinct package-manager config types present
 - Monorepo detected: `workspaces` field in package.json/pnpm-workspace.yaml, or `packages/`, `apps/` directories with child package files
 - Submodule detected: `.gitmodules` file present
 - 3 or more top-level directories each containing their own package file
@@ -58,35 +58,17 @@ the gap and continue with what exists.
 **Prompt template**:
 
 ```
-Explore the project at {target_path} to find all package/build/test/lint/format configuration.
+Explore the project at {target_path} and find every package, build, test,
+lint, and format configuration file, for whatever ecosystems are present.
 
-Look for:
-1. Package managers: package.json, Cargo.toml, pyproject.toml, go.mod, Gemfile, pom.xml
-2. Test config: jest.config.*, vitest.config.*, pytest.ini, .mocharc.*, setup.cfg (testpaths)
-3. Lint/format: .eslintrc.*, .prettierrc.*, biome.json, ruff.toml, .golangci.yml, rustfmt.toml
-4. Build: webpack.config.*, vite.config.*, tsconfig.json, Makefile, CMakeLists.txt, build.gradle
+For each file record its path and the fields that matter downstream: scripts,
+dependency count, test command, entry point. Summarize — never paste raw
+file contents.
 
-For each found file, record:
-- File path
-- Key fields (scripts section, dependencies count, test command, main entry point)
-Do NOT include raw file contents — summarize only.
-
-Return your findings as your final message — raw markdown, no preamble — using this structure:
-
-# Config Explorer Findings
-
-## Found Config Files
-| File | Key Fields |
-|------|------------|
-| ... | ... |
-
-## Detected Commands
-- Build: ...
-- Test: ...
-- Lint/Format: ...
-
-## Notes
-(anything unusual about the config setup)
+Return your findings as your final message, raw markdown, no preamble:
+- a table of config files with their key fields
+- the detected build / test / lint commands
+- notes on anything unusual about the setup
 ```
 
 ---
@@ -105,39 +87,22 @@ Return your findings as your final message — raw markdown, no preamble — usi
 **Prompt template**:
 
 ```
-Analyze the repository structure at {target_path}.
+Analyze the repository structure at {target_path}. Observe patterns from names
+and the top-level layout — do not recursively read every file.
 
-Investigate:
-1. Monorepo detection: check for workspaces field in package.json/pnpm-workspace.yaml, presence of packages/, apps/ directories with their own package files
-2. Submodules: parse .gitmodules for paths, URLs, and infer independent repo status from remote URL patterns
-3. Nested package managers: subdirectories that contain their own package.json/Cargo.toml/pyproject.toml/go.mod
-4. Directory tree: top 2 levels only, noting the apparent purpose of each major directory
+Determine:
+1. Structure type: monorepo / single-package / hybrid / config-only. Monorepo
+   signals: a `workspaces` field (package.json, pnpm-workspace.yaml), or
+   `packages/`/`apps/` directories whose children carry their own package files
+2. Submodules: parse `.gitmodules` for paths and remote URLs, and infer from
+   each remote whether it is an independently maintained repository
+3. Nested package managers: subdirectories with their own package file
+4. Directory tree, top 2 levels only, with each major directory's apparent purpose
 
-Report: structure type (monorepo / single-package / hybrid / config-only), list of independent units with their detected tech stack.
-Do NOT recursively read all files — observe patterns from names and top-level structure.
-
-Return your findings as your final message — raw markdown, no preamble — using this structure:
-
-# Structure Explorer Findings
-
-## Repository Type
-(monorepo / single-package / hybrid / config-only)
-
-## Independent Units
-| Path | Type | Tech Stack |
-|------|------|------------|
-| ... | ... | ... |
-
-## Directory Tree (top 2 levels)
-(annotated list)
-
-## Submodules
-| Path | Remote URL | Independent? |
-|------|------------|--------------|
-| ... | ... | ... |
-
-## Notes
-(anything unusual about the repo layout)
+Return your findings as your final message, raw markdown, no preamble: the
+structure type; a table of independent units with path, type, and tech stack;
+the annotated tree; a submodule table with path, remote URL, and whether it is
+independent; notes on anything unusual about the layout.
 ```
 
 ---
@@ -156,39 +121,23 @@ Return your findings as your final message — raw markdown, no preamble — usi
 **Prompt template**:
 
 ```
-Scan documentation and CI configuration at {target_path}.
+Scan documentation and CI configuration at {target_path}. One-line summary per
+file — never include full contents.
 
 Look for:
-1. Existing AI config: CLAUDE.md (root and all nested locations), AGENTS.md, .cursor/rules/*.mdc, .github/copilot-instructions.md
+1. Existing agent config, including the less obvious locations: CLAUDE.md
+   (root and every nested path), AGENTS.md, `.cursor/rules/*.mdc`,
+   `.github/copilot-instructions.md`
 2. Contributing docs: CONTRIBUTING.md, contributing-docs/, docs/
-3. CI/CD: .github/workflows/*.yml, .gitlab-ci.yml, Jenkinsfile, .circleci/config.yml — extract test, build, and deploy commands
-4. Nested CLAUDE.md files: list all paths, record section headings and approximate line count
+3. CI/CD config — extract the test, build, and deploy commands it actually runs
+4. For every CLAUDE.md and AGENTS.md found: its line count and section headings
 
-For each found file, provide a one-line summary.
-For existing CLAUDE.md files, note section headings and line count.
-Do NOT include full file contents.
-
-Return your findings as your final message — raw markdown, no preamble — using this structure:
-
-# Docs Explorer Findings
-
-## AI Config Files
-| File | Line Count | Section Headings |
-|------|------------|-----------------|
-| ... | ... | ... |
-
-## Contributing Docs
-| File | Summary |
-|------|---------|
-| ... | ... |
-
-## CI/CD Pipelines
-| File | Test Command | Build Command | Deploy Target |
-|------|-------------|---------------|---------------|
-| ... | ... | ... | ... |
-
-## Notes
-(anything unusual: conflicting instructions between AI configs, deprecated sections, etc.)
+Return your findings as your final message, raw markdown, no preamble: a table
+of agent-config files with line count and section headings; a table of
+contributing docs with one-line summaries; a table of CI pipelines with their
+test / build / deploy commands; notes on anything unusual — especially
+contradictions between two agent-config files, or sections that look
+deprecated.
 ```
 
 ---
@@ -219,26 +168,12 @@ Address these specific open questions:
 3. Cross-package dependencies: which packages import or depend on which others
 4. Non-obvious patterns: custom build steps, code generation, unusual testing patterns
 
-Provide file:line references wherever relevant.
-Do NOT reproduce raw file contents — cite and summarize.
+Cite file:line wherever relevant — never reproduce raw file contents.
 
-Return your findings as your final message — raw markdown, no preamble — using this structure:
-
-# Deep Explorer Findings
-
-## Gap Resolutions
-### {gap_1_title}
-...
-### {gap_2_title}
-...
-
-## Cross-Package Dependencies
-| From | To | Nature |
-|------|-----|--------|
-| ... | ... | ... |
-
-## Non-Obvious Patterns
-(list with file:line citations)
+Return your findings as your final message, raw markdown, no preamble: one
+section per gap with its resolution; a cross-package dependency table (from,
+to, nature of the dependency); a list of non-obvious patterns with file:line
+citations.
 ```
 
 ---

@@ -29,6 +29,10 @@ Execute stages strictly in order. Update mode swaps in U1–U3
 | 3 | Write files | 1 general-purpose agent; update mode: U3 surgical edits by orchestrator | references/stage3-generator.md |
 | 4 | Verify: checklist → fix loop → blind review | sonnet subagents + advisor | references/stage4-verifier.md |
 
+references/model-prompting-guides.md cuts across Stages 3–4: its `[W]` rules
+constrain how every documented instruction is phrased, and Stage 4 rejects the
+lines that violate them.
+
 ## Stage 0: Bootstrap & Routing
 
 This skill is the **"refine over time"** layer on top of the built-in `/init`
@@ -60,6 +64,13 @@ run:
    use the cached snapshot **and** tell the user in one line:
    *"best-practices 라이브 로드 실패, 캐시 사용 (last check: <date>)."*
    Never fall back silently.
+
+**Second source, different cadence**: references/model-prompting-guides.md
+holds the per-model instruction-authoring rules (4 `source_urls` in its own
+frontmatter). It is **staleness-gated**, not per-run — re-fetch only when
+`today - last_upstream_check > check_interval_days`, because four URLs every
+run is real cost and those pages move more slowly than the Claude Code docs.
+Same loud-fallback rule on failure.
 
 ### Step 0-2 — Route generate vs update
 
@@ -118,6 +129,13 @@ Empty `$ARGUMENTS` → apply Step 0-2 against the current working directory.
   multi-agent pipelines), have Section B emit its short "Workflow
   Orchestration" policy block into AGENTS.md (harness-neutral phrasing).
   Otherwise **omit it** — it fails the prune test and burns the size budget.
+- **Instruction-authoring constraints**
+  (references/model-prompting-guides.md): a documented instruction is
+  system-prompt content, so the per-model prompting guides govern how it may be
+  phrased. Its `[W]` rules reject three shapes outright — self-verification
+  scaffolding, reasoning-visibility commands, severity filter bars — and
+  require every scoped rule to name its scope. Its `[S]` rules govern this
+  skill's own upkeep and must never reach a project file.
 - **Soul** (references/SOUL.md): the agent-identity seed used when generating
   project files — a static copy, not a pointer to the live identity file.
 
@@ -198,12 +216,12 @@ Never regenerate whole files.
 ## Stage 4: Verification
 
 **Reference**: references/stage4-verifier.md (verifier dispatch template,
-10-item checklist, anti-patterns, reviewer prompt). The checklist's
+verification checklist, anti-patterns, reviewer prompt). The checklist's
 size/staleness items enforce the authoritative prune test and 200-line
 ceiling from Step 0-1.
 
-1. **Verifier** (`model: sonnet`): apply the 10-item checklist line by line
-   via the dispatch template.
+1. **Verifier** (`model: sonnet`): apply the verification checklist line by
+   line via the dispatch template.
 2. **Fix loop**: the orchestrator fixes FAIL items, then re-verifies.
    Maximum **3 verification runs total** (initial + up to 2 fix rounds);
    after that, report remaining FAILs to the user and proceed.
@@ -241,6 +259,8 @@ instructions.
 | Give the blind Reviewer anything beyond the generated files | Generated file contents only |
 | Apply an update-mode edit the user has not seen | Show the exact change; get per-file confirmation (U3) |
 | Tell a Stage 1 Explore agent to write a file | Explore is read-only — findings return as final messages |
+| Write a "double-check your work" line or pre-response checklist into a generated doc | Delete it (model-prompting-guides.md W1) — it causes over-verification; a real must-run gate becomes a hook |
+| Emit an instruction to show, or to suppress, the agent's reasoning | Never (W2) — risks `reasoning_extraction` refusals one way, internal-tag leakage the other |
 | Claim completion without Stage 4 output | Report checklist/reviewer results with quoted failures |
 
 ## Gotchas
@@ -269,21 +289,13 @@ case is discovered.
    invasive (writes/edits several project files); auto-invocation can still
    fire from vague phrasing via the Skills-table triggers. If false positives
    become a problem, flip the flag on and rely on `/generate-agent-docs`.
-6. **advisor() takes no parameters; the entire transcript is forwarded.**
-   Calling it before the relevant results are visible in the transcript is
-   premature. Call it right after the reasoning it should review has
-   crystallized.
-7. **Update mode may misread hand-crafted files as drift.** Unusual
+6. **Update mode may misread hand-crafted files as drift.** Unusual
    structures can be intentional. Confirm with the user before removing
    sections that look redundant but may carry project-specific meaning.
-8. **Explore agents are read-only.** The Agent tool's `Explore` type has no
-   Write/Edit tool. Collect Stage 1 / Explore-Deep findings from their final
-   messages (Agent tool result, or TaskOutput for background runs) — never
-   instruct them to write `.research/` files.
 
 ## Eval Criteria
 
-references/eval-criteria.md defines 5 binary checks — mode routing,
-discoverability discipline, size budgets, reference integrity, blind
-review — for any generation or update run. skill-improver / autoresearch /
-waza reuse them when optimizing this skill.
+references/eval-criteria.md defines 6 binary checks — mode routing,
+discoverability discipline, size budgets, reference integrity, blind review,
+instruction-authoring constraints — for any generation or update run.
+skill-improver / autoresearch / waza reuse them when optimizing this skill.

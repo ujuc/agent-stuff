@@ -21,7 +21,7 @@ before dispatching.
 You are verifying generated documentation files against a fixed checklist.
 You did not write these files.
 
-1. Read {skill_dir}/references/stage4-verifier.md. Apply its "10-Item
+1. Read {skill_dir}/references/stage4-verifier.md. Apply its "Verification
    Checklist", "Anti-Pattern Detection", and "Self-Test Questions" sections
    line by line to every file below.
 2. Files to verify: {list_of_generated_file_paths}
@@ -32,7 +32,7 @@ Return the VERIFICATION REPORT in the exact Output Format defined in that
 file. Do NOT fix anything — report only.
 ```
 
-### 10-Item Checklist
+### Verification Checklist
 
 Apply line by line to every generated/modified file:
 
@@ -45,7 +45,8 @@ Apply line by line to every generated/modified file:
 7. **Reference integrity**: Are relative paths in nested CLAUDE.md valid? → Verify relative paths
 8. **Discoverability**: Can an agent learn this by reading the code? → If yes, delete
 9. **Staleness risk**: Does the line reference specific versions, tool names, or dependencies that may become inaccurate within 6 months? → If risky, delete or add expiry comment
-10. **Static instruction problem**: Is this an unconditional instruction that applies identically to all task types? → If it can be made conditional, add explicit conditions
+10. **Scope statement**: Is this an unconditional instruction that applies identically to all task types? → If it can be made conditional, add explicit conditions. Check the reverse too (model-prompting-guides.md W3): does the line leave its scope *implied*? Current models do not generalize an instruction from one item to another, so an unstated scope silently narrows — name the paths/directories/file types, or move the rule into `.claude/rules/` with `paths`
+11. **Instruction-authoring anti-patterns** (model-prompting-guides.md W1/W2/W5): does any line (a) instruct self-verification or re-checking — "double-check", "re-verify before responding", "add a final verification step", "use a subagent to verify"; (b) command reasoning visibility in either direction — "explain your reasoning in the response", "do not think"; or (c) set a confidence/severity filter bar — "only report high-severity", "be conservative", "don't nitpick"? → Delete. (a) causes over-verification at no quality gain, (b) risks `reasoning_extraction` refusals or internal-tag leakage, (c) suppresses real findings. A genuine must-run gate becomes a hook, not a documented line
 
 ### Anti-Pattern Detection
 
@@ -58,14 +59,13 @@ Warn the user when any of the following are detected:
 
 ### Self-Test Questions
 
-- "Would a senior engineer look at this CLAUDE.md and say 'this is too much'?"
-- "Is the CLAUDE.md (`@AGENTS.md` import + Claude-only) → AGENTS.md → contributing-docs/ hierarchy and the CLAUDE.md → .claude/rules/ path clearly separated?"
+Four questions the per-line checklist cannot ask, because each spans files or
+looks outside the documentation:
+
 - "Would a Codex or Amp session, which reads only AGENTS.md (+ contributing-docs/), miss anything it needs to work safely in this repo?" → If yes, the missing content is misplaced in a Claude-only file
-- "Does every line of CLAUDE.md below the import pass the Claude-only test ('meaningless to a non-Claude agent')?"
 - "Would root CLAUDE.md alone be sufficient for work in a nested directory, making the nested file removable?" → If sufficient, recommend deleting the nested file
 - "Do any nested CLAUDE.md files contradict each other?"
-- "If this line were deleted, would an agent reading the code reach the same conclusion?" → If yes, delete
-- "Can this item be solved by code / linter / CI?" → If yes, recommend fixing in code and removing the item
+- "Can this item be solved by code / linter / CI instead?" → If yes, recommend fixing it there and removing the item
 
 ### Output Format
 
@@ -87,20 +87,8 @@ WARNING — [Anti-pattern name]: [Location] — [Description]
 ## Phase 2 — Iterative Fix Loop
 
 **Maximum 3 verification runs total** — the initial run plus up to 2 fix
-rounds (matches SKILL.md Stage 4 and advisor gate ③).
-
-### Flow
-
-```
-Verify (Phase 1)
-  → Any FAIL items?
-      No  → Proceed to Phase 3
-      Yes → Apply fixes → Re-verify
-              → Any FAIL items?
-                  No  → Proceed to Phase 3
-                  Yes → Apply fixes → Re-verify (iteration 3)
-                          → Report remaining FAILs to user → Proceed to Phase 3
-```
+rounds (matches SKILL.md Stage 4 and advisor gate ③). Any run with zero FAIL
+items ends the loop and proceeds to Phase 3.
 
 ### Fix Rules
 
@@ -158,6 +146,7 @@ Files to review: {list_of_generated_file_paths}
 5. Nested CLAUDE.md: Does any nested file repeat content from root CLAUDE.md? Does scope exceed its directory? → flag
 6. Size: Are CLAUDE.md + imported AGENTS.md combined under 100 lines soft / 200 hard (official ceiling)? Nested under 50 (hard limit 100)? Flag any line that fails the prune test ("would removing this cause a mistake?")
 7. Actionability: Is every instruction verifiable? Any vague guidance? → flag with suggestion
+8. Instruction-authoring: Does any line tell its reader to verify or double-check its own work, to show or to suppress its reasoning, or to filter findings by severity or confidence? Does any rule leave its scope implied rather than naming the paths or file types it covers? → flag for removal or for an explicit scope
 
 For any criterion where your PASS/FAIL call is low-confidence, call advisor() for an independent opus second opinion before finalizing.
 

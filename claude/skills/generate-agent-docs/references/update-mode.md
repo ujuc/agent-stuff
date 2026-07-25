@@ -47,10 +47,6 @@ keep the refine light — do not re-run heavy Stage 1 deep-exploration.
    > "No existing documentation files were found. Would you like to switch to generation mode?"
    Stop and wait for the response.
 
-### Parallelization
-
-The Stage 1 Explore agent and the U1 file reads can run in parallel. However, if there are 3 or fewer target files, reading them directly is more efficient than spawning parallel sub-agents.
-
 ---
 
 ## U2: Drift Comparison (during Stage 2)
@@ -79,6 +75,7 @@ Re-apply the Stage 3 generation philosophy to every line of existing files:
 - **Size constraint**: Flag if `CLAUDE.md` + imported `AGENTS.md` combined exceed 100 lines or any nested `CLAUDE.md` exceeds 50 lines
 - **Staleness risk**: Flag specific version numbers, tool names, or dependency names that no longer match the current state
 - **Redundancy check**: Identify content duplicated across files (`CLAUDE.md` ↔ `AGENTS.md` (below the import), `CLAUDE.md` ↔ `rules/`, parent ↔ nested, `AGENTS.md` ↔ `contributing-docs/`)
+- **Instruction-authoring anti-patterns**: existing files predate the current guidance, so flag lines that instruct self-verification or re-checking, command reasoning visibility either way, set a severity/confidence filter bar, or leave a rule's scope implied (model-prompting-guides.md W1/W2/W3/W5). These are the most likely stale content in a hand-maintained CLAUDE.md
 
 ### Axis 3: Structural Integrity
 
@@ -141,3 +138,16 @@ Apply user-approved changes using surgical edits.
 - **File addition**: When new files are needed, follow Stage 3 generation rules to write them.
 
 After all approved changes are applied, proceed to Stage 4 (verification).
+
+### Stage 4 after U3 — whose work is being verified
+
+model-prompting-guides.md D1 records a divergence that lands exactly here. In
+generate mode a Stage 3 agent writes and Stage 4 verifies — the writer-verifier
+split Opus 5 endorses. In update mode the **orchestrator itself** applies the
+U3 edits, so Stage 4 reviews the orchestrator's own output, which is the shape
+Opus 5 warns against.
+
+Keep the run: both Stage 4 agents start from a fresh context and see only the
+files, the arrangement Fable 5 reports as outperforming self-critique. But add
+nothing on top of it — no extra self-review pass, and no additional round
+beyond Phase 2's documented maximum.

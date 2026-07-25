@@ -1,6 +1,6 @@
 # Eval Criteria — generate-agent-docs
 
-Five binary checks for any generation or update run. Referenced from
+Six binary checks for any generation or update run. Referenced from
 SKILL.md; skill-improver / autoresearch / waza reuse these when optimizing
 the skill autonomously. Keep each check binary (Pass/Fail) so runs are
 scoreable without human judgment.
@@ -49,10 +49,21 @@ EVAL 4: Reference integrity
   Fail: Any reference is broken or a glob targets non-existent paths.
 
 EVAL 5: Blind reviewer
-  Question: When output is more than a single root CLAUDE.md, does
-            Phase 3 Reviewer return PASS on all 7 criteria (or all
-            FAILs are resolved in subsequent iterations)?
+  Question: When output is more than a single root CLAUDE.md, does the
+            Phase 3 Reviewer return PASS on every criterion listed in
+            its prompt (or were all FAILs resolved in later iterations)?
   Pass: Final Reviewer run returns PASS, or initial FAILs were resolved
         before the final output.
   Fail: Unresolved Reviewer FAILs at skill completion.
+
+EVAL 6: Instruction-authoring constraints
+  Question: Is every produced/retained line free of the patterns
+            model-prompting-guides.md rejects — self-verification or
+            re-check instructions (W1), commands about showing or
+            suppressing reasoning (W2), severity/confidence filter bars
+            (W5), effort or thinking configuration (D2) — and does every
+            scoped rule name its scope rather than implying it (W3)?
+  Pass: None of the four rejected patterns appears; every path-bound rule
+        states its paths or lives in .claude/rules/ with `paths`.
+  Fail: Any rejected pattern survives, or a rule's scope is left implied.
 ```

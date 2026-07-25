@@ -30,20 +30,16 @@ below.
 
 ### Recommended content
 
-Sections the standard suggests help agents work effectively:
-
-- Project overview
-- Build and test commands
-- Code style guidelines
-- Testing instructions
-- Security considerations
-
 > "Commit messages or pull request guidelines, security gotchas, large
 > datasets, deployment steps: anything you'd tell a new teammate belongs
 > here too."
 
-- Listing testing commands is high-leverage: agents "attempt to execute
-  relevant programmatic checks and fix failures" when commands are listed.
+The standard's own suggested sections (project overview, build/test commands,
+code style, testing, security) are deliberately broader than what this skill
+emits — see Reconciliation below. One claim worth keeping: agents "attempt to
+execute relevant programmatic checks and fix failures" when test commands are
+listed, which is why a **non-obvious** test invocation survives the filter
+even though a standard one does not.
 
 ### Monorepo placement & precedence
 
@@ -61,12 +57,6 @@ Sections the standard suggests help agents work effectively:
   principle (entries are removed as the code improves).
 - Migration: existing docs can be renamed to AGENTS.md with a
   backward-compatible symlink for the old name.
-
-### Ecosystem
-
-Adopted by 60k+ open-source projects; read natively by OpenAI Codex, Google
-Jules, Cursor, Aider, VS Code, GitHub Copilot, Zed, Amp, and others. Claude
-Code consumes it via the `@AGENTS.md` import (claude-code-best-practices.md).
 
 ---
 

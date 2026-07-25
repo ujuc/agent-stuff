@@ -27,8 +27,8 @@ The orchestrator pastes the following into the dispatch prompt:
 - **Stage 2 answers**: User decisions (which nested CLAUDE.md to generate, scope boundaries)
 - **Target files**: List of files to create or update (Root CLAUDE.md, AGENTS.md, contributing-docs/, nested CLAUDE.md, .claude/rules/)
 
-The agent reads the rule files itself (this file, SOUL.md,
-entry-router-guidelines.md) — do not re-condense them into the prompt.
+The agent reads the rule files itself (this file, model-prompting-guides.md,
+SOUL.md, entry-router-guidelines.md) — do not re-condense them into the prompt.
 
 ## Dispatch Prompt Template
 
@@ -41,7 +41,10 @@ project yourself — rely only on the inputs below and the rule files you read.
 
 1. Read {skill_dir}/references/stage3-generator.md. Follow its Common
    Writing Rules and the per-file section (A–E) for each target.
-2. Read {skill_dir}/references/SOUL.md. If the targets include AGENTS.md,
+2. Read {skill_dir}/references/model-prompting-guides.md. Apply every rule
+   tagged [W] to the lines you write. Ignore the [S] rules — those govern the
+   skill itself, not your output.
+3. Read {skill_dir}/references/SOUL.md. If the targets include AGENTS.md,
    also read {skill_dir}/references/agents-md-best-practices.md. If they
    include governance content (AGENTS.md Boundaries, behavioral guidelines),
    also read {skill_dir}/references/entry-router-guidelines.md.
@@ -81,6 +84,13 @@ the freshest copy of it; the rules below are the operative shorthand.
   path-scoped
 - No auto-generated summaries: Do not include LLM-generated summaries of code as-is
 - A must-run-every-time rule (e.g., lint before commit) belongs in a **hook**, not a CLAUDE.md line — recommend the hook instead
+- **Instruction-authoring constraints**: apply the [W] rules in
+  model-prompting-guides.md. The three that reject a line outright: never
+  instruct self-verification or re-checking (W1), never command reasoning
+  visibility in either direction (W2), never set a severity or confidence
+  filter bar on findings (W5). The two that shape a kept line: state its scope
+  explicitly, since a model does not generalize a rule from one item to
+  another (W3), and carry one clause of *why* when the why is non-obvious (W4)
 
 ---
 
@@ -144,6 +154,12 @@ pattern"). CLAUDE.md holds only:
 - Information directly readable from config files (package.json, go.mod, etc.)
 - Rules that a linter or formatter already enforces
 - Content duplicated from AGENTS.md or contributing-docs/
+- Self-verification steps, pre-response checklists, or "double-check your work"
+  lines (W1) — these cause over-verification; use a hook for a real gate
+- Any instruction about showing or suppressing reasoning (W2) — the former
+  risks `reasoning_extraction` refusals, the latter internal-tag leakage
+- Effort, thinking, or model-tier configuration (D2) — API/harness settings,
+  not project knowledge, and they go stale per tier
 
 ---
 
