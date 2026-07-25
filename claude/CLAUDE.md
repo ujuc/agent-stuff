@@ -8,10 +8,10 @@ comes from the import above — this file holds Claude-specific configuration on
 
 ## Model Quality Safeguards
 
-When the active model is below the Opus tier (`claude-opus-*`, `claude-fable-*`,
-and `claude-mythos-*` are exempt — check the environment block), call `advisor()`
-before: commit/push/publish, finalizing substantive analysis, or shipping work the
-user will act on. Skip it for trivial reactive tasks or when the user waived it.
+When `advisor()` would be a capability upgrade over the active model (compare the
+environment block against `advisorModel` in settings.json), call it before:
+commit/push/publish, finalizing substantive analysis, or shipping work the user
+will act on. Skip it for trivial reactive tasks or when the user waived it.
 
 ## Execution Delegation
 
@@ -21,7 +21,8 @@ Delegation protects the main context as much as it saves cost:
 - Text-only transforms → local `gemma` skill (`--local`; `GEMMA_NO_FALLBACK=1` for
   sensitive data so it never leaves the machine). gemma cannot execute commands.
 - Keep work on the active model when the output drives a decision or edit, and
-  verify delegated output before acting. Trivial single commands run inline.
+  verify delegated output before acting. Delegate only when the subagent reads
+  more than it reports back — a few files or one command is cheaper inline.
 
 ## Workflow Orchestration
 
