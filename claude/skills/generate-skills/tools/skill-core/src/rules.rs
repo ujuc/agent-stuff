@@ -25,6 +25,7 @@ pub const ALLOWED_KEYS: &[&str] = &[
     "effort",
     "context",
     "agent",
+    "background",
     "hooks",
     "paths",
     "shell",

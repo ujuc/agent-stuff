@@ -1,6 +1,6 @@
 ---
 source_url: https://code.claude.com/docs/en/skills
-last_upstream_check: 2026-07-09
+last_upstream_check: 2026-07-27
 check_interval_days: 14
 ---
 
@@ -202,6 +202,20 @@ agent: Explore
 - Options: built-in agents (`Explore`, `Plan`, `general-purpose`) or custom subagents from `.claude/agents/`
 - If omitted, uses `general-purpose`
 - Only meaningful when `context: fork` is set
+
+### `background`
+
+Whether a forked subagent runs in the background.
+
+```yaml
+context: fork
+background: false
+```
+
+- Only applies with `context: fork`
+- `false` waits for the forked subagent's result in the turn that invoked the skill
+- Default: `true` (runs in the background)
+- Requires Claude Code v2.1.218 or later
 
 ### `hooks`
 

@@ -25,6 +25,7 @@ group: {group}
 # shell: bash                        # bash | powershell
 # context: fork                      # run in forked subagent context
 # agent: Explore                     # requires context: fork
+# background: false                  # requires context: fork — wait for the result
 ---
 
 # TODO: Skill Title
