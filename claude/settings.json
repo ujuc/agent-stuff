@@ -128,7 +128,8 @@
     "pyright-lsp@claude-plugins-official": false,
     "explanatory-output-style@claude-plugins-official": false,
     "remember@claude-plugins-official": true,
-    "gopls-lsp@claude-plugins-official": false
+    "gopls-lsp@claude-plugins-official": false,
+    "fable-advisor@fable-advisor": true
   },
   "extraKnownMarketplaces": {
     "claude-plugins-official": {
@@ -160,6 +161,12 @@
       "source": {
         "source": "git",
         "url": "https://github.com/affaan-m/ECC.git"
+      }
+    },
+    "fable-advisor": {
+      "source": {
+        "source": "github",
+        "repo": "DannyMac180/fable-advisor"
       }
     }
   },
