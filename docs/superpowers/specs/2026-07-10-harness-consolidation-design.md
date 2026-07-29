@@ -171,7 +171,7 @@ for Claude, Codex, Amp, and manual commits alike. (Repo-local hooks only — a g
 
 | Risk | Mitigation |
 | ---- | ---------- |
-| `@import` fails to resolve through the `~/.claude` symlink | Verify with `/memory` (import list) after edit; fall back to absolute `/Users/ujuc/...` path |
+| `@import` fails to resolve through the `~/.claude` symlink | Verify with `/memory` (import list) after edit; fall back to a fully expanded absolute path |
 | Codex 32 KiB project-doc cap | Shared file budgeted < 8 KB |
 | Output style swap changes session feel | Insight blocks preserved in the custom style; plugin can be re-enabled to roll back |
 | `ask` on push adds friction | Intended — matches existing "user in the loop for push" rule |

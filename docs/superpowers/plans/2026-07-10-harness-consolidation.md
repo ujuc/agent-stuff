@@ -8,7 +8,7 @@
 
 **Tech Stack:** Claude Code settings/hooks/output-styles, git hooks (bash launchers — trivial logic only), symlinks. No build toolchain.
 
-**Spec:** `/Users/ujuc/.config/dotrc/agents/docs/superpowers/specs/2026-07-10-harness-consolidation-design.md`
+**Spec:** `~/.config/dotrc/agents/docs/superpowers/specs/2026-07-10-harness-consolidation-design.md`
 
 ## Global Constraints
 
@@ -18,14 +18,14 @@
 - All commits go through the **commit skill** (never raw `git commit` for repo changes) — single commit pass at the end, submodule (`agents/`) first, then dotrc parent
 - Work directly on `main` in the live tree (repo convention; `~/.claude` symlink verification requires the live tree — no worktree isolation)
 - File output in English, except dotrc `README.md` edits (that document is Korean — match surrounding language)
-- All paths absolute; `~` = `/Users/ujuc`
+- All paths are written home-anchored with `~`
 
 ---
 
 ### Task 1: Create canonical `rules/AGENTS.md`
 
 **Files:**
-- Create: `/Users/ujuc/.config/dotrc/agents/rules/AGENTS.md`
+- Create: `~/.config/dotrc/agents/rules/AGENTS.md`
 
 **Interfaces:**
 - Produces: the shared guidance file that Task 2 imports (`@~/.config/dotrc/agents/rules/AGENTS.md`) and Task 7 symlinks. The `<!-- canonical source -->` sync marker for SOUL.md now lives HERE, not in CLAUDE.md.
@@ -122,7 +122,7 @@ JS/TS ecosystem work.
 
 - [ ] **Step 2: Verify size budget**
 
-Run: `wc -c /Users/ujuc/.config/dotrc/agents/rules/AGENTS.md`
+Run: `wc -c ~/.config/dotrc/agents/rules/AGENTS.md`
 Expected: byte count < 8192
 
 ---
@@ -130,7 +130,7 @@ Expected: byte count < 8192
 ### Task 2: Slim `claude/CLAUDE.md` to Claude-only content + import
 
 **Files:**
-- Modify: `/Users/ujuc/.config/dotrc/agents/claude/CLAUDE.md` (full replace)
+- Modify: `~/.config/dotrc/agents/claude/CLAUDE.md` (full replace)
 
 **Interfaces:**
 - Consumes: Task 1's file via `@~/.config/dotrc/agents/rules/AGENTS.md` (the `@~/` form is REQUIRED — a relative `@../rules/...` would resolve to `~/rules/` through the `~/.claude` symlink).
@@ -265,10 +265,10 @@ Triggered by natural language; invoke via the Skill tool when a trigger matches.
 
 - [ ] **Step 2: Verify no moved section remains and the import exists**
 
-Run: `grep -cE '^## (Agent Identity|Git Operations|Language Policy|Tool Implementation Language|Output Style)' /Users/ujuc/.config/dotrc/agents/claude/CLAUDE.md`
+Run: `grep -cE '^## (Agent Identity|Git Operations|Language Policy|Tool Implementation Language|Output Style)' ~/.config/dotrc/agents/claude/CLAUDE.md`
 Expected: `0`
 
-Run: `grep -c '@~/.config/dotrc/agents/rules/AGENTS.md' /Users/ujuc/.config/dotrc/agents/claude/CLAUDE.md`
+Run: `grep -c '@~/.config/dotrc/agents/rules/AGENTS.md' ~/.config/dotrc/agents/claude/CLAUDE.md`
 Expected: `1` (grep counts the line once; the string appears in the import line and the prose mention counts extra — accept ≥1)
 
 ---
@@ -276,7 +276,7 @@ Expected: `1` (grep counts the line once; the string appears in the import line 
 ### Task 3: Create output style `explanatory-concise`
 
 **Files:**
-- Create: `/Users/ujuc/.config/dotrc/agents/claude/output-styles/explanatory-concise.md`
+- Create: `~/.config/dotrc/agents/claude/output-styles/explanatory-concise.md`
 
 **Interfaces:**
 - Produces: style name `explanatory-concise` referenced by `settings.json` `outputStyle` in Task 5. Frontmatter `name` MUST equal the settings value.
@@ -319,7 +319,7 @@ mechanical renames.
 
 - [ ] **Step 2: Verify frontmatter name matches the future settings value**
 
-Run: `head -3 /Users/ujuc/.config/dotrc/agents/claude/output-styles/explanatory-concise.md`
+Run: `head -3 ~/.config/dotrc/agents/claude/output-styles/explanatory-concise.md`
 Expected: contains `name: explanatory-concise`
 
 ---
@@ -327,7 +327,7 @@ Expected: contains `name: explanatory-concise`
 ### Task 4: Create `UserPromptSubmit` clarify hook script
 
 **Files:**
-- Create: `/Users/ujuc/.config/dotrc/agents/claude/hooks/clarify-update-word.sh`
+- Create: `~/.config/dotrc/agents/claude/hooks/clarify-update-word.sh`
 
 **Interfaces:**
 - Consumes: hook stdin JSON with a `.prompt` field (Claude Code `UserPromptSubmit` contract).
@@ -354,12 +354,12 @@ exit 0
 
 - [ ] **Step 2: Make executable and smoke-test both branches**
 
-Run: `chmod +x /Users/ujuc/.config/dotrc/agents/claude/hooks/clarify-update-word.sh`
+Run: `chmod +x ~/.config/dotrc/agents/claude/hooks/clarify-update-word.sh`
 
-Run: `echo '{"prompt":"이 문서 업데이트 해줘"}' | /Users/ujuc/.config/dotrc/agents/claude/hooks/clarify-update-word.sh`
+Run: `echo '{"prompt":"이 문서 업데이트 해줘"}' | ~/.config/dotrc/agents/claude/hooks/clarify-update-word.sh`
 Expected: one Reminder line, exit 0
 
-Run: `echo '{"prompt":"hello"}' | /Users/ujuc/.config/dotrc/agents/claude/hooks/clarify-update-word.sh; echo "exit=$?"`
+Run: `echo '{"prompt":"hello"}' | ~/.config/dotrc/agents/claude/hooks/clarify-update-word.sh; echo "exit=$?"`
 Expected: no output except `exit=0`
 
 ---
@@ -367,7 +367,7 @@ Expected: no output except `exit=0`
 ### Task 5: Wire `settings.json` — deny/ask, hook, output style, plugin swap
 
 **Files:**
-- Modify: `/Users/ujuc/.config/dotrc/agents/claude/settings.json`
+- Modify: `~/.config/dotrc/agents/claude/settings.json`
 
 **Interfaces:**
 - Consumes: Task 3 style name `explanatory-concise`; Task 4 script path `~/.claude/hooks/clarify-update-word.sh`.
@@ -433,7 +433,7 @@ to
 
 - [ ] **Step 4: Validate JSON**
 
-Run: `jq -e '.permissions.deny | length == 10' /Users/ujuc/.config/dotrc/agents/claude/settings.json && jq -e '.permissions.ask == ["Bash(git push:*)"]' /Users/ujuc/.config/dotrc/agents/claude/settings.json && jq -e '.outputStyle == "explanatory-concise"' /Users/ujuc/.config/dotrc/agents/claude/settings.json && jq -e '.hooks.UserPromptSubmit[0].hooks[0].command' /Users/ujuc/.config/dotrc/agents/claude/settings.json`
+Run: `jq -e '.permissions.deny | length == 10' ~/.config/dotrc/agents/claude/settings.json && jq -e '.permissions.ask == ["Bash(git push:*)"]' ~/.config/dotrc/agents/claude/settings.json && jq -e '.outputStyle == "explanatory-concise"' ~/.config/dotrc/agents/claude/settings.json && jq -e '.hooks.UserPromptSubmit[0].hooks[0].command' ~/.config/dotrc/agents/claude/settings.json`
 Expected: `true`, `true`, `true`, and the hook command path — no parse errors
 
 ---
@@ -441,8 +441,8 @@ Expected: `true`, `true`, `true`, and the hook command path — no parse errors
 ### Task 6: Repo-local `commit-msg` hooks (agent-agnostic `-하다` enforcement)
 
 **Files:**
-- Create: `/Users/ujuc/.config/dotrc/.githooks/commit-msg`
-- Create: `/Users/ujuc/.config/dotrc/agents/.githooks/commit-msg` (identical content)
+- Create: `~/.config/dotrc/.githooks/commit-msg`
+- Create: `~/.config/dotrc/agents/.githooks/commit-msg` (identical content)
 
 **Interfaces:**
 - Consumes: gitmessage type list (Global Constraints).
@@ -482,25 +482,25 @@ exit 0
 
 Run:
 ```bash
-chmod +x /Users/ujuc/.config/dotrc/.githooks/commit-msg /Users/ujuc/.config/dotrc/agents/.githooks/commit-msg
-git -C /Users/ujuc/.config/dotrc config core.hooksPath .githooks
-git -C /Users/ujuc/.config/dotrc/agents config core.hooksPath .githooks
+chmod +x ~/.config/dotrc/.githooks/commit-msg ~/.config/dotrc/agents/.githooks/commit-msg
+git -C ~/.config/dotrc config core.hooksPath .githooks
+git -C ~/.config/dotrc/agents config core.hooksPath .githooks
 ```
 
 - [ ] **Step 3: Functional test (in the submodule, then clean up)**
 
-Run: `git -C /Users/ujuc/.config/dotrc/agents commit --allow-empty -m "bad message"; echo "exit=$?"`
+Run: `git -C ~/.config/dotrc/agents commit --allow-empty -m "bad message"; echo "exit=$?"`
 Expected: rejection message, `exit=1`
 
-Run: `git -C /Users/ujuc/.config/dotrc/agents commit --allow-empty -m "chore: 훅 동작을 검증하다" && git -C /Users/ujuc/.config/dotrc/agents reset --soft HEAD~1`
-Expected: commit accepted, then removed (verify with `git -C /Users/ujuc/.config/dotrc/agents log --oneline -1` showing the previous HEAD)
+Run: `git -C ~/.config/dotrc/agents commit --allow-empty -m "chore: 훅 동작을 검증하다" && git -C ~/.config/dotrc/agents reset --soft HEAD~1`
+Expected: commit accepted, then removed (verify with `git -C ~/.config/dotrc/agents log --oneline -1` showing the previous HEAD)
 
 ---
 
 ### Task 7: Consumer symlinks for Codex and Amp
 
 **Files:**
-- Create (filesystem, untracked): `/Users/ujuc/.codex/AGENTS.md`, `/Users/ujuc/.config/amp/AGENTS.md`
+- Create (filesystem, untracked): `~/.codex/AGENTS.md`, `~/.config/amp/AGENTS.md`
 
 **Interfaces:**
 - Consumes: Task 1's canonical file.
@@ -509,14 +509,14 @@ Expected: commit accepted, then removed (verify with `git -C /Users/ujuc/.config
 
 Run:
 ```bash
-ln -sfn /Users/ujuc/.config/dotrc/agents/rules/AGENTS.md /Users/ujuc/.codex/AGENTS.md
-mkdir -p /Users/ujuc/.config/amp
-ln -sfn /Users/ujuc/.config/dotrc/agents/rules/AGENTS.md /Users/ujuc/.config/amp/AGENTS.md
+ln -sfn ~/.config/dotrc/agents/rules/AGENTS.md ~/.codex/AGENTS.md
+mkdir -p ~/.config/amp
+ln -sfn ~/.config/dotrc/agents/rules/AGENTS.md ~/.config/amp/AGENTS.md
 ```
 
 - [ ] **Step 2: Verify resolution**
 
-Run: `readlink /Users/ujuc/.codex/AGENTS.md && readlink /Users/ujuc/.config/amp/AGENTS.md && head -1 /Users/ujuc/.codex/AGENTS.md`
+Run: `readlink ~/.codex/AGENTS.md && readlink ~/.config/amp/AGENTS.md && head -1 ~/.codex/AGENTS.md`
 Expected: both print the canonical path; `head` prints `# Global Agent Guidance`
 
 ---
@@ -524,8 +524,8 @@ Expected: both print the canonical path; `head` prints `# Global Agent Guidance`
 ### Task 8: Documentation sync
 
 **Files:**
-- Modify: `/Users/ujuc/.config/dotrc/agents/AGENTS.md`
-- Modify: `/Users/ujuc/.config/dotrc/README.md`
+- Modify: `~/.config/dotrc/agents/AGENTS.md`
+- Modify: `~/.config/dotrc/README.md`
 
 **Interfaces:**
 - Consumes: paths fixed in Tasks 1, 6, 7.
@@ -606,11 +606,11 @@ git -C ${DOTRCDIR}/agents config core.hooksPath .githooks
 - [ ] **Step 1: In-session verification bundle**
 
 Run each; all must match:
-- `wc -c /Users/ujuc/.config/dotrc/agents/rules/AGENTS.md` → < 8192
-- `jq -e '.permissions.deny|length==10' /Users/ujuc/.config/dotrc/agents/claude/settings.json` → true
-- `readlink /Users/ujuc/.codex/AGENTS.md /Users/ujuc/.config/amp/AGENTS.md` → canonical path ×2
-- `git -C /Users/ujuc/.config/dotrc/agents config core.hooksPath` → `.githooks`
-- `git -C /Users/ujuc/.config/dotrc status --short` and `git -C /Users/ujuc/.config/dotrc/agents status --short` → only intended files
+- `wc -c ~/.config/dotrc/agents/rules/AGENTS.md` → < 8192
+- `jq -e '.permissions.deny|length==10' ~/.config/dotrc/agents/claude/settings.json` → true
+- `readlink ~/.codex/AGENTS.md ~/.config/amp/AGENTS.md` → canonical path ×2
+- `git -C ~/.config/dotrc/agents config core.hooksPath` → `.githooks`
+- `git -C ~/.config/dotrc status --short` and `git -C ~/.config/dotrc/agents status --short` → only intended files
 
 - [ ] **Step 2: Commit via the commit skill** (never raw `git commit`)
 

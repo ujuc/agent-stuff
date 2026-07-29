@@ -74,7 +74,7 @@ bash "${CLAUDE_SKILL_DIR}/../gemma/scripts/query.sh" "<prompt>"
 ```
 
 When calling from outside a skill context (no `${CLAUDE_SKILL_DIR}`), use the
-absolute path:
+home-anchored path:
 
 ```bash
 bash ~/.claude/skills/gemma/scripts/query.sh "<prompt>"
