@@ -132,7 +132,7 @@ calling skill can degrade gracefully without a score.
 
 Workspace: `~/.claude/data/waza-workspace/` (gitignored). The workspace's
 `.waza.yaml` keeps `paths.skills: skills/` with `skills/` symlinked to
-`/Users/ujuc/.config/dotrc/agents/claude/skills/`, so any SKILL.md is reachable
+`~/.config/dotrc/agents/claude/skills/`, so any SKILL.md is reachable
 without copying.
 
 `skill-engineer` is a read-only design analyst dispatched by

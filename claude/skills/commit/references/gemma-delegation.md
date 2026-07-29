@@ -37,7 +37,7 @@ PROMPT="다음 git diff를 5개 이하의 글머리 기호로 요약해줘. 각 
 $DIFF"
 
 # call + quiet fallback
-gemma_summary=$(GEMMA_TIMEOUT=300 bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh "$PROMPT" 2>"$LOG") || gemma_summary=""
+gemma_summary=$(GEMMA_TIMEOUT=300 bash ~/.claude/skills/gemma/scripts/query.sh "$PROMPT" 2>"$LOG") || gemma_summary=""
 ```
 
 - stdout captured to `$gemma_summary`, stderr split to the log file.

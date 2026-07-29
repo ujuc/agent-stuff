@@ -19,7 +19,7 @@ Every skill, agent, or script that wants to use waza MUST follow this contract. 
 2. **Exposed commands** — exactly two:
    - `scaffold <skill-name>` — create a placeholder `eval.yaml` for `<skill-name>`. Never overwrites an existing file.
    - `eval <skill-or-path> [--label X] [--baseline_json /abs/path] [--prefix Y]` — run a measurement (auto-scaffolds the suite when one is missing).
-3. **Inputs** — either a bare skill name (resolved against `/Users/ujuc/.config/dotrc/agents/claude/evals/<name>/eval.yaml`) or an absolute path to an `eval.yaml`.
+3. **Inputs** — either a bare skill name (resolved against `~/.config/dotrc/agents/claude/evals/<name>/eval.yaml`) or an absolute path to an `eval.yaml`.
 4. **Outputs** — Korean Markdown report on stdout *plus* a result JSON written to `~/.claude/data/waza/results/<prefix>-<label>-<timestamp>.json`. The absolute JSON path is always quoted at the bottom of the report so callers can reuse it as a future `--baseline_json`.
 5. **Graceful degrade** — if `waza` is not on PATH the runner prints the install guide at `references/waza-install.md` and exits 0. The calling skill MUST treat "no score" as advisory, not as a failure, and continue its workflow.
 6. **Extension policy** — anything beyond the two exposed commands is internal. Add a new Command section here (see *Appendix B*) before reaching for an unexposed waza subcommand from a caller.
@@ -39,7 +39,7 @@ Agent("waza-runner", "eval commit --label baseline")
 Agent("waza-runner", "eval commit --label before")
 
 # skill-improver Phase 5.5 (compare against the recorded before file)
-Agent("waza-runner", "eval commit --label after --baseline_json /Users/ujuc/.claude/data/waza/results/commit-before-20260509-103412.json")
+Agent("waza-runner", "eval commit --label after --baseline_json /abs/path/commit-before-20260509-103412.json")
 ```
 
 Anything not matching one of those two command shapes is invalid and the runner will print a usage line.
@@ -58,7 +58,7 @@ if [ -z "$waza_bin" ]; then
   echo "## ⚠️  waza 미설치"
   echo
   cat "$HOME/.claude/agents/references/waza-install.md" 2>/dev/null \
-    || cat "/Users/ujuc/.config/dotrc/agents/claude/agents/references/waza-install.md"
+    || cat "$HOME/.config/dotrc/agents/claude/agents/references/waza-install.md"
   echo
   echo "**평가는 skip되었습니다.** waza 설치 후 다시 호출해 주세요."
   exit 0
@@ -81,14 +81,14 @@ if [ ! -f "$workspace/.waza.yaml" ]; then
 fi
 ```
 
-Why `cd` first: waza joins relative `paths.skills` / `paths.evals` with `cwd`, so an absolute value in `.waza.yaml` would corrupt the joined path (`workspace/Users/ujuc/...`). The bootstrapped `.waza.yaml` keeps both as `skills/` and `evals/`, which symlink to the dotrc tree.
+Why `cd` first: waza joins relative `paths.skills` / `paths.evals` with `cwd`, so an absolute value in `.waza.yaml` would corrupt the joined path (`workspace/Users/…/evals`). The bootstrapped `.waza.yaml` keeps both as `skills/` and `evals/`, which symlink to the dotrc tree.
 
 ## Command 1 — `scaffold <skill-name>`
 
 Use case: `generate-skills` wants a placeholder eval suite created before human task refinement. No measurement is run.
 
 ```bash
-eval_yaml="/Users/ujuc/.config/dotrc/agents/claude/evals/${skill_name}/eval.yaml"
+eval_yaml="$HOME/.config/dotrc/agents/claude/evals/${skill_name}/eval.yaml"
 
 if [ -f "$eval_yaml" ]; then
   cat <<EOF
@@ -126,7 +126,7 @@ Use case: `generate-skills` (initial measurement) or `skill-improver` (before/af
 ```bash
 case "$input" in
   /*) eval_yaml="$input"; skill_name="$(basename "$(dirname "$eval_yaml")")" ;;
-  *)  skill_name="$input"; eval_yaml="/Users/ujuc/.config/dotrc/agents/claude/evals/${skill_name}/eval.yaml" ;;
+  *)  skill_name="$input"; eval_yaml="$HOME/.config/dotrc/agents/claude/evals/${skill_name}/eval.yaml" ;;
 esac
 
 if [ ! -f "$eval_yaml" ]; then
@@ -156,7 +156,7 @@ scaffolded=0
 
 auto_scaffold() {
   local skill_name="$1"
-  local eval_yaml="/Users/ujuc/.config/dotrc/agents/claude/evals/${skill_name}/eval.yaml"
+  local eval_yaml="$HOME/.config/dotrc/agents/claude/evals/${skill_name}/eval.yaml"
 
   if [ -f "$eval_yaml" ]; then
     printf '%s' "$eval_yaml"
@@ -263,7 +263,7 @@ If any task failed or errored, append a failure list quoting feedback verbatim:
 Always close with the result JSON path:
 
 ```
-- 결과 JSON: `/Users/ujuc/.claude/data/waza/results/commit-baseline-20260509-103412.json`
+- 결과 JSON: `/abs/path/commit-baseline-20260509-103412.json`
 ```
 
 A 1–2 line plain-language interpretation goes after the table only if it adds information beyond the numbers. Skip when everything passed.

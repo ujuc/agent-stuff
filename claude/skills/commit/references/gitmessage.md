@@ -1,7 +1,7 @@
 # Git Commit Message Guide
 
 Single source of truth for commit rules used by the `commit` skill.
-When this file changes, also update `/Users/ujuc/.config/dotrc/gitmessage`
+When this file changes, also update `~/.config/dotrc/gitmessage`
 (the global `commit.template`) so manual edits stay in sync.
 
 ## Sources

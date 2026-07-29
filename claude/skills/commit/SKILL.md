@@ -195,7 +195,7 @@ The summary block is shown to the user, so the labels stay in Korean.
 ## Maintenance — rule source sync
 
 `references/gitmessage.md` is the single source of truth for commit rules.
-Whenever it is edited, also update `/Users/ujuc/.config/dotrc/gitmessage`
+Whenever it is edited, also update `~/.config/dotrc/gitmessage`
 (the global `commit.template`, used when the user runs `git commit` in an
 editor). Items that must stay aligned across both files:
 

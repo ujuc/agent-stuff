@@ -77,7 +77,7 @@ When calling from outside a skill context (no `${CLAUDE_SKILL_DIR}`), use the
 absolute path:
 
 ```bash
-bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh "<prompt>"
+bash ~/.claude/skills/gemma/scripts/query.sh "<prompt>"
 ```
 
 The default variant (`e4b`, on LM Studio with auto-fallback to Gemini) is
@@ -85,13 +85,13 @@ usually right. Select a specific variant or backend only when needed:
 
 ```bash
 # explicit variant
-bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh e4b "<prompt>"
+bash ~/.claude/skills/gemma/scripts/query.sh e4b "<prompt>"
 
 # force remote (Gemini API)
-bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh --cloud 31b "<prompt>"
+bash ~/.claude/skills/gemma/scripts/query.sh --cloud 31b "<prompt>"
 
 # force on-device, fail rather than fall back (privacy-strict)
-GEMMA_NO_FALLBACK=1 bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh --local e4b "<prompt>"
+GEMMA_NO_FALLBACK=1 bash ~/.claude/skills/gemma/scripts/query.sh --local e4b "<prompt>"
 ```
 
 ### Passing Large Input
@@ -100,7 +100,7 @@ For a **purely literal** prompt (no variable interpolation), a quoted heredoc
 is the simplest form:
 
 ```bash
-bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh "$(cat <<'EOF'
+bash ~/.claude/skills/gemma/scripts/query.sh "$(cat <<'EOF'
 Summarize the following paragraph in one sentence.
 
 <paste the paragraph inline here>
@@ -112,7 +112,7 @@ Set `GEMMA_TIMEOUT` if the prompt is large enough to risk the default 120s
 ceiling:
 
 ```bash
-GEMMA_TIMEOUT=300 bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh "..."
+GEMMA_TIMEOUT=300 bash ~/.claude/skills/gemma/scripts/query.sh "..."
 ```
 
 #### Pitfall: quoted heredoc blocks command substitution

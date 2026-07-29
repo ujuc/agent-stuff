@@ -25,16 +25,16 @@ All invocations go through `scripts/query.sh`. Use the `Bash` tool:
 
 ```bash
 # Default: variant e4b on LM Studio, auto-fallback to Gemini if LM Studio down.
-bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh "이 문단을 3줄로 요약해줘: ..."
+bash ~/.claude/skills/gemma/scripts/query.sh "이 문단을 3줄로 요약해줘: ..."
 
 # Explicit variant.
-bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh e4b "hello"
+bash ~/.claude/skills/gemma/scripts/query.sh e4b "hello"
 
 # Force remote (Gemini API).
-bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh --cloud 31b "복잡한 추론 문제: ..."
+bash ~/.claude/skills/gemma/scripts/query.sh --cloud 31b "복잡한 추론 문제: ..."
 
 # Force local; fail if LM Studio unavailable (privacy-strict mode).
-GEMMA_NO_FALLBACK=1 bash /Users/ujuc/.claude/skills/gemma/scripts/query.sh --local e4b "민감 데이터: ..."
+GEMMA_NO_FALLBACK=1 bash ~/.claude/skills/gemma/scripts/query.sh --local e4b "민감 데이터: ..."
 ```
 
 stdout contains only the model response. stderr has a single `info:` line

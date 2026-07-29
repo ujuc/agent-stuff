@@ -38,7 +38,7 @@ make install            # GOPATH/bin에 설치 (Go 1.21+, npm 필요 — web 대
 또는 사용자 디렉토리에 이미 클론되어 있다면:
 
 ```bash
-cd /Users/ujuc/repos/waza
+cd ~/repos/waza
 make install
 ```
 
