@@ -18,8 +18,8 @@ Dispatches specialist agents to verify and maintain the agent-stuff configuratio
 |------|-------------------|---------|
 | `health` (default) | health-checker | Structure validation report |
 | `docs` | health-checker → doc-syncer | Detect issues then fix documentation |
-| `skill` | skill-engineer | Skill audit or lifecycle task |
-| `full` | health-checker → doc-syncer → skill-engineer | Complete maintenance pass |
+| `skill` | skill-maintainer | Skill audit or lifecycle task |
+| `full` | health-checker → doc-syncer → skill-maintainer | Complete maintenance pass |
 
 ## Workflow
 
@@ -39,7 +39,7 @@ to `health-checker` when nothing matches (read-only, side-effect free).
 |-------|------------------|
 | `health-checker` | `구조`, `헬스`, `점검`, `검증`, `structure`, `health`, `audit repo`, `validate` |
 | `doc-syncer` | `문서`, `동기화`, `CLAUDE.md`, `AGENTS.md`, `SOUL.md`, `docs`, `sync`, `readme` |
-| `skill-engineer` | `스킬`, `skill`, `frontmatter`, `description`, `audit skill`, `생성`, `최적화` |
+| `skill-maintainer` | `스킬`, `skill`, `frontmatter`, `description`, `audit skill`, `생성`, `최적화` |
 
 When the free-form request clearly involves multiple concerns (e.g.,
 "스킬 audit 후 문서까지 맞춰줘"), escalate to `full` mode instead of
@@ -66,7 +66,7 @@ Agent(subagent_type: "health-checker")
 
 **skill mode:**
 ```
-Agent(subagent_type: "skill-engineer",
+Agent(subagent_type: "skill-maintainer",
       prompt: include $ARGUMENTS context if provided)
 → Return audit results or delegate to generate-skills/autoresearch
 ```
