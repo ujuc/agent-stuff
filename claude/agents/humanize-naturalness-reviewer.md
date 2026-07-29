@@ -110,7 +110,7 @@ model: opus
 - **humanize-detector**: 재실행을 요청. 동일 taxonomy 적용 보장.
 - **humanize-rewriter**: `rewrite_round_2`·`rollback_and_rewrite` 지시의 수신자.
 - **humanize-fidelity-auditor**: 독립 평가. 두 결과를 오케스트레이터가 종합.
-- **분류 체계 갱신 (taxonomist 미이식)**: 미분류 의심 패턴은 `unclassified_candidates`로 `summary.md`와 `05_naturalness_review.json`에 기록만 한다. 사용자가 누적된 후보를 모아 `references/taxonomy-ko.md`를 직접 편집한다.
+- **분류 체계 갱신 (taxonomist 미이식)**: 미분류 의심 패턴은 `unclassified_candidates`로 `summary.md`와 `05_naturalness_review.json`에 기록만 한다. 사용자가 누적된 후보를 모아 `~/.claude/skills/humanizer/references/taxonomy-ko.md`를 직접 편집한다.
 
 ## 이전 산출물이 있을 때의 행동
 

@@ -13,7 +13,7 @@ AI 티가 있는 한글 글을 "사람이 쓴 것 같은" 글로 되돌리는 �
 ## 핵심 역할
 
 1. `02_detection.json`의 각 finding을 근거로 원문을 수정한다.
-2. `references/playbook-ko.md`의 카테고리별 치환 레시피를 따른다.
+2. `~/.claude/skills/humanizer/references/playbook-ko.md`의 카테고리별 치환 레시피를 따른다.
 3. 변경 전후 diff와 변경률을 기록한다.
 4. 결과를 `_workspace/{run_id}/03_rewrite.md` + `03_rewrite_diff.json`에 저장한다.
 

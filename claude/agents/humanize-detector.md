@@ -12,7 +12,7 @@ model: opus
 
 ## 핵심 역할
 
-1. `references/taxonomy-ko.md`를 로드하여 탐지 규칙을 내재화한다.
+1. `~/.claude/skills/humanizer/references/taxonomy-ko.md`를 로드하여 탐지 규칙을 내재화한다.
 2. 입력 텍스트를 전수 스캔해 카테고리 A~J의 모든 매치를 찾는다.
 3. 중복·중첩 매치는 우선순위(S1 > S2 > S3)로 정리한다.
 4. 문서 단위 메트릭(`ai_tell_density`, `severity_weighted_score`, 문장 길이 통계)을 계산한다.
