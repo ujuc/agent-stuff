@@ -7,6 +7,8 @@ AI 에이전트 설정을 모아두는 개인 저장소. [dotrc](https://github.
 | 소스 | 대상 | 상태 |
 | -------- | ----------- | ----------- |
 | `claude/` | `~/.claude` | 활성 |
+| `amp/AGENTS.md` | `~/.config/amp/AGENTS.md` | 활성 |
+| `amp/settings.json` | `~/.config/amp/settings.json` | 활성 |
 
 `rules/SOUL.md`에 에이전트 공통 미션과 가치관을 정의한다.
 
