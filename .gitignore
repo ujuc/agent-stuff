@@ -85,6 +85,7 @@ claude/remote*
 **/.last_*
 **/.last-*
 **/*log*
+**/.ponytail*
 
 ### Manual backups taken before editing config (e.g. settings.json.bak)
 *.bak
