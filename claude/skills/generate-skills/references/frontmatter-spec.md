@@ -36,7 +36,7 @@ description: What this skill does. When to use it.
 
 All fields are optional in the upstream spec. Only `description` is recommended so Claude knows when to use the skill.
 
-> **Local extension (this repository):** every SKILL.md MUST also include a `group` field — one of 8 fixed slugs. The `/skills` meta-skill (`skills/skill-index/`) reads this field to render the catalog, and `validate-skill` fails when it is missing or invalid. See the [`group`](#group) section below.
+> **Local extension (this repository):** every SKILL.md MUST also include a `group` field — one of 8 fixed slugs. `validate-skill` fails when it is missing or invalid, and the catalog table in `skills/README.md` mirrors it. See the [`group`](#group) section below.
 
 ### `name`
 
@@ -259,7 +259,7 @@ shell: powershell
 
 > **Local extension** — required by this repository, not the upstream spec.
 
-Group slug used by the `/skills` catalog (`skills/skill-index/`). Every SKILL.md must declare exactly one of the 8 fixed slugs below.
+Group slug used by the catalog table in `skills/README.md`. Every SKILL.md must declare exactly one of the 8 fixed slugs below.
 
 ```yaml
 group: planning
@@ -277,7 +277,7 @@ group: planning
 | `meta` | 🧪 메타·관리 | Skill management, session lifecycle |
 
 - `validate-skill` fails when this field is missing or holds a value outside the 8 slugs.
-- The slug list is defined in `tools/skill-core/src/rules.rs::ALLOWED_GROUPS`. Any change there must be reflected in this section, in `skill-index`, and in `skills/CLAUDE.md`.
+- The slug list is defined in `tools/skill-core/src/rules.rs::ALLOWED_GROUPS`. Any change there must be reflected in this section, in `skills/README.md`, and in `skills/CLAUDE.md`.
 - Do NOT auto-fix a missing `group` field — `skill-improver` reports it as manual because guessing from directory name or description risks wrong placement.
 
 ---

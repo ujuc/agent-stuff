@@ -69,7 +69,7 @@ Run `validate-skill <path>` (Rust binary, not the legacy `.sh`). This single exe
 |------|----------------|-----|
 | **B.1 Description-body alignment** | Description's WHAT clause matches actual procedure steps | Read procedure, compare with description. Flag if description claims capabilities not present in the body, or misses major capabilities |
 | **B.5 Reference integrity** | All file paths in the body point to existing files | Glob/Read each referenced path. Flag broken references. **Skip for agent files** unless body explicitly mentions external paths |
-| **B.6 group classification** | Frontmatter has a valid `group:` (one of planning/analysis/build/verify/docs/writing/llm/meta) and `README.md`'s group map lists the skill under that same group | `group:` is the single source of truth `skill-index` renders for `/skills`; there is **no** per-skill triggers/model table in `claude/CLAUDE.md` to sync. Flag a missing/invalid `group:`, or a README group map that disagrees with the frontmatter. |
+| **B.6 group classification** | Frontmatter has a valid `group:` (one of planning/analysis/build/verify/docs/writing/llm/meta) and `README.md`'s group map lists the skill under that same group | `group:` is the single source of truth the `README.md` catalog table mirrors; there is **no** per-skill triggers/model table in `claude/CLAUDE.md` to sync. Flag a missing/invalid `group:`, or a README group map that disagrees with the frontmatter. |
 | **B.7 Language policy** | Description Korean, body English, trigger keywords intact | Parse frontmatter description for Korean characters; scan body for non-trivial Korean prose |
 
 > **Scope boundary**: trigger completeness, trigger uniqueness, and model fitness checks belong to the `skill-engineer` agent. Do not duplicate them here. To run those checks, dispatch `Agent("skill-engineer", "<target> [--check trigger|overlap|model|all]")` either inline (after Phase 5 passes) or as a standalone follow-up.
@@ -145,7 +145,7 @@ For each FAIL result:
 |----------|---------|-----|
 | Frontmatter corrections | Missing fields, typos, invalid format | Add/correct frontmatter fields |
 | Description WHAT enrichment | B.1 fails | Generate accurate WHAT clause from procedure steps. **Never modify the WHEN clause (trigger phrases) without user approval** |
-| group classification | B.6 fails | Add/fix the `group:` frontmatter to a valid value and align `README.md`'s group map (frontmatter is source of truth; `skill-index` renders it) |
+| group classification | B.6 fails | Add/fix the `group:` frontmatter to a valid value and align `README.md`'s group map (frontmatter is source of truth; the README table mirrors it) |
 | Reference path repair | B.5 fails | Fix the path if a similarly-named file exists nearby; otherwise report as manual |
 | Language policy hint | B.7 fails | Report only — never auto-translate without user approval |
 
@@ -244,7 +244,7 @@ This phase is skipped for structural-only runs ("스킬 테스트해줘", "test 
 
 2. **Description enrichment risk**: auto-generating a WHAT clause can accidentally remove trigger keywords the user placed intentionally. Always show the diff for description changes and never touch the WHEN clause.
 
-3. **Group sync target**: `group:` frontmatter is the single source of truth (rendered by `skill-index`); there is no per-skill triggers/model table in `claude/CLAUDE.md` to edit. When a group changes, update the group map in `claude/skills/README.md` — not a CLAUDE.md table.
+3. **Group sync target**: `group:` frontmatter is the single source of truth; there is no per-skill triggers/model table in `claude/CLAUDE.md` to edit. When a group changes, update the group map in `claude/skills/README.md` — not a CLAUDE.md table.
 
 4. **Periodic-run timestamp drift**: if skill-improver crashes mid-Phase 4 without reaching Phase 6, the timestamp is not updated and the user gets re-prompted next session. This is desired (failed runs re-prompt) — do not move the write earlier.
 

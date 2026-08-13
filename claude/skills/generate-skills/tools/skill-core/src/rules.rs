@@ -37,8 +37,8 @@ pub const ALLOWED_KEYS: &[&str] = &[
 pub const ALLOWED_MODELS: &[&str] = &["opus", "sonnet", "haiku", "inherit"];
 
 /// Local extension: every SKILL.md must declare exactly one of these slugs
-/// in its `group` field. The `/skills` meta-skill (`skills/skill-index/`)
-/// reads this to render the catalog. See `frontmatter-spec.md` "group" section.
+/// in its `group` field. The catalog table in `skills/README.md` mirrors it.
+/// See `frontmatter-spec.md` "group" section.
 pub const ALLOWED_GROUPS: &[&str] = &[
     "planning",
     "analysis",

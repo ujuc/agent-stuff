@@ -333,7 +333,7 @@ When in doubt, follow the trigger-tuning guide in `references/review-checklist.m
 
 ### Registration
 
-Once validation passes, register the skill in the catalog group map in `${DOTRCDIR}/agents/claude/skills/README.md`. The `group:` frontmatter is the single source of truth (rendered by `skill-index` for `/skills`); the README table mirrors it and must stay in sync. Use the `register-skill` launcher — it is idempotent (re-running is a no-op) and errors if the skill is already listed under a different group:
+Once validation passes, register the skill in the catalog group map in `${DOTRCDIR}/agents/claude/skills/README.md`. The `group:` frontmatter is the single source of truth; the README table mirrors it and must stay in sync. Use the `register-skill` launcher — it is idempotent (re-running is a no-op) and errors if the skill is already listed under a different group:
 
 ```bash
 DOTRCDIR="${DOTRCDIR:-${XDG_CONFIG_HOME:-$HOME/.config}/dotrc}"
@@ -356,7 +356,7 @@ For team-wide distribution, see `references/distribution-guide.md` — repo chec
 Skill-specific pitfalls that validator automation cannot catch. Update this section whenever a new edge case is discovered.
 
 1. **`disable-model-invocation: true` removes the description from model context.**
-   When this flag is set, the skill's `description` is not loaded into context, so its natural-language trigger phrases cannot auto-fire — the skill is effectively `/name`-only (or an explicit user request to run it). It also blocks subagent preloading and scheduled-task prompts (v2.1.196+). Keep trigger phrases in `description` anyway: they document intent and surface in the `/skills` catalog via `skill-index`.
+   When this flag is set, the skill's `description` is not loaded into context, so its natural-language trigger phrases cannot auto-fire — the skill is effectively `/name`-only (or an explicit user request to run it). It also blocks subagent preloading and scheduled-task prompts (v2.1.196+). Keep trigger phrases in `description` anyway: they document intent and remain the record of when the skill is meant to fire.
 
 2. **Reference paths are relative to SKILL.md, not the invocation cwd.**
    `references/<name>.md` in SKILL.md always resolves relative to the skill directory. Avoid `../` paths — if you need content from outside the skill tree, copy it into `references/` so the skill stays self-contained.

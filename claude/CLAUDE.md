@@ -40,18 +40,19 @@ pointers — this rule covers the rest.)
 ## Directory Layout
 
 `~/.claude/` mixes user-maintained configuration with runtime state — the repo
-`.gitignore` and the `settings.json` deny rules are the source of truth. Runtime
-dirs (`sessions/`, `cache/`, `file-history/`, `telemetry/`) and `deplicated/` are
+`.gitignore` is the source of truth for which is which. Runtime dirs
+(`sessions/`, `cache/`, `file-history/`, `telemetry/`) and `deplicated/` are
 edit-blocked; `projects/` stays writable because auto-memory lives there. Keep
 `../rules/AGENTS.md` self-contained and in sync with `../rules/SOUL.md`.
 
 ## Skills
 
 The `group:` field in SKILL.md frontmatter is the single source of truth for
-classification — view the catalog via `/skills` (the `skill-index` meta-skill);
-no static table is duplicated here. Keep skill bodies portable across harnesses:
-when a step depends on a Claude-only feature, name a fallback the other harnesses
-can follow (see the shared AGENTS.md "Skills (Shared Catalog)" rule).
+classification, enforced by `validate-skill`; the catalog table lives in
+`skills/README.md` and is not duplicated here. Keep skill bodies portable
+across harnesses: when a step depends on a Claude-only feature, name a
+fallback the other harnesses can follow (see the shared AGENTS.md "Skills
+(Shared Catalog)" rule).
 
 ### Workflow Index
 
