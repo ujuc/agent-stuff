@@ -2,8 +2,9 @@
   "respectGitignore": true,
   "skillListingBudgetFraction": 0.05,
   "env": {
-    "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "0",
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDISH_MODEL": "google/gemma-4-26b-a4b-qat",
+    "CLAUDISH_OLLAMA": "http://127.0.0.1:1234"
   },
   "permissions": {
     "allow": [
@@ -126,7 +127,8 @@
     "remember@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": false,
     "fable-advisor@fable-advisor": true,
-    "ponytail@ponytail": true
+    "ponytail@ponytail": true,
+    "claudish-to-english@gvzdv-plugins": true
   },
   "extraKnownMarketplaces": {
     "claude-plugins-official": {
@@ -163,6 +165,12 @@
       "source": {
         "source": "github",
         "repo": "DietrichGebert/ponytail"
+      }
+    },
+    "gvzdv-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "gvzdv/claudish-to-english"
       }
     }
   },
