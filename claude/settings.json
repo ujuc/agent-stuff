@@ -25,8 +25,6 @@
       "Bash(ollama list:*)",
       "Bash(waza:*)",
       "Bash(yq:*)",
-      "Bash(python3:*)",
-      "Bash(bash:*)",
       "Bash(chmod +x:*)",
       "Bash(mkdir:*)",
       "Bash(ln:*)",
@@ -63,6 +61,15 @@
             "command": "~/.claude/hooks/skill-improver-cadence.sh"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
@@ -74,9 +81,29 @@
             "command": "~/.claude/hooks/clarify-update-word.sh"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
       }
     ],
-    "PreToolUse": [],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Write",
@@ -96,6 +123,16 @@
             "timeout": 30000
           }
         ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PreCompact": [
@@ -105,6 +142,85 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/preserve-research-context.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "TeammateIdle": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/sungjin6111/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
           }
         ]
       }
@@ -121,15 +237,15 @@
     "superpowers@claude-plugins-official": true,
     "claude-hud@claude-hud": true,
     "security-guidance@claude-plugins-official": true,
-    "amp-plugin-cc@amp-plugin-cc": true,
-    "rust-analyzer-lsp@claude-plugins-official": true,
-    "ecc@ecc": true,
+    "rust-analyzer-lsp@claude-plugins-official": false,
+    "ecc@ecc": false,
     "typescript-lsp@claude-plugins-official": false,
     "pyright-lsp@claude-plugins-official": false,
     "explanatory-output-style@claude-plugins-official": false,
     "remember@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": false,
-    "fable-advisor@fable-advisor": true
+    "fable-advisor@fable-advisor": true,
+    "ponytail@ponytail": true
   },
   "extraKnownMarketplaces": {
     "claude-plugins-official": {
@@ -143,13 +259,6 @@
         "source": "github",
         "repo": "jarrodwatts/claude-hud"
       }
-    },
-    "amp-plugin-cc": {
-      "source": {
-        "source": "github",
-        "repo": "ujuc/amp-plugin-cc"
-      },
-      "autoUpdate": true
     },
     "claude-code-warp": {
       "source": {
@@ -168,6 +277,12 @@
         "source": "github",
         "repo": "DannyMac180/fable-advisor"
       }
+    },
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      }
     }
   },
   "outputStyle": "explanatory-concise",
@@ -178,6 +293,7 @@
   "advisorModel": "opus",
   "askUserQuestionTimeout": "5m",
   "tui": "fullscreen",
+  "skipWorkflowUsageWarning": true,
   "theme": "dark-ansi",
   "editorMode": "normal",
   "teammateMode": "tmux",
