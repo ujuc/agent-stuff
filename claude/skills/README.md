@@ -4,7 +4,7 @@
 
 ## 그룹
 
-| slug | 한글 라벨 | 자체 스킬 |
+| slug | 한글 라벨 | 스킬 (`codex:` 접두는 플러그인) |
 | --- | --- | --- |
 | `planning` | 🧭 기획·스펙 | `spec-planner`, `sprint-contract-negotiator` |
 | `analysis` | 📐 분석·계획 | `deep-read`, `annotate-plan` |
@@ -12,7 +12,7 @@
 | `verify` | ✅ 검증·QA | `qa-evaluator`, `frontend-design-evaluator` |
 | `docs` | 📝 문서·커밋 | `commit`, `generate-agent-docs` |
 | `writing` | ✍️ 글쓰기 | `humanizer`, `prompting-assist` |
-| `llm` | 🤖 외부 LLM | `gemma`, `codex:setup`, `codex:rescue` |
+| `llm` | 🤖 외부 LLM | `gemma`, `codex:codex-cli-runtime`, `codex:codex-result-handling`, `codex:gpt-5-4-prompting` |
 | `meta` | 🧪 메타·관리 | `generate-skills`, `skill-improver`, `autoresearch` |
 
 ## 워크플로우 색인
