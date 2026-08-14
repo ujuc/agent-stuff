@@ -29,11 +29,12 @@ Execute stages strictly in order. Update mode swaps in U1–U3
 | 3 | Write files | 1 general-purpose agent; update mode: U3 surgical edits by orchestrator | references/stage3-generator.md |
 | 4 | Verify: checklist → fix loop → blind review | sonnet subagents + advisor | references/stage4-verifier.md |
 
-Two reference files cut across Stages 3–4, constraining every documented
+Three reference files cut across Stages 3–4, constraining every documented
 instruction while Stage 4 rejects the lines that violate them:
 references/model-prompting-guides.md (`[W]` rules — how an instruction is
-phrased) and references/context-engineering-claude5.md (`C1–C4` — whether the
-instruction belongs in a doc at all).
+phrased), references/context-engineering-claude5.md (`C1–C4` — whether the
+instruction belongs in a doc at all), and references/tdd-agent-loop.md (`T1`
+— whether a testing instruction prescribes process or outcome).
 
 ## Stage 0: Bootstrap & Routing
 
@@ -78,6 +79,7 @@ Same loud-fallback rule on failure.
 | references/model-prompting-guides.md | Per-model instruction-authoring rules (4 `source_urls`; the secondary URL only for cross-model questions) | 14d |
 | references/agents-md-best-practices.md | agents.md standard — fetch only when AGENTS.md is a target | 30d |
 | references/context-engineering-claude5.md | Claude 5 context-engineering rules C1–C4 (judgment framing, skill-over-section, no memory lines, four-layer placement) | 90d |
+| references/tdd-agent-loop.md | Agent-loop TDD findings T1 (conditional reject of agent-directed TDD process mandates + survivor list) | 90d |
 
 ### Step 0-2 — Route generate vs update
 
@@ -160,6 +162,14 @@ Skip this confirmation when `$ARGUMENTS` already names a file or target type.
   Policy), C2 turn a sometimes-relevant multi-step procedure into a skill plus
   one reference line, C3 never emit memory-management lines (auto-memory owns
   that now), C4 place a finding across four layers, not two.
+- **Testing instructions: outcome over process**
+  (references/tdd-agent-loop.md): mandating TDD inside an agent's loop showed
+  no quality gain at 3–8.5× token cost (Böckeler, martinfowler.com), so T1
+  rejects agent-directed test-first/TDD process lines by default and rewrites
+  them as outcome-based verification (named test command, mutation-score bar,
+  static analysis). Its Reconciliation lists the four survivors —
+  human-writes-tests splits, outcome requirements, an explicit team decision
+  confirmed in Stage 2, test-quality monitoring bars.
 - **Soul** (references/SOUL.md): the agent-identity seed used when generating
   project files — a static copy, not a pointer to the live identity file.
 
@@ -284,6 +294,7 @@ instructions.
 | Apply an update-mode edit the user has not seen | Show the exact change; get per-file confirmation (U3) |
 | Tell a Stage 1 Explore agent to write a file | Explore is read-only — findings return as final messages |
 | Write a "double-check your work" line or pre-response checklist into a generated doc | Delete it (model-prompting-guides.md W1) — it causes over-verification; a real must-run gate becomes a hook |
+| Emit a TDD or test-first process mandate aimed at the agent's own loop | Rewrite as outcome-based verification (tdd-agent-loop.md T1) — keep it only as one of T1's Reconciliation survivors, e.g. a team decision confirmed in Stage 2 |
 | Emit an instruction to show, or to suppress, the agent's reasoning | Never (W2) — risks `reasoning_extraction` refusals one way, internal-tag leakage the other |
 | Emit a sometimes-relevant multi-step procedure as a CLAUDE.md / AGENTS.md section | Recommend a skill and emit one reference line (C2) — every-session budget is for always-relevant content |
 | Write a Memory / Notes / Session Log / Changelog section into an agent-config file | Delete it (C3) — auto-memory owns that content, and a hand-maintained log fails the prune test as soon as it goes stale |

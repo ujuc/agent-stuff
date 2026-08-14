@@ -71,8 +71,11 @@ EVAL 6: Instruction-authoring constraints
             Also free of the two line shapes
             context-engineering-claude5.md rejects — an absolute
             prohibition that fails its Reconciliation test (C1) and any
-            memory / notes / session-log / changelog instruction (C3)?
-  Pass: None of the six rejected patterns appears; every path-bound rule
+            memory / notes / session-log / changelog instruction (C3) —
+            and of the shape tdd-agent-loop.md rejects: an agent-directed
+            TDD / test-first process mandate covered by none of its
+            Reconciliation's four survivors (T1)?
+  Pass: None of the seven rejected patterns appears; every path-bound rule
         states its paths or lives in .claude/rules/ with `paths`.
   Fail: Any rejected pattern survives, or a rule's scope is left implied.
 ```

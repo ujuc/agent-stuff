@@ -50,6 +50,8 @@ Apply line by line to every generated/modified file:
 
 12. **Context-engineering constraints** (context-engineering-claude5.md C1–C4): does any line (a) forbid a behavior outright where the right answer depends on the surrounding code, without qualifying under the Reconciliation test as a regression guard, a safety boundary, or a "don't" with no nameable alternative (C1); (b) spell out a multi-step procedure needed only sometimes — a release runbook, migration steps, a verification sequence — instead of pointing at a skill (C2); (c) tell anyone to record notes, decisions, session logs, or learnings into the file, or otherwise prescribe maintaining it as a memory store (C3); or (d) paraphrase a spec that already exists in executable form — a test, a function, a mockup, a rubric — instead of referencing that file (C4)? → (a) rewrite to name the observable signal the agent should match; (b) recommend a skill and keep one reference line; (c) delete — auto-memory owns that content; (d) replace the paraphrase with the reference
 
+13. **Testing-instruction constraint** (tdd-agent-loop.md T1): does any line prescribe a TDD / test-first / red-green-refactor process to the agent's own development loop, without qualifying under that file's Reconciliation as a human-writes-tests split, an outcome requirement, an explicit team decision confirmed in Stage 2, or a test-quality monitoring bar? → Rewrite as outcome-based verification (named test command as the done criterion, mutation-score bar, static analysis) — never into self-verification scaffolding (W1)
+
 ### Anti-Pattern Detection
 
 Warn the user when any of the following are detected:
@@ -151,6 +153,8 @@ Files to review: {list_of_generated_file_paths}
 8. Instruction-authoring: Does any line tell its reader to verify or double-check its own work, to show or to suppress its reasoning, or to filter findings by severity or confidence? Does any rule leave its scope implied rather than naming the paths or file types it covers? → flag for removal or for an explicit scope
 
 9. Context engineering: Does any line forbid a behavior outright where the surrounding code already answers the question, and is not a regression guard or a safety boundary? Does any line spell out a procedure needed only sometimes instead of pointing at a skill? Does any line tell a reader to record notes, decisions, or session logs into the file? Does any line paraphrase a spec that exists in executable form elsewhere? → flag with the replacement
+
+10. Testing instructions: Does any line mandate TDD, test-first, or red-green-refactor for the agent's own workflow, rather than stating an outcome (a named test command that must pass, a mutation-score or coverage bar) or splitting roles (human-written tests the agent implements against)? → flag with the outcome-based replacement
 
 For any criterion where your PASS/FAIL call is low-confidence, call advisor() for an independent opus second opinion before finalizing.
 

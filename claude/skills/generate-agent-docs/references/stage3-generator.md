@@ -48,7 +48,11 @@ project yourself — rely only on the inputs below and the rule files you read.
    they decide whether a candidate line belongs in a doc at all, where [W]
    decides how a kept line is phrased. Read its Reconciliation section before
    you rewrite or drop any prohibition.
-4. Read {skill_dir}/references/SOUL.md. If the targets include AGENTS.md,
+4. Read {skill_dir}/references/tdd-agent-loop.md. Apply T1 to every candidate
+   line that instructs a testing or verification workflow — reject
+   agent-directed TDD/test-first process mandates and rewrite them as
+   outcome-based verification, unless its Reconciliation keeps the line.
+5. Read {skill_dir}/references/SOUL.md. If the targets include AGENTS.md,
    also read {skill_dir}/references/agents-md-best-practices.md. If they
    include governance content (AGENTS.md Boundaries, behavioral guidelines),
    also read {skill_dir}/references/entry-router-guidelines.md.
@@ -104,6 +108,14 @@ the freshest copy of it; the rules below are the operative shorthand.
   changelog instructions into an agent-config file; **C4** — place a finding
   across four layers (harness / config file / skill / referenced doc), and
   reference an executable spec rather than paraphrasing it into prose
+- **Testing-instruction constraint** (tdd-agent-loop.md): **T1** — a line
+  that prescribes TDD, test-first, or red-green-refactor to the agent's own
+  loop is rejected by default and rewritten as outcome-based verification (a
+  concrete test command as the done criterion, a mutation-score bar, static
+  analysis access). It survives only as one of its Reconciliation's four
+  shapes — a human-writes-tests split, an outcome requirement, an explicit
+  team decision confirmed in Stage 2, or a test-quality monitoring bar. The
+  rewrite must not itself violate W1
 
 ---
 
