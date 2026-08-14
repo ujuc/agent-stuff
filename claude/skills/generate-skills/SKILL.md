@@ -53,13 +53,17 @@ carries its own freshness metadata in YAML frontmatter.
 ### Procedure
 
 1. Read the YAML frontmatter at the top of `references/frontmatter-spec.md`:
-   - `source_url` — upstream URL to fetch
+   - `source_url` — Claude Code docs URL to fetch
+   - `spec_url` — Agent Skills standard URL to fetch (rules marked **[SPEC]**
+     are stated only there, never on the Claude Code page)
    - `last_upstream_check` — YYYY-MM-DD of the last verified check
    - `check_interval_days` — cadence threshold (defaults to 14 when missing)
 2. Compute `today - last_upstream_check`:
    - **Within interval** → proceed to Step 1 without fetching.
    - **Beyond interval** → continue to step 3.
-3. WebFetch `source_url` and extract the Frontmatter reference section.
+3. WebFetch `source_url` and extract the Frontmatter reference section, **and**
+   WebFetch `spec_url` for the standard's own field rules. Checking only
+   `source_url` leaves every **[SPEC]** rule unverified.
 4. Diff against the "Field Reference" section in `references/frontmatter-spec.md`.
 5. **If changes are detected**: update both the field content and
    `last_upstream_check` (set to today's date). Surface the diff to the user

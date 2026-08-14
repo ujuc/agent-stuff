@@ -29,6 +29,11 @@ pub const ALLOWED_KEYS: &[&str] = &[
     "hooks",
     "paths",
     "shell",
+    // Agent Skills spec fields (agentskills.io); Claude Code accepts them but
+    // does not act on their contents.
+    "metadata",
+    "license",
+    "compatibility",
     "group",
 ];
 
