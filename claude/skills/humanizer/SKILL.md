@@ -43,7 +43,7 @@ humanizer v2.0 — {fast|strict|redo} 모드 / run_id: {YYYY-MM-DD-NNN} / 언어
 
 - `장르: 칼럼|리포트|블로그|공적` — auto-estimated from the first 300 chars if omitted
 - `강도: 보수|기본|적극` — default `기본`
-- `최소심각도: S1|S2|S3` (strict) or `P1|P2|P3` (fast English) — default S2/P2
+- `최소심각도: S1|S2|S3` (strict) or `P1|P2|P3` (fast English) — default S2/P2. S1 includes only level 1; S2 includes levels 1–2; S3 includes all three.
 
 ## Phase 1 — Input capture and run_id
 
@@ -62,7 +62,8 @@ Call the `humanize-monolith` agent once via the `Agent` tool.
 Call arguments:
 ```
 input_path: <abs path>/_workspace/{run_id}/01_input.txt
-quick_rules_path: ~/.claude/skills/humanizer/references/quick-rules.md
+quick_rules_path: <resolved absolute skill path>/references/quick-rules.md
+output_dir: <abs path>/_workspace/{run_id}
 genre_hint: 칼럼 | 리포트 | 블로그 | 공적 | null
 ```
 
@@ -96,62 +97,64 @@ After writing the artifacts, return these four briefly to the user:
 
 **Default wall-clock target:** ≤ 5,000 chars in 2–3 min, 8,000 chars in 5–7 min.
 
-## Strict mode (`--strict` or 8,000-char+ auto-upgrade)
+## Strict mode (`--strict` or over-8,000-char auto-upgrade)
 
 **Korean only.** If `--strict` arrives with English input, force fast + notice:
 "strict 모드는 한국어 전용입니다. 영어는 fast 모드만 지원합니다."
 
 ### Phase A — Detection
 
-Call the `humanize-detector` agent → produces `02_detection.json`.
-Input: `01_input.txt`, `genre_hint`, `min_severity` option.
+Call `humanize-detector` with absolute `input_path`, `taxonomy_path`, and `output_path` plus `run_id`, `genre_hint`, `min_severity`, and `include_document_level: true`. It writes `02_detection.json`.
 
 ### Phase B — Rewrite (up to 3 loops)
 
-Call the `humanize-rewriter` agent → `03_rewrite.md` + `03_rewrite_diff.json`.
-Input: `01_input.txt`, `02_detection.json`, `preserve_formatting` option.
+Call `humanize-rewriter` with absolute `original_path`, `source_path`, `detection_path`, `playbook_path`, `rewrite_path`, and `diff_path`. `original_path` is always `01_input.txt`; round 1 also uses it as source, while later rounds use the prior candidate as source and receive the current review path. Use matching versions: `03_rewrite.md` + `03_rewrite_diff.json`, then `_v2`, then `_v3`. Change rate is always final candidate versus `original_path`.
 
 ### Phase C — Parallel verification (agent team)
 
-Call the `Agent` tool twice in parallel (two tool calls in one message):
+Call the `Agent` tool twice in parallel with the current round's absolute paths:
 
-- `humanize-fidelity-auditor` → `04_fidelity_audit.json` (13-item semantic equivalence)
-- `humanize-naturalness-reviewer` → `05_naturalness_review.json` (residual + over-polish)
+- `humanize-fidelity-auditor` → `04_fidelity_audit{_vN}.json` (13-item semantic equivalence)
+- `humanize-naturalness-reviewer` → `05_naturalness_review{_vN}.json` (residual + over-polish)
 
 ### Phase C verdict
+
+Precedence: any `hold_and_report` from either verifier stops first; otherwise fidelity `fail`, then `conditional_pass`, then the naturalness result.
 
 | fidelity | naturalness | verdict | follow-up |
 |---|---|---|---|
 | full_pass | accept / accept_with_note | **final approval** | Phase D |
 | full_pass | rewrite_round_2 | **2nd rewrite** | re-call Phase B (target finding) |
 | full_pass | rollback_and_rewrite | **rollback then rewrite** | tell the rewriter to roll back the edit |
+| full_pass | hold_and_report | **hold** | recommend human review |
 | conditional_pass | - | **retry rolled-back edits only** | re-call Phase B |
 | fail | - | **full rework** | full re-call of Phase B |
+| hold_and_report | - | **hold** | ask for human review; do not rewrite |
 
-On a 2nd/3rd rewrite, split versions as `03_rewrite_v2.md` / `v3.md`.
+On a 2nd/3rd rewrite, split versions as `03_rewrite_v2.md` / `03_rewrite_v3.md`.
 **After 3 loops unresolved → `hold_and_report`** — recommend human review.
 
 ### Phase D — Final output
 
 1. Copy `03_rewrite_vN.md` or `03_rewrite.md` to `final.md`.
-2. Generate `summary.md` (same format as fast mode).
+2. Generate `summary.md` (same format as fast mode), copying any `unclassified_candidates` from the final naturalness JSON.
 3. Return the four-part response to the user (same as fast).
 
 ## Redo mode (`/humanizer redo [instruction]`)
 
-Identify the most recent `_workspace/{run_id}/` (notice and exit if none).
+Identify the most recent `_workspace/{run_id}/` (notice and exit if none). For English/mixed runs, redo the current `final.md` through the inline fast track and re-run its checks. For Korean fast runs lacking strict artifacts, scan `final.md` into `02_detection.json` before Phase B and use `final.md` as the prior candidate; fidelity still compares the new candidate with immutable `01_input.txt`.
 
-**Parse the user instruction:**
+**Parse the user instruction.** In the table, “targeted rerun” means strict Phase B for Korean and the equivalent inline fast edit/check for English or mixed text.
 
 | User utterance | Handling |
 |---|---|
-| "특정 카테고리만 다시" / "번역투만" / "관용구만" | strict + re-run Phase B on that category's findings only |
-| "이 문단만" / "두 번째 문단만" | strict + that range's findings only |
-| "2차 윤문" / no instruction | round 2 over all residual findings |
-| "강도 낮춰" / "보수적으로" | min_severity = S1 only |
-| "강도 높여" | min_severity = S1+S2+S3 |
+| "특정 카테고리만 다시" / "번역투만" / "관용구만" | targeted rerun for that category only |
+| "이 문단만" / "두 번째 문단만" | targeted rerun for that range only |
+| "2차 윤문" / no instruction | current language track over all residual findings |
+| "강도 낮춰" / "보수적으로" | `min_severity = S1` (S1 only) |
+| "강도 높여" | `min_severity = S3` (S1+S2+S3) |
 | "장르 바꿔서 X" | new run_id + changed genre_hint, restart from Phase A |
-| "이 변경 되돌려줘" | handle via the fidelity-auditor rollback command |
+| "이 변경 되돌려줘" | apply the matching fidelity-auditor rollback directive |
 
 Re-call `humanize-rewriter` + re-verify. Output is `03_rewrite_v2.md` (or v3).
 **Max round 3.** Beyond that, `hold_and_report` for human review.
@@ -172,7 +175,7 @@ AI tell is grammar and rhetoric, not formality itself).
 
 ### Change-rate guard
 
-- change rate = Levenshtein distance / source length.
+- change rate = Levenshtein distance(final candidate, immutable `01_input.txt`) / original length, across all rounds.
 - **over 30% → warning** (recorded in summary.md).
 - **over 50% → hard stop, roll back to the last safe version** (`over_polish_aborted: true`).
 
@@ -188,14 +191,13 @@ AI tell is grammar and rhetoric, not formality itself).
 ### 6-item self-check (immediately after rewrite)
 
 1. Proper nouns / numbers / dates / quotes 100% preserved.
-2. Change rate ≤ 30% (over 50% = hard stop).
+2. Change rate recorded; over 30% is a warning and over 50% is a hard stop.
 3. No genre drift (a column does not turn into an essay or literary piece).
 4. Register preserved (formal source → formal output; do not drop to casual).
 5. Zero residual S1 patterns (Korean) or P1 patterns (English).
 6. No artificial expressions (no metaphor/rhetoric absent from the source added in rewrite).
 
-On violation: roll back the edit → rewrite → re-check. Self-loop runs at most once. If still
-unresolved, output anyway but note "자가검증 미통과 N건" in summary.md.
+On violation: roll back the edit → rewrite → re-check, at most once. If a meaning/protected-token violation or the 50% ceiling remains, output the last safe version (or original) instead. Only unresolved style checks may ship with "자가검증 미통과 N건" in summary.md.
 
 ### Grade (auto-scored A–D)
 
@@ -219,14 +221,14 @@ Genre changes the application bar. Decide in this order:
 3. Infer from content (code-block ratio, tone, format).
 4. If unclear, confirm with AskUserQuestion.
 
-| Type | Application bar | "숨결 주입" |
+| Type | Application bar | Voice handling |
 |------|-----------------|-------------|
-| **블로그/에세이** | Apply all patterns | O — opinion, 1st person, personality encouraged |
+| **블로그/에세이** | Apply all patterns | Match source voice only; do not add stance or 1st person |
 | **기술 문서** | Clarity first. Remove modifiers/filler | X — no emotion/personality. Precise and dry |
-| **마케팅/카피** | Cut hype, keep persuasion. Replace with concrete numbers | Limited — match brand voice |
+| **마케팅/카피** | Cut unsupported hype; retain only evidence already in the source | Match source brand voice only |
 | **학술/리포트** | Accuracy and sourcing. Remove weasel words | X — keep objective tone |
 | **코드 주석** | Brevity first. Remove unnecessary explanation | X |
-| **SNS/캐주얼** | Remove excess formality. Colloquial allowed | O — freely |
+| **SNS/캐주얼** | Remove excess formality when the source is casual | Match source voice only |
 
 ## Pattern catalog reference
 
@@ -241,37 +243,6 @@ Read by language and mode:
 
 `patterns-ko.md` has a K↔A-J mapping table at the top for cross-referencing IDs between the
 fast and strict tracks.
-
-## 글에 숨결 불어넣기 (블로그/SNS 전용)
-
-> **적용 대상: 블로그/에세이, SNS/캐주얼만.** 기술 문서, 학술, 코드 주석에는 적용하지 않는다.
-> This section stays Korean on purpose: it is domain knowledge for rewriting Korean prose and
-> its examples are Korean output samples (see LICENSE-THIRD-PARTY for provenance).
-
-AI 패턴 제거는 절반. 깨끗하지만 무미건조한 글도 AI처럼 보인다.
-
-### 영혼 없는 글의 징후
-
-- 모든 문장이 비슷한 길이와 구조
-- 의견 없이 사실만 나열
-- 불확실함이나 복잡한 감정에 대한 인정 없음
-- 적절한 곳에서도 1인칭 회피
-- 유머, 날카로움, 개성 부재
-- 보도자료나 백과사전처럼 읽힘
-
-### 숨결을 넣는 법
-
-**의견을 가져라.** 사실을 보고하는 데 그치지 말고 반응하라. "솔직히 이건 좀 애매하다"가 장단점을 중립적으로 나열하는 것보다 낫다.
-
-**리듬을 바꿔라.** 짧은 문장. 그리고 좀 더 천천히 가는 긴 문장. 섞어 써라.
-
-**복잡함을 인정하라.** 사람은 복잡한 감정을 가진다. "인상적인데 동시에 좀 불편하다"가 "인상적이다"보다 사람답다.
-
-**'나'를 쓸 때는 써라.** 1인칭이 비전문적인 게 아니다. "계속 생각나는 건..."이나 "내가 걸리는 부분은..."은 실제로 생각하는 사람의 표현이다.
-
-**약간의 지저분함을 허용하라.** 완벽한 구조는 알고리즘 냄새가 난다. 곁가지, 여담, 반쯤 정리된 생각은 사람의 것이다.
-
-**감정을 구체적으로.** "우려된다"가 아니라 "새벽 3시에 아무도 안 보는데 에이전트가 혼자 돌아가는 거 생각하면 좀 소름 돋는다."
 
 ## References
 
@@ -300,7 +271,4 @@ by design. Run `scripts/check-consistency` after changing any of them to catch d
 
 ## Acknowledgements
 
-Strict 트랙(5인 → 4인 파이프라인)과 fast 트랙(monolith)의 설계 및 quick-rules,
-taxonomy-ko, playbook-ko, sub-agent 정의는 [`epoko77-ai/im-not-ai`](https://github.com/epoko77-ai/im-not-ai)
-v1.5의 `humanize-korean` 스킬에서 가져왔다 (MIT License). 자세한 출처와 변경
-사항은 [`LICENSE-THIRD-PARTY`](./LICENSE-THIRD-PARTY)에 기록.
+The strict pipeline, fast monolith, rulebooks, and sub-agent definitions are adapted from [`epoko77-ai/im-not-ai`](https://github.com/epoko77-ai/im-not-ai) v1.5 under the MIT License. See [`LICENSE-THIRD-PARTY`](./LICENSE-THIRD-PARTY) for provenance and local changes.
