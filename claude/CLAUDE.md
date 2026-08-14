@@ -1,66 +1,18 @@
-# CLAUDE.md
-
 @~/.config/dotrc/agents/rules/AGENTS.md
 
-Claude Code global configuration directory. Symlinked as `~/.claude` from the dotrc
-repository. Always edit files here, not at the symlink target. Cross-agent guidance
-comes from the import above — this file holds Claude-specific configuration only.
+## Model Quality
 
-## Model Quality Safeguards
+- When `advisorModel` in `settings.json` is stronger than the active model, call `advisor()` before commit, push, publish, substantive analysis, or other consequential work.
+- Skip `advisor()` for trivial tasks or when the user waives it.
 
-When `advisor()` would be a capability upgrade over the active model (compare the
-environment block against `advisorModel` in settings.json), call it before:
-commit/push/publish, finalizing substantive analysis, or shipping work the user
-will act on. Skip it for trivial reactive tasks or when the user waived it.
+## Delegation
 
-## Execution Delegation
+- Delegate only when a child will read substantially more than it reports; verify delegated output before acting.
+- Use `Explore` for multi-file discovery and a `haiku` subagent for mechanical command sweeps.
+- Use the local `gemma` skill for text-only transforms. Set `GEMMA_NO_FALLBACK=1` for sensitive data.
+- Keep decision-driving analysis and edits on the active model.
+- Reserve `Workflow` for large evals, compliance checks, cross-verification, or bulk triage. Test a narrow slice and state the token budget first.
 
-Delegation protects the main context as much as it saves cost:
+## Compaction
 
-- Multi-file sweeps → `Explore`; run-and-report command sweeps → `haiku` subagent.
-- Text-only transforms → local `gemma` skill (`--local`; `GEMMA_NO_FALLBACK=1` for
-  sensitive data so it never leaves the machine). gemma cannot execute commands.
-- Keep work on the active model when the output drives a decision or edit, and
-  verify delegated output before acting. Delegate only when the subagent reads
-  more than it reports back — a few files or one command is cheaper inline.
-
-## Workflow Orchestration
-
-Reserve the `Workflow` tool for genuine scale (skill evals, rule-compliance checks,
-claim-source cross-verification, bulk triage). Before any large run, gauge cost on
-a narrow slice and state the token budget explicitly.
-
-## Context Compaction
-
-When compacting, always preserve: the list of modified files, verification
-commands and their latest results, and any pending user approvals or unanswered
-questions. (The PreCompact hook already injects `.research/`/`.plans/` file
-pointers — this rule covers the rest.)
-
-## Directory Layout
-
-`~/.claude/` mixes user-maintained configuration with runtime state — the repo
-`.gitignore` is the source of truth for which is which. Runtime dirs
-(`sessions/`, `cache/`, `file-history/`, `telemetry/`) and `deplicated/` are
-edit-blocked; `projects/` stays writable because auto-memory lives there. Keep
-`../rules/AGENTS.md` self-contained and in sync with `../rules/SOUL.md`.
-
-## Skills
-
-The `group:` field in SKILL.md frontmatter is the single source of truth for
-classification, enforced by `validate-skill`; the catalog table lives in
-`skills/README.md` and is not duplicated here. Keep skill bodies portable
-across harnesses: when a step depends on a Claude-only feature, name a
-fallback the other harnesses can follow (see the shared AGENTS.md "Skills
-(Shared Catalog)" rule).
-
-### Workflow Index
-
-```
-[New project]    spec-planner → sprint-contract-negotiator → annotate-plan
-                 → implement-plan → qa-evaluator → commit
-[Existing code]  deep-read → annotate-plan → implement-plan → commit
-[Skill upkeep]   skill-improver → generate-skills → maintain
-[Writing]        prompting-assist → humanizer
-[Design]         frontend-design-evaluator → multi-agent-orchestrator
-```
+- Preserve modified files, latest verification results, pending approvals, and unanswered questions. The `PreCompact` hook already preserves `.research/` and `.plans/` pointers.
