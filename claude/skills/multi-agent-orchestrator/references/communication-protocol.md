@@ -58,8 +58,9 @@ Contents:
 - Product vision and goals.
 - Feature list with descriptions.
 - User stories or scenarios.
-- Non-functional requirements (performance, accessibility).
-- Out of scope items.
+- Non-functional product requirements (performance, accessibility).
+
+Out-of-scope items belong to the negotiated contract, not the product spec.
 
 Must NOT include:
 - Implementation details or tech stack decisions.
@@ -120,7 +121,7 @@ This file must contain enough state for a fresh agent to continue the pipeline w
 |---------|---------|---------|
 | `product-spec.md` | `.harness/product-spec.md` | Always singular, one per pipeline run |
 | `contract.md` | `.harness/contract.md` | Single contract for current scope |
-| `contract-sprint-N.md` | `.harness/contract-sprint-2.md` | Per-sprint contract (when sprints are used) |
+| `contract-sprint-N.md` | `.harness/contract-sprint-2.md` | Published copy of immutable `.harness/sprint-N/contract.md` |
 | `evaluation-report.md` | `.harness/evaluation-report.md` | Latest evaluation |
 | `evaluation-report-N.md` | `.harness/evaluation-report-1.md` | Archived evaluation round N |
 | `handoff.md` | `.harness/handoff.md` | Context reset state |

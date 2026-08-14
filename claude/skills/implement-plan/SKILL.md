@@ -4,192 +4,128 @@ description: "주석이 달린 구현 플랜을 지속적 검증·블로커 감�
 group: build
 model: sonnet
 argument-hint: "[feature-name]"
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, AskUserQuestion
 ---
 
 # Implement Plan — Execution Driver
 
-Execute the implementation plan from `.plans/plan-{feature}.md` with continuous verification and progress tracking.
+Execute `.plans/plan-{feature}.md` one item at a time, or in isolated worktrees when items are truly independent. Mark an item complete only after its verifier report has no FAIL.
 
-Reads from: `.plans/plan-{feature}.md`, `.plans/.references/{feature}.md`, `.plans/.verify-{slug}.md`, `.plans/.blocker-{slug}.md`, `.plans/.debug-{slug}.md`.
+## Composition
 
-## Composes with
+1. `deep-read` optionally writes `.research/research-*.md`.
+2. `annotate-plan` writes the plan and embeds reusable code under `## Reference Implementations`.
+3. `implement-plan` executes the plan and writes `.plans/.verify-*`, `.plans/.blocker-*`, and `.plans/.debug-*` artifacts.
 
-This skill sits at the end of a three-step planning pipeline:
+Return scope corrections to `annotate-plan` Phase B instead of redesigning the plan inline.
 
-1. `deep-read` → writes `.research/research-*.md` (optional, codebase understanding)
-2. `annotate-plan` → writes `.plans/plan-{feature}.md` and `.plans/.references/{feature}.md`
-3. `implement-plan` (this skill) → executes the plan
+## 1. Load the Plan
 
-When scope correction is needed, hand back to `annotate-plan` Phase B rather than redesigning inline.
+- With `$ARGUMENTS`, open `.plans/plan-{feature}.md` directly.
+- Otherwise glob `.plans/plan-*.md`: use one match, ask the user when there are multiple, and stop when there are none.
+- Parse every unchecked todo, dependency note, affected path, embedded `Acceptance Criteria`, and `Reference Implementations`. Map each todo to the criteria it advances; never silently drop an active criterion.
+- Create `.plans/.implementing`. If an existing flag is older than 24 hours or has no matching active plan, remove it and warn once.
 
-## Workflow
+## 2. Select a Mode
 
-### 1. Load Plan
-
-- Parse `$ARGUMENTS` for an explicit feature name. If provided, open `.plans/plan-{feature}.md` directly.
-- Otherwise glob `.plans/plan-*.md`:
-  - Exactly one match → use it.
-  - Multiple matches → ask the user which one via `AskUserQuestion`.
-  - Zero matches → stop and suggest running `annotate-plan` first.
-- Parse todo items (`- [ ]` lines) and any explicit dependency notes.
-- Load `.plans/.references/{feature}.md` if present (reference implementations from `reference-finder`).
-- Create `.plans/.implementing` flag file (activates the `polyglot-typecheck` hook).
-
-### 2. Analyze Dependencies
-
-Classify each todo item:
-
-- **Independent**: no dependency on other items — eligible for parallel execution.
-- **Sequential**: depends on completion of another item (explicit note or file-overlap).
-
-File-overlap rule: if two items touch the same file per the plan, treat them as sequential even without an explicit note.
-
-### 3. Choose Execution Mode
-
-Use this heuristic:
+Treat items that touch the same file as sequential even when the plan calls them independent.
 
 | Condition | Mode |
-|-----------|------|
-| All items sequential OR fewer than 2 independent items | **A** (sequential) |
-| 2+ independent items AND items touch disjoint file sets | **B** (parallel worktrees) |
-| Mixed (some independent clusters, some sequential chains) | A first for chains, then B for the independent cluster |
+|---|---|
+| Fewer than two independent items, or any file overlap | **A — sequential** |
+| Two or more independent items with disjoint file sets and no pre-existing changes in those paths | **B — parallel worktrees** |
+| Mixed graph | Run sequential chains in A, then the disjoint cluster in B |
 
-**Mode A — Sequential** (default):
+## 3A. Sequential Execution
 
-Implement items in dependency order in the main context. After each item:
+For each item in dependency order:
 
-1. Mark `- [x]` in the plan file.
-2. Launch a background `verifier` agent:
-   ```
-   Agent(
-     subagent_type="verifier",
-     run_in_background=true,
-     prompt="verify {item}. Write results to .plans/.verify-{item-slug}.md"
-   )
-   ```
-3. Proceed to the next item immediately. Do not wait.
-4. Before marking the NEXT item `- [x]`, poll `.plans/.verify-{prev-slug}.md` until all three lines (`typecheck:`, `lint:`, `tests:`) are present — retry at 1s intervals for up to 60s. Once complete, if any line is FAIL OR `.plans/.blocker-{prev-slug}.md` exists, branch to Step 5a (Blocker / Debug Detection) before continuing.
+1. Derive a stable unique `{item-slug}` as `{todo-ordinal}-{kebab-summary}` and identify its affected files.
+2. Implement only that item in the main context, following `~/.claude/agents/implementer.md` with the active plan, references, allowed files, and blocker path `.plans/.blocker-{item-slug}.md`.
+3. If that blocker file appears, go to Section 4 before verification. Otherwise launch `verifier` with the item, affected files, mapped acceptance criteria, requested checks, and output path `.plans/.verify-{item-slug}.md`; wait.
+4. Confirm the report contains `build:`, `typecheck:`, `lint:`, `tests:`, and `errors:`.
+5. If any check is `FAIL`, go to Section 4. Otherwise mark the item `- [x]` and continue.
 
-**Mode B — Parallel worktrees** (2+ independent items):
+Never begin the next item before the current report is complete. This keeps failed edits isolated from later work.
 
-1. Launch one `implementer` agent per independent item:
-   ```
-   Agent(
-     subagent_type="implementer",
-     isolation="worktree",
-     run_in_background=true,
-     name="implementer-{N}",
-     prompt="implement {item}. Plan: {section}. References: {patterns from .plans/.references/}."
-   )
-   ```
-2. While agents run, continue Mode A for any sequential chain in the main context.
-3. When each agent completes, it returns a worktree path. Merge reconciliation:
-   ```bash
-   git fetch <worktree-path>
-   git merge --no-ff <branch-name>    # preserves parallel-work boundary
-   ```
-4. On conflict, surface to the user — do NOT auto-resolve (conflicts indicate dependency misclassification).
-5. Mark completed items `- [x]` in the plan.
+## 3B. Parallel Worktrees
 
-### 4. Reference-Based Implementation
+Launch one `implementer` agent per independent item in a single message with `isolation="worktree"` and `run_in_background=true`. Supply:
 
-- Always check `.plans/.references/` before writing new code.
-- When the plan says "like X" or references existing code, read that code first and adapt the same patterns.
-- When working in main context (Mode A), follow the same mechanical rules as `~/.claude/agents/implementer.md`.
+- the exact item and active plan path;
+- its affected files and embedded reference excerpts;
+- `{item-slug}` and blocker path `.plans/.blocker-{item-slug}.md`;
+- the completion contract from `~/.claude/agents/implementer.md`.
 
-### 5a. Blocker / Debug Detection
+Each successful agent returns `status`, absolute worktree path, branch, commit SHA, changed files, and check summary. For each result:
 
-Entered from Step 3 Mode A when the previous verifier is complete AND either a blocker file exists OR any check is FAIL. Runs before Step 5 so that diagnostics inform (or replace) the scope-correction decision.
+1. `BLOCKED`: wait for every already-launched sibling to finish, collect all results, copy the blocker into the main checkout, and remove or explicitly retain every sibling worktree before Section 4. Never orphan a live/finished sibling.
+2. `COMPLETE`: launch `verifier` against the returned worktree and write the report to the main checkout's `.plans/.verify-{item-slug}.md`; wait. On FAIL, diagnose and fix inside that worktree before any merge.
+3. When verification has no FAIL, resolve the worktree's current verified SHA and merge it with `git merge --no-ff <commit-sha>`. A worktree commit shares the repository object store, so no fetch or guessed branch is needed.
+4. On a merge conflict, abort the merge and ask the user; never auto-resolve a conflict caused by dependency misclassification.
+5. Mark the item `- [x]` only after verification and merge both succeed.
 
-1. **Blocker path.** If `.plans/.blocker-{prev-slug}.md` exists:
-   - Read the file and display its three sections (`## Problem`, `## Attempts`, `## Proposal`) verbatim to the user.
-   - Delete `.plans/.implementing` to deactivate the `polyglot-typecheck` hook before handing off.
-   - Direct the user to run `annotate-plan` Phase B (`address notes`) so the blocker feeds the next annotation cycle.
-   - Do NOT continue to the next todo item. Do NOT run debugger (the implementer already determined this is not a diagnosable failure).
+After a merged or abandoned item, remove its worktree and delete its branch. Do not remove a worktree whose result is still needed for blocker recovery.
 
-2. **Debugger dispatch on verifier FAIL.** Otherwise, if the previous verifier reports FAIL:
-   ```
-   Agent(
-     subagent_type="debugger",
-     prompt="diagnose {item}. Read .plans/.verify-{prev-slug}.md and the affected files. Write findings to .plans/.debug-{prev-slug}.md"
-   )
-   ```
-   Wait for `.plans/.debug-{prev-slug}.md` to appear, then display its four sections (`## Symptom`, `## Hypotheses`, `## Reproduction`, `## Suggested Fix`) to the user. Ask whether to apply the suggested fix inline or proceed to Step 5 (Scope Correction).
+## 4. Blocker and Failure Handling
 
-3. **Clean path.** If neither file exists and every check is PASS/SKIP, continue to the next item normally — do NOT enter Step 5.
+### Blocker
 
-### 5. Scope Correction
+If `.plans/.blocker-{item-slug}.md` exists, show its `## Problem`, `## Attempts`, and `## Proposal` sections. Remove `.plans/.implementing`, stop, and direct the user to `annotate-plan` Phase B (`address notes`). Do not run the debugger for an explicit scope blocker.
 
-If verifier reports repeated errors OR implementation diverges from the plan:
+### Verifier failure
 
-1. Stop the current item.
-2. Revert changes for that item: `git checkout -- {files}` (or drop the worktree in Mode B).
-3. Mark the todo as `- [ ] (RESET)` in the plan.
-4. Notify user: "Item {X} needs scope correction. Run `annotate-plan` Phase B with notes."
-5. Wait for user to annotate before retrying.
+Launch `debugger` with:
 
-### 6. Completion
+- `.plans/.verify-{item-slug}.md`;
+- affected files;
+- the active plan path;
+- output `.plans/.debug-{item-slug}.md`;
+- for Mode B, the failed worktree root and verified commit SHA.
 
-When all items are done or a blocking error occurs:
+Wait, show its four required sections, and ask whether to apply the suggested fix. In Mode B, diagnose and apply any approved fix inside the same worktree, commit the corrected item, and verify that new commit before merge. In Mode A, apply inline and rerun the same verifier before marking complete.
 
-1. Launch one final `verifier` agent (full build + test suite) and wait for its report.
-   - If PASS → continue.
-   - If FAIL → surface the failure; suggest `/commit --no-push` to preserve state; ask whether to debug inline or reset the last item.
-2. Delete `.plans/.implementing` flag.
-3. If Mode B was used, clean up worktrees (one per agent from Step 3):
-   ```bash
-   git worktree remove <path> && git branch -d <branch-name>
-   ```
-4. Output summary:
-   - Items completed / total.
-   - Verification results (pass/fail per check).
-   - Any items marked `(RESET)`.
-5. If uncommitted changes exist, suggest running `/commit`.
+### Scope correction
 
-## Gotchas
+After repeated failure or plan divergence, do **not** run `git checkout -- {files}`: it can erase user work or earlier items. Show the item diff and ask whether to keep it or revert it. A failed worktree may be dropped safely; main-checkout changes require explicit user direction. Mark `- [ ] (RESET)` only after the chosen rollback, remove `.plans/.implementing`, and hand back to `annotate-plan`.
 
-1. **`.plans/.implementing` flag is not auto-cleaned on crash.** If the previous run crashed mid-execution, the hook stays active. Detect a stale flag at Step 1 by checking file mtime — if older than 24h or no active plan file exists, delete and warn the user.
+## 5. Completion
 
-2. **Worktree cleanup requires explicit branch removal.** `isolation="worktree"` creates a branch per agent. After merge, run `git worktree remove <path>` and `git branch -d <branch>`; otherwise branches accumulate.
+When all items are checked:
 
-3. **Verifier race in Mode A.** Launching verifier `run_in_background=true` and immediately starting the next item means the verifier may still be running when the next completes. Always poll the previous verifier's output file BEFORE marking the next item `- [x]`, not after.
+1. Launch one final `verifier` for the full build/test suite and every active acceptance criterion, writing `.plans/.verify-final-{feature}.md`, and wait.
+2. On FAIL, surface the report and offer debugger or scope correction; do not claim completion.
+3. Remove `.plans/.implementing` on every terminal path.
+4. Report completed/total items, per-item verification, RESET items, and any retained worktrees.
+5. If changes remain uncommitted, suggest `/commit`; pushing remains a separate explicit request.
 
-4. **File-overlap classification beats explicit dependency notes.** A plan may say "independent" but if two items both edit `src/auth.ts`, parallel execution will produce merge conflicts. Static file-overlap analysis from `.plans/.references/` overrides plan metadata.
+## Constraints
 
-5. **`verifier` uses the `haiku` model.** It is cheap and fast, but cannot diagnose subtle logic errors. Treat its PASS as "compiles and tests exit 0" — not "correct." The main-context Claude is responsible for correctness.
-
-6. **Multiple active plans require disambiguation.** Never pick the first glob result silently — always ask via `AskUserQuestion` when `glob('.plans/plan-*.md')` returns more than one match, because selecting the wrong plan corrupts its `- [x]` state.
+- Never mark `[x]` without a matching completed verifier artifact.
+- Never auto-discard main-checkout changes.
+- Never parallelize overlapping files.
+- Do not commit `.plans/` transient artifacts unless the project explicitly tracks them.
 
 ## Eval Criteria
 
 ```
 EVAL 1: Plan state integrity
-  Question: After execution, does the plan file have exactly one of
-            [x], [ ], [ ] (RESET) per original todo line?
-  Pass: All todos accounted for, no duplicates or orphans.
-  Fail: Any todo line lost, duplicated, or in an unknown state.
+  Pass: Every original todo is exactly one of [x], [ ], or [ ] (RESET).
+  Fail: Any todo is lost, duplicated, or has another state.
 
 EVAL 2: Flag lifecycle
-  Question: After completion, is .plans/.implementing removed?
-  Pass: File does not exist.
-  Fail: File still present.
+  Pass: `.plans/.implementing` is absent on every terminal path.
+  Fail: The flag remains after completion, blocker handoff, or cancellation.
 
 EVAL 3: Verification coverage
-  Question: Did every completed [x] item have a corresponding
-            .plans/.verify-*.md artifact?
-  Pass: 1:1 mapping between [x] items and verify files.
-  Fail: Any [x] item lacking a verification record.
+  Pass: Every [x] item has one completed `.plans/.verify-{slug}.md` with no FAIL.
+  Fail: Any completed item lacks a passing report.
 
-EVAL 4: Mode selection correctness
-  Question: If Mode B was used, did parallel items touch disjoint
-            file sets (no merge conflicts during reconciliation)?
-  Pass: Merge completed without conflicts.
-  Fail: Conflicts occurred — items were misclassified as independent.
+EVAL 4: Worktree reconciliation
+  Pass: Every Mode B merge uses the returned commit SHA and has no conflict.
+  Fail: A branch is guessed, a merge conflicts, or unverified work is marked complete.
 
-EVAL 5: Composition hygiene
-  Question: On (RESET), was the handoff to annotate-plan Phase B
-            made explicit to the user rather than inline redesign?
-  Pass: User was directed to annotate-plan with reset notes.
-  Fail: The skill attempted to redesign the failed item inline.
+EVAL 5: Safe correction
+  Pass: Main-checkout changes are never auto-discarded and RESET hands back to annotate-plan.
+  Fail: Recovery uses destructive checkout/reset or redesigns the plan inline.
 ```

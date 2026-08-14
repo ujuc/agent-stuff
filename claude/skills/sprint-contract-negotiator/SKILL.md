@@ -1,6 +1,6 @@
 ---
 name: sprint-contract-negotiator
-description: Generator·Evaluator 두 에이전트가 파일 기반 프로토콜로 done 기준을 협상해 sprint contract를 만드는 스킬.
+description: Generator·Evaluator 역할을 파일 기반 프로토콜로 번갈아 수행해 done 기준을 협상하고 sprint contract를 만드는 스킬.
 when_to_use: "sprint contract 협상, done 기준 정의, 완료 조건 합의, acceptance criteria 작성, sprint-contract-negotiator 호출 시. 구현 시작 전에 'done이 뭔지 먼저 정하자'·'이 sprint의 합격 기준을 잡아줘'·'평가자가 검증할 기준을 만들어줘' 같은 요청에 적합."
 group: planning
 model: opus
@@ -27,7 +27,7 @@ Example inputs:
 
 ## Roles
 
-This skill plays both roles in alternation by writing to disk, then re-reading from disk. The file boundary is the contract — both roles MUST treat the other's last file as the only source of truth.
+This skill alternates the Generator and Evaluator roles in one orchestrator, writing and re-reading each turn from disk. It does not claim to dispatch two agents. The latest role file is the only source of truth.
 
 **Generator** writes drafts. Each draft proposes:
 - Sprint goal (one sentence)
@@ -42,10 +42,10 @@ This skill plays both roles in alternation by writing to disk, then re-reading f
 
 ### File exchange
 
-All files live under `.sprint/` at the project root:
+All files live under a caller-supplied `{workspace}`; default to `.sprint/` at the project root. The multi-agent orchestrator supplies `.harness/` instead.
 
 ```
-.sprint/
+{workspace}/
   contract-draft-1.md
   contract-review-1.md
   contract-draft-2.md
@@ -61,8 +61,9 @@ File formats are defined in [references/file-format.md](references/file-format.m
 1. Generator writes `contract-draft-{n}.md`.
 2. Evaluator reads the draft, writes `contract-review-{n}.md` with one verdict per criterion.
 3. If any criterion is `REJECT`, Generator writes `contract-draft-{n+1}.md` addressing every rejection.
-4. Loop until Evaluator returns all `ACCEPT`, or until the round-trip cap is hit.
-5. On full acceptance: copy the agreed criteria into `contract.md` and append a `## Negotiation History` section.
+4. Loop until Evaluator returns all `ACCEPT`, or until review 3 completes.
+5. If review 3 still has any `REJECT`, write `{workspace}/escalation.md` and stop; never create draft 4.
+6. On full acceptance: copy the agreed criteria into `contract.md` and append a `## Negotiation History` section.
 
 ### Round-trip cap
 
@@ -72,17 +73,17 @@ File formats are defined in [references/file-format.md](references/file-format.m
   - Round 2 review still rejects more than 50% of criteria → the spec is too vague to negotiate from.
   - Generator cannot produce ≥ 8 criteria → scope is unclear or trivial.
 
-When escalating, write `.sprint/escalation.md` with the unresolved criteria and the reason, then ask the user.
+When escalating, write `{workspace}/escalation.md` with the unresolved criteria and the reason, then ask the user.
 
 ## Procedure
 
 1. Read the input spec or user story.
 2. Use `Glob` and `Grep` only if relevant existing code informs scope (skip for greenfield).
-3. Create `.sprint/` if missing. Refuse to overwrite existing `.sprint/contract.md` without explicit confirmation.
-4. **Round 1 — Generator**: write `contract-draft-1.md` per [references/file-format.md](references/file-format.md). Aim for the criteria count appropriate to sprint size (see template).
-5. **Round 1 — Evaluator**: read draft 1, write `contract-review-1.md`. For every `REJECT`, name the missing element from the four-part rule (subject / verb / observable result / verification method).
+3. Resolve `{workspace}` (caller-supplied or `.sprint/`) and create it if missing. If `{workspace}/contract.md` exists, stop: the contract is immutable. Ask the user to preserve or archive the existing workspace before starting a new sprint; never overwrite it in place.
+4. **Round 1 — Generator**: write `{workspace}/contract-draft-1.md` per [references/file-format.md](references/file-format.md). Aim for the criteria count appropriate to sprint size (see template).
+5. **Round 1 — Evaluator**: read draft 1, write `{workspace}/contract-review-1.md`. For every `REJECT`, name the missing element from the four-part rule (subject / verb / observable result / verification method).
 6. Repeat with rounds 2 and 3 as needed. Honor early escalation triggers.
-7. On full acceptance, write `contract.md` with the agreed criteria plus `## Negotiation History`.
+7. On full acceptance, write `{workspace}/contract.md` with the agreed criteria plus `## Negotiation History`.
 8. Report to the user: criteria count, rounds used, any escalations.
 
 ## Criterion Quality Rule
@@ -98,12 +99,9 @@ The Evaluator's REJECT reasons MUST cite which of the four parts is missing or u
 ## Gotchas
 
 - **Implementation details belong to the Generator's later work, not the contract.** "Uses PostgreSQL with btree index" is a HOW, not a WHAT. Strip it.
-- **Round cap is a hard wall, not a guideline.** If you can't agree in 3 rounds, the spec itself is broken — escalate. Looping a 4th time wastes context and produces lower-quality criteria than restarting from a sharper spec.
-- **`.sprint/contract.md` is sacred.** If it already exists for a sprint, do not overwrite. Bump the sprint name or ask the user.
-- **Evaluator rejects must be concrete.** "FAIL — vague" is itself rejected; the review must name which of the four parts is missing.
+- **Existing contract is immutable.** A different sprint name does not change the fixed contract path. Preserve or archive the whole workspace before starting another negotiation.
 - **File-based protocol is non-negotiable.** Both roles MUST read from disk between turns. Conversational state ("as I said in the previous draft") breaks the audit trail and undermines the whole point of the protocol.
 - **Do not conflate this with a test plan.** The contract is product-level acceptance criteria. Per-function unit tests are the Generator's domain during implementation.
-- **`description` mode-invocation note.** This skill has no `disable-model-invocation`, so trigger phrases in `description` + `when_to_use` directly drive auto-loading. Be deliberate about wording changes here.
 
 ## Eval Criteria
 
@@ -124,12 +122,12 @@ EVAL 2: External testability
 
 EVAL 3: Round-trip discipline
   Question: Did the negotiation finish in ≤ 3 rounds OR escalate
-            via `.sprint/escalation.md`?
+            via `{workspace}/escalation.md`?
   Pass: ≤ 3 rounds, or escalation file exists with reason.
   Fail: 4+ rounds, or stalled without escalation.
 
 EVAL 4: Audit trail completeness
-  Question: Do `.sprint/` files exist for every round, with one
+  Question: Do `{workspace}/` files exist for every round, with one
             review per draft?
   Pass: For each `contract-draft-{n}.md`, a matching
         `contract-review-{n}.md` exists.

@@ -64,8 +64,8 @@ Quality evaluation criteria for Planner-generated specs. Use these to self-evalu
 
 | Grade | Description |
 |-------|-------------|
-| Excellent | Spec defines user-facing behavior and constraints only; technical stack section provides high-level recommendations with rationale, explicitly noting the Generator may choose differently |
-| Good | Mostly behavioral specs with occasional technical specifics that do not overly constrain |
+| Excellent | Spec defines only user-facing behavior and product constraints; the Generator retains all technical choices |
+| Good | Behavioral specs with only descriptive existing-code context and no new technical prescriptions |
 | Weak | Includes database schemas, API route definitions, or framework-specific patterns |
 | Fail | Reads like a technical design document; Generator has no meaningful implementation choices |
 
@@ -95,7 +95,6 @@ Before delivering the spec, verify:
 - [ ] Every feature has at least one user story with a value clause
 - [ ] Overview can be understood by a non-technical stakeholder
 - [ ] Data model is conceptual, not schema-level
-- [ ] Technical stack section includes rationale, not just names
 - [ ] AI integration was explicitly considered (even if conclusion is "not applicable")
 - [ ] Sprint breakdown follows dependency order, not arbitrary grouping
 - [ ] No implementation details leaked into feature descriptions

@@ -16,7 +16,7 @@ Deeply analyze a code area and produce a structured research document at `.resea
 ### 1. Determine Target and Topic Slug
 - Parse `$ARGUMENTS` for the target (directory, module, or feature area).
 - If no target is given, ask the user what to analyze.
-- Derive `{topic}`: kebab-case slug of the target's final component (e.g., `src/auth` → `auth`, `packages/api/routes` → `api-routes`). If the user supplied a natural-language topic, slugify that instead. Pick a slug that produces a stable, re-runnable filename.
+- Derive `{topic}` deterministically: make the target repository-relative, drop a leading container component (`src`, `packages`, `apps`, or `libs`), join the remaining path components with hyphens, then kebab-case the result (for example, `src/auth` → `auth`, `packages/api/routes` → `api-routes`). If the user supplied a natural-language topic, slugify that instead.
 
 ### 2. Launch 3 Parallel Researcher Agents
 
@@ -56,6 +56,9 @@ Merge into `.research/research-{topic}.md`:
 (from structure-explorer)
 
 ## Data Flow
+(from flow-explorer)
+
+## Call Chains
 (from flow-explorer)
 
 ## Dependencies
@@ -107,11 +110,11 @@ EVAL 1: All three partials written
 
 EVAL 2: Merge completeness
   Question: Does the final `.research/research-{topic}.md` contain all
-            seven sections listed in the Step 3 template (Architecture
-            Overview, Key Files & Responsibilities, Data Flow,
+            eight sections listed in the Step 3 template (Architecture
+            Overview, Key Files & Responsibilities, Data Flow, Call Chains,
             Dependencies, Patterns & Conventions, Gotchas & Risks,
             Integration Points)?
-  Pass: All seven headings present.
+  Pass: All eight headings present.
   Fail: Any heading missing.
 
 EVAL 3: Citation density

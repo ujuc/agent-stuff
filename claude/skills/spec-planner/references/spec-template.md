@@ -62,22 +62,6 @@ Example: "Monospace for code-adjacent UI, rounded sans-serif for labels and navi
 [2-3 existing products that capture aspects of the desired feel]
 Example: "Aseprite for the tool palette density, Figma for the collaboration UX, Notion for the sidebar navigation"
 
-## Technical Architecture (High-Level)
-
-### Stack Recommendation
-| Layer | Choice | Rationale |
-|-------|--------|-----------|
-| Frontend | [Framework] | [Why this fits the product] |
-| Backend | [Framework/Runtime] | [Why this fits the product] |
-| Database | [Type + Engine] | [Why this fits the data model] |
-| Hosting | [Platform] | [Why this fits the deployment needs] |
-
-### Key Architecture Decisions
-- [Decision 1]: [Rationale in 1 sentence]
-- [Decision 2]: [Rationale in 1 sentence]
-
-Note: These are recommendations, not constraints. The Generator may choose differently based on implementation realities.
-
 ## AI Integration Opportunities
 - [Opportunity 1]: [How AI adds value to this feature]
 - [Opportunity 2]: [How AI adds value to this feature]
@@ -104,7 +88,7 @@ For the blog's "RetroForge" tile map editor, the spec included:
 
 **Features included** (15 total across the full product):
 1. Tile palette with selectable tiles
-2. Canvas-based map grid with click-to-place
+2. Interactive map grid with click-to-place
 3. Rectangle fill tool for bulk tile placement
 4. Entity spawn point placement and management
 5. Animation frame editor
@@ -125,4 +109,4 @@ For the blog's "RetroForge" tile map editor, the spec included:
 - Sprint 3: Features 9-12 (power user features)
 - Sprint 4: Features 13-15 (polish and preview)
 
-Note how the spec describes features at the product level without specifying Canvas API methods, state management patterns, or file format schemas.
+Note how the spec describes features at the product level without prescribing rendering technology, state libraries, or file schemas.

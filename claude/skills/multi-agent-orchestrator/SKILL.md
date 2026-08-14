@@ -1,16 +1,16 @@
 ---
 name: multi-agent-orchestrator
-description: "Planner-Contract-Generator-Evaluator 4단계 파이프라인으로 장시간 자율 코딩 세션을 오케스트레이션한다."
+description: "Planner→Contract→Generator 파이프라인과 필요 시 독립 Evaluator를 연결해 장시간 자율 코딩 세션을 오케스트레이션한다."
 when_to_use: "멀티에이전트, 파이프라인 실행, multi-agent-orchestrator, 에이전트 오케스트레이션, full harness run, autonomous build session, plan and build this 요청 시 사용한다. 4개 컴포넌트 스킬(spec-planner, sprint-contract-negotiator, qa-evaluator, frontend-design-evaluator)을 capstone 플로우로 엮어야 할 때 호출된다."
 group: build
 model: opus
 argument-hint: "[1-4 sentence prompt]"
-allowed-tools: Read Write Edit Glob Grep Bash Agent advisor
+allowed-tools: Read Write Edit Glob Grep Bash Agent AskUserQuestion advisor
 ---
 
 # Multi-Agent Orchestrator
 
-Orchestrate long-running autonomous coding sessions using a Planner-Generator-Evaluator pipeline. This capstone skill coordinates the 4 component skills (spec-planner, sprint-contract-negotiator, qa-evaluator, frontend-design-evaluator) into a coherent multi-agent workflow.
+Orchestrate long-running autonomous coding sessions through Planner, Contract, and Generator stages, adding independent QA/design evaluation only when the risk warrants it.
 
 ## Pipeline Overview
 
@@ -27,7 +27,7 @@ Orchestrate long-running autonomous coding sessions using a Planner-Generator-Ev
 [Generator] ── Implementation (React+Vite+FastAPI+SQLite or user-specified stack)
     │ Output: Running app + git commits
     ▼
-[Evaluator] ── qa-evaluator skill (+ frontend-design-evaluator for UI)
+[Evaluator, when deployed] ── qa-evaluator skill (+ frontend-design-evaluator for UI)
     │ Output: evaluation-report.md (PASS/FAIL + feedback)
     │
     ├── PASS → Complete or next sprint
@@ -38,17 +38,11 @@ Orchestrate long-running autonomous coding sessions using a Planner-Generator-Ev
 
 Before invoking Stage 1, verify the environment is ready. Halt and report to the user if any check fails.
 
-1. **Component skills exist.** Confirm all four skills are installed:
+1. **Core skills exist.** Confirm `spec-planner` and `sprint-contract-negotiator` are installed. Defer checks for `qa-evaluator` and `frontend-design-evaluator` until Stage 0 selects those optional evaluators; a no-Evaluator run must not require them.
 
-   ```bash
-   ls -d ~/.claude/skills/{spec-planner,sprint-contract-negotiator,qa-evaluator,frontend-design-evaluator}
-   ```
+2. **Inspect repository state without changing it.** Read `.gitignore` and note whether `.harness/` must be added after consent.
 
-   If any are missing, stop and tell the user which skill is missing.
-
-2. **`.harness/` is gitignored.** Read `.gitignore` at the repo root; if `.harness/` is not listed, append it before writing any artifacts. Pipeline files are ephemeral working state, not deliverables.
-
-3. **`.harness/` directory exists.** Create it if missing. If it already contains artifacts from a previous run, treat them per [communication-protocol.md](references/communication-protocol.md) "Stale File" rules — never silently overwrite.
+3. **Inspect prior artifacts without creating anything.** If `.harness/` exists, classify stale files per [communication-protocol.md](references/communication-protocol.md). Do not create, delete, or overwrite files during pre-flight.
 
 4. **Chrome integration (only when the task will reach Stage 4).** Check that `mcp__claude-in-chrome__*` tools are available. If evaluation is required and Chrome is not active, stop and ask the user to enable it (e.g., `--chrome` flag or `/chrome`) before proceeding. Do not start Stage 1 on a Chrome-bearing task without this gate.
 
@@ -62,6 +56,7 @@ After Pre-flight passes, present the execution plan to the user and require expl
    - **Tech stack**: whatever the user specified, otherwise note `default: React+Vite+FastAPI+SQLite`.
    - **Scope estimate**: small / medium / large per the cost reference table in this file.
    - **Evaluator deployment**: yes / no per the criteria in "Evaluator Deployment Decision".
+   - For each selected evaluator, confirm its skill is installed and Chrome integration is active; otherwise stop before consent and name the missing dependency.
 
 2. Render a Korean summary block (single message, this exact shape):
 
@@ -71,7 +66,7 @@ After Pre-flight passes, present the execution plan to the user and require expl
    - Prompt 요약: <one-line restatement>
    - 실행 단계: Planner → Contract → Generator[ → Evaluator]
    - Tech stack: <stack or "default: React+Vite+FastAPI+SQLite">
-   - 예상 시간·비용: <Solo / Generator+Evaluator / Full pipeline 행에서 매칭한 값>
+   - 예상 시간·비용: <matching evaluator configuration from the cost table>
    - 작업물 위치: .harness/ (gitignored)
    ```
 
@@ -83,13 +78,13 @@ After Pre-flight passes, present the execution plan to the user and require expl
    Block until the user responds. Never silently proceed to Stage 1.
 
 4. Branch on the response:
-   - `진행` → continue to Stage 1.
+   - `진행` → add `.harness/` to `.gitignore` when needed, create `.harness/`, apply the stale-file rules, then continue to Stage 1.
    - `tech stack 변경` → ask once for the new stack, update the summary, loop back to step 3.
    - `중단` → stop. Do not create `.harness/` files. Acknowledge the cancellation in one line.
 
 ### Skip rule
 
-If `.harness/handoff.md` already exists with `phase: building` (or later) — i.e. the orchestrator is resuming after a context reset, not starting fresh — skip Stage 0 and resume from the recorded phase. The handoff itself is the prior approval. In every other case (no handoff, or handoff with `phase: planning|contracting`), Stage 0 runs.
+Skip Stage 0 only when the user explicitly requests resume, the handoff is `phase: building` or later, it is fresh/current under the communication protocol, and the user confirms reuse after the stale-file check. A handoff alone is never consent. Otherwise run Stage 0.
 
 ## Pipeline Execution
 
@@ -112,34 +107,35 @@ Invoke the **sprint-contract-negotiator** skill via Agent subagent.
 
 1. Pass `.harness/product-spec.md` to the Contract agent.
 2. The agent produces a negotiated definition of done.
-3. Output: `.harness/contract.md` with testable acceptance criteria.
-4. **Default: single contract** for the whole task (V2 architecture). Fall back to per-sprint contracts only when the user explicitly asks for phased delivery or the task exceeds ~6 hours — see [architecture.md](references/architecture.md) "When to keep sprints even with Opus".
+3. **Default: single contract** for the whole task. Use workspace `.harness/`, producing `.harness/contract.md`.
+4. For user-requested phased delivery or tasks over ~6 hours, use a fresh `.harness/sprint-N/` workspace per sprint. After acceptance, copy its immutable `contract.md` to `.harness/contract-sprint-N.md`; never reuse a workspace that already has a contract.
 
 ```
-Agent instruction: "Use the sprint-contract-negotiator skill. Read .harness/product-spec.md and negotiate a contract. Write the output to .harness/contract.md with the standard YAML header (agent, timestamp, phase: contracting, round: 1) per references/communication-protocol.md."
+Agent instruction: "Use sprint-contract-negotiator with workspace .harness/ (or .harness/sprint-N/ for phased delivery). Read .harness/product-spec.md, negotiate the contract, and add the standard YAML header per references/communication-protocol.md."
 ```
 
 ### Stage 3: Implementation (Generator)
 
 The Generator is the orchestrator itself (or a delegated Agent subagent for isolation).
 
-1. Read `.harness/contract.md` for acceptance criteria.
+1. Read the active contract (`.harness/contract.md` or `.harness/contract-sprint-N.md`) for acceptance criteria.
 2. Implement the application according to the spec and contract.
 3. Use the tech stack specified by the user, or default to React+Vite+FastAPI+SQLite.
 4. Commit working increments with descriptive messages.
 5. Ensure the application is running and accessible before proceeding to evaluation.
+6. If Stage 0 selected no Evaluator, run the project's objective build/tests, report their results, and finish here. Do not enter Stages 4–5.
 
 ### Stage 4: Evaluation
 
-Invoke the **qa-evaluator** skill (and optionally **frontend-design-evaluator**) via Agent subagent.
+Run only when Stage 0 selected an Evaluator. Invoke the **qa-evaluator** skill (and optionally **frontend-design-evaluator**) via a fresh Agent subagent.
 
-1. Pass `.harness/contract.md` and the running application URL to the Evaluator agent.
+1. Pass the active overall or sprint contract and the running application URL to the Evaluator agent.
 2. The Evaluator browses the app via Chrome integration and produces a report.
 3. Output: `.harness/evaluation-report.md` with PASS/FAIL verdict and specific feedback.
 4. If the task has significant UI: also invoke frontend-design-evaluator for design scoring.
 
 ```
-Agent instruction: "Use the qa-evaluator skill. Read .harness/contract.md for acceptance criteria. The app is running at [URL]. Write .harness/evaluation-report.md with the standard YAML header (agent, timestamp, phase: evaluating, round: N) per references/communication-protocol.md."
+Agent instruction: "Use the qa-evaluator skill. Read [active contract path] for acceptance criteria. The app is running at [URL]. Write .harness/evaluation-report.md with the standard YAML header (agent, timestamp, phase: evaluating, round: N) per references/communication-protocol.md."
 ```
 
 **Always spawn a fresh Agent subagent per round.** Reusing the same agent across rounds accumulates context and leads to score inflation — see [harness-tuning-guide.md](references/harness-tuning-guide.md) §4.
@@ -160,7 +156,7 @@ If the Evaluator returns PASS:
 
 1. Confirm completion to the user.
 2. Summarize what was built, tested, and passed.
-3. If there are remaining sprints, proceed to the next sprint's contract.
+3. If sprints remain, increment N and negotiate in a new `.harness/sprint-N/` workspace, then publish `.harness/contract-sprint-N.md`.
 
 ## Inter-Agent Communication
 
@@ -240,24 +236,11 @@ Not every task needs an Evaluator. Adding evaluation overhead to a simple task w
 
 See [architecture.md](references/architecture.md) for detailed benchmarks.
 
-| Approach | Time | Cost | When |
-|----------|------|------|------|
-| Solo (no harness) | ~20 min | ~$9 | Simple tasks |
-| Generator + Evaluator | ~1-2 hr | ~$50 | Medium tasks |
-| Full pipeline | ~3-6 hr | ~$150–200 | Complex tasks (higher end includes design eval) |
-
-## Chrome Integration
-
-The qa-evaluator and frontend-design-evaluator skills **require Chrome integration** to function. They browse the running application like a real user.
-
-### Pre-flight Check
-
-Before invoking any Evaluator stage:
-
-1. Verify Chrome integration is active.
-2. If not active: **warn the user** and request they enable it with `--chrome` flag or `/chrome` command.
-3. Do NOT proceed with evaluation without Chrome. There is no fallback mode.
-4. Do NOT attempt to evaluate from source code alone — this defeats the purpose.
+| Evaluator configuration | Time | Cost | When |
+|---|---|---|---|
+| None | not separately benchmarked | not separately benchmarked | Objective build/tests are sufficient |
+| QA | ~3-6 hr | ~$150 | Independent functional verification is needed |
+| QA + design | ~4-6 hr | ~$200 | Significant UI/design quality is in scope |
 
 ## Harness Component Re-validation
 
@@ -285,8 +268,6 @@ See [harness-tuning-guide.md](references/harness-tuning-guide.md) for the full r
 
 ## Gotchas
 
-1. **Chrome must be active for evaluation stages.** The qa-evaluator and frontend-design-evaluator skills gate on this themselves. Verify during the Pre-flight Check rather than mid-pipeline so the Generator does not complete an implementation that cannot be evaluated.
-
 2. **File-based communication is the only protocol.** Do not attempt to pass state between agents via in-memory variables, function returns, or prompt injection. Write to `.harness/` files.
 
 3. **Evaluator leniency drift is real.** See [harness-tuning-guide.md](references/harness-tuning-guide.md) §4 "Score Inflation Over Rounds" for the diagnostic and fix. Primary mitigation: always spawn a fresh Agent subagent per evaluation round (no shared context across rounds).
@@ -298,8 +279,6 @@ See [harness-tuning-guide.md](references/harness-tuning-guide.md) for the full r
 6. **Generator and Evaluator must be separate agents.** The same agent cannot both build and evaluate. This is the core principle of the GAN-inspired pattern — the adversarial relationship drives quality.
 
 7. **Iteration limit exists for a reason.** Default maximum evaluation rounds is 3. If the Generator cannot satisfy the Evaluator in 3 rounds, the issue is likely in the contract (too ambitious or too vague), not in the implementation. Escalate to the user.
-
-8. **The `.harness/` directory should be gitignored.** Pipeline artifacts are ephemeral working state, not deliverables. Add `.harness/` to `.gitignore` if it is not already there.
 
 9. **Default tech stack is a suggestion, not a mandate.** React+Vite+FastAPI+SQLite is the default only when the user does not specify. Always respect user-specified stacks.
 

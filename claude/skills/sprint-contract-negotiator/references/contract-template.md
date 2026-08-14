@@ -85,8 +85,8 @@ These examples show the level of specificity that made the Evaluator effective:
 
 | Sprint Complexity | Suggested Criteria Count | Rationale |
 |-------------------|-------------------------|-----------|
-| Small (1-2 features) | 8-12 | Core behaviors + edge cases |
-| Medium (3-5 features) | 15-25 | Feature interactions matter |
-| Large (6+ features) | 25-40 | Blog's Sprint 3 had 27 for a tile editor |
+| Small (1-3 features) | 8-12 | Core behaviors + edge cases |
+| Medium (4-5 features) | 15-25 | Feature interactions matter |
+| Large (6+ features) | 25-40 | Broad behavior and interaction coverage |
 
-Too few criteria (under 8) almost certainly means gaps that will surface during evaluation. Too many (over 40) suggests the sprint scope is too large — consider splitting.
+Fewer than eight criteria usually leaves behavior gaps. More than 40 suggests splitting the sprint.

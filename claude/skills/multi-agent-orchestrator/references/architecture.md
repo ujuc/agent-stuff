@@ -68,28 +68,16 @@ These are approximate figures based on typical usage patterns. Actual costs vary
 | QA Evaluator (qa-evaluator) | ~$10-20 | 1-3 per round |
 | Design Evaluator (frontend-design-evaluator) | ~$10-20 | 1-3 per round |
 
-## Decision Tree
+## Capstone Routing
 
-Use this tree to decide which pipeline configuration to use for a given task.
+This skill supports only `Planner → Contract → Generator`, optionally followed by QA and design evaluators. Solo and Generator+Evaluator rows above are external comparison architectures, not execution branches.
 
-```
-Is the task simple and well-understood?
-├── YES: Can you verify correctness with tests alone?
-│   ├── YES → Solo, no harness (~20 min, ~$9)
-│   └── NO → Generator + Evaluator (~1-2 hr, ~$50)
-└── NO: Does the task involve significant UI/design work?
-    ├── YES → Full pipeline + design evaluator (~4-6 hr, ~$200)
-    └── NO: Is the task duration > 60 minutes?
-        ├── YES → Full pipeline (~3-6 hr, ~$150)
-        └── NO → Generator + Evaluator (~1-2 hr, ~$50)
-```
+1. If the task is simple enough for Solo or Generator+Evaluator, recommend not using this capstone and stop before creating `.harness/`.
+2. Otherwise run Planner, Contract, and Generator.
+3. Add QA when independent functional verification is needed.
+4. Add design evaluation when significant visual quality is in scope.
 
-### Shortcut Rules
-
-1. **< 10 minutes estimated work** → Solo. No harness. The overhead of pipeline setup exceeds the task itself.
-2. **10-60 minutes, objective criteria** → Generator + Evaluator only. Skip the Planner if the spec is already clear.
-3. **60+ minutes, vague requirements** → Full pipeline. The Planner's spec expansion pays for itself.
-4. **Any task with design requirements** → Add frontend-design-evaluator. Code-level evaluation misses visual issues.
+Never skip Contract after this capstone has started.
 
 ### When to Skip the Evaluator Entirely
 

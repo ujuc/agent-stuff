@@ -48,7 +48,7 @@ The spec does NOT define:
 
 ### Explore AI Integration Opportunities
 
-For every product, consider where AI (Claude API, agent tools, embeddings, etc.) could add value:
+For every product, consider where AI-powered user capabilities could add value:
 - Content generation or summarization
 - Intelligent search or recommendations
 - Natural language interfaces
@@ -59,39 +59,7 @@ Not every product needs AI, but the Planner should explicitly consider and note 
 
 ## Output Structure
 
-The spec follows this structure (see [references/spec-template.md](references/spec-template.md) for the full template):
-
-```markdown
-# [Product Name] — [Tagline]
-
-## Overview
-[Product vision: 2-3 paragraphs covering target users, core value proposition,
-and what makes this product worth building]
-
-## Features
-### 1. [Feature Name]
-[Why users need this: 1-2 sentences]
-
-User Stories:
-- As a [user type], I want to [action], so that [value]
-
-### 2. [Feature Name]
-...
-
-## Data Model
-[Core entities and their relationships — conceptual, not schema-level]
-
-## Visual Design Direction
-[Design language, color palette direction, typography feel, reference apps]
-
-## Technical Stack Recommendation
-[High-level framework/DB choices with rationale — NOT implementation details]
-
-## Sprint Breakdown
-| Sprint | Features | Focus |
-|--------|----------|-------|
-| 1      | ...      | ...   |
-```
+Use [references/spec-template.md](references/spec-template.md) as the normative structure. It includes Overview, Features with value-bearing user stories, conceptual Data Model, Visual Design Direction, AI Integration Opportunities, and a Sprint Plan with ordering rationale.
 
 ## Procedure
 
@@ -102,12 +70,11 @@ User Stories:
 5. Write user stories for each feature
 6. Define the data model at the entity-relationship level
 7. Suggest visual design direction with concrete references
-8. Recommend a technical stack (high-level only)
-9. Break features into 3-5 sprints ordered by implementation dependency and user value
-10. Scan for AI integration opportunities and note them explicitly
-11. Self-evaluate the draft against [references/grading-criteria.md](references/grading-criteria.md) — revise any section that scores Weak or below before writing to disk
-12. Write the spec to `spec.md` in the project root
-13. Report summary to user: feature count, sprint count, key design decisions, and self-eval grades
+8. Break features into 3-5 sprints ordered by implementation dependency and user value
+9. Scan for AI integration opportunities and note them explicitly
+10. Self-evaluate the draft against [references/grading-criteria.md](references/grading-criteria.md) — revise any section that scores Weak or below before writing to disk
+11. Write to the caller-supplied output path, or `spec.md` in the project root when none is supplied
+12. Report summary to user: feature count, sprint count, key product decisions, and self-eval grades
 
 ## Quality Criteria
 
@@ -117,12 +84,6 @@ The spec is evaluated against these criteria (see [references/grading-criteria.m
 - **Product Clarity**: Can a non-developer understand the product?
 - **AI Integration**: Were AI opportunities explored?
 - **Implementation Freedom**: Does the Generator retain technical freedom?
-
-## The Cardinal Rule
-
-> **Constrain deliverables, delegate the path to the Generator.**
-
-The spec says "users can collaboratively edit documents in real-time" — it does NOT say "use CRDTs with Y.js over WebSocket connections on port 3001." The Generator decides the path; the Planner defines the destination.
 
 ## When to Use This Skill
 
@@ -137,7 +98,6 @@ The spec says "users can collaboratively edit documents in real-time" — it doe
 - **Do not write a minimal spec.** The blog explicitly says to be ambitious. A 3-feature spec for a "game level editor" is too thin — think about what a full product looks like.
 - **Sprint breakdown is about ordering, not scheduling.** Sprints define implementation sequence and dependency order. Do not estimate time or assign story points.
 - **Visual design direction is not a mockup.** Describe the feel ("dark theme, pixel-art inspired, 8-bit color palette with neon accents") rather than exact layouts.
-- **Technical stack recommendations must include rationale.** "Use React" is insufficient. "React + Canvas API for the tile editor — React handles UI chrome while Canvas handles performant grid rendering" gives the Generator useful context without constraining implementation.
 - **User stories must have the value clause.** "As a user, I want to save my map" is incomplete. "As a user, I want to save my map, so that I can continue editing in a future session" explains the WHY.
 
 ## Eval Criteria
@@ -159,8 +119,8 @@ EVAL 2: User-story value clauses
 
 EVAL 3: Implementation freedom
   Question: Is the spec body free of DB schemas, API routes, framework-
-            specific code patterns, or library prescriptions without alternatives?
-  Pass: Only user-facing behavior + high-level stack rationale.
+            specific patterns, rendering technologies, and library prescriptions?
+  Pass: Only user-facing behavior and product constraints.
   Fail: Any implementation detail leaked.
 
 EVAL 4: AI integration considered

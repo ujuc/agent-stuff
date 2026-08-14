@@ -39,7 +39,7 @@ Reject implicit assumptions in the plan.
 - "this endpoint is public, not internal"
 
 ### Constraint Addition
-Add requirements the plan missed.
+Add requirements the plan missed. When an active sprint contract exists, scope, exclusion, or acceptance changes require a new archived contract workspace before the plan changes.
 - "must support offline mode"
 - "needs backwards compatibility with v2 API"
 

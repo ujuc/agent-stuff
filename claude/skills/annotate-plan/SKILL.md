@@ -31,7 +31,7 @@ Spawn BOTH agents in a **single message** with two `Agent` tool calls. Sequentia
 Agent prompt template (adapt per role):
 ```
 Feature: {feature name}
-Requirements: {from $ARGUMENTS / spec.md}
+Requirements: {from $ARGUMENTS / spec.md, plus every criterion and exclusion from .sprint/contract.md when present}
 Research context: {paste or reference .research/research-*.md path}
 Focus: {role description}
 Output: {partial path}
@@ -54,6 +54,9 @@ Combine the partials into `.plans/plan-{feature}.md`:
 
 ## Approach
 (high-level strategy)
+
+## Acceptance Criteria
+(verbatim criteria and exclusions from the active contract, or `No active contract`)
 
 ## Reference Implementations
 (from reference-finder — existing code to reuse/adapt, with file:line citations)
@@ -91,9 +94,9 @@ Triggered when user says: "노트 반영해줘", "address notes", "주석 처리
 ### 1. Detect Annotations
 
 - Diff `.plans/.plan-{feature}.md.prev` against the current plan to find user additions/edits.
-- Scan for explicit markers: `> ` blockquotes, `NOTE:`, `TODO:`, `FIXME:`, `<!-- ... -->`.
+- Within added or changed diff ranges only, scan for explicit markers: `> ` blockquotes, `NOTE:`, `TODO:`, `FIXME:`, `<!-- ... -->`. Markers already present in `.prev` are not new annotations.
 - If `.plans/.blocker-*.md` or `.plans/.debug-*.md` files exist, treat their contents as annotation sources alongside inline diff markers — this lets `implement-plan`'s failure output feed the next annotation cycle. After incorporating, move the consumed files to `.plans/.partial/` so they are not re-read on the next cycle.
-- Treat unrelated whitespace-only diffs as noise; ignore them.
+- Treat unrelated whitespace-only diffs as noise. If no new annotations or blocker/debug artifacts remain, report that and stop without changing the baseline or counter.
 
 See `references/annotation-guide.md` for the four annotation formats and six feedback-type categories.
 
@@ -103,7 +106,8 @@ For each detected annotation:
 1. Quote the annotation verbatim (with its surrounding section).
 2. Classify the feedback type (per annotation-guide.md).
 3. State how it will be addressed — which sections change, whether it is a local patch or a structural revision.
-4. Apply the change with `Edit` (preserve unrelated sections; do not rewrite the whole plan).
+4. If an active contract exists and the annotation changes scope, exclusions, or acceptance criteria, stop and require a new archived negotiation workspace; do not alter the contracted plan inline.
+5. Otherwise apply the change with `Edit` (preserve unrelated sections; do not rewrite the whole plan). The updated baseline marks the annotation consumed; do not process unchanged markers on later cycles.
 
 ### 3. Update Baseline and Counter
 
@@ -132,11 +136,10 @@ Do not call advisor for routine progress updates or for simple Q&A.
 
 ## Gotchas
 
-1. **Sequential agent dispatch halves throughput.** Both `Agent` tool calls must sit in the same assistant message — placing them in separate turns serializes them. Verify in your own output before submitting.
-2. **`.prev` baseline drift after manual edits.** If the user edits the plan between cycles without triggering `address notes`, the next diff against `.prev` will surface pre-existing edits as new annotations. When you detect a suspiciously large diff, ask the user to confirm what is new versus carry-over.
-3. **Cycle counter absent on resume.** When a session is resumed, `.plans/.plan-{feature}.cycle` may be missing if Phase A ran in a different checkout. Recreate with `0` on first `address notes` call instead of erroring.
-4. **Annotations inside code blocks.** `NOTE:` / `TODO:` / `FIXME:` markers are valid inside Markdown code blocks too — these are almost never user annotations, they are snippets Claude itself produced. Skip annotations found inside fenced blocks unless the user explicitly points to them.
-5. **Plan bloat across cycles.** Every cycle tends to grow the plan. After cycle 3, suggest trimming stale sections (rejected approaches, resolved open questions) to keep the document focused.
+1. **`.prev` baseline drift after manual edits.** If the user edits the plan between cycles without triggering `address notes`, the next diff against `.prev` will surface pre-existing edits as new annotations. When you detect a suspiciously large diff, ask the user to confirm what is new versus carry-over.
+2. **Cycle counter absent on resume.** When a session is resumed, `.plans/.plan-{feature}.cycle` may be missing if Phase A ran in a different checkout. Recreate with `0` on first `address notes` call instead of erroring.
+3. **Annotations inside code blocks.** `NOTE:` / `TODO:` / `FIXME:` markers are valid inside Markdown code blocks too — these are almost never user annotations, they are snippets Claude itself produced. Skip annotations found inside fenced blocks unless the user explicitly points to them.
+4. **Plan bloat across cycles.** Every cycle tends to grow the plan. After cycle 3, suggest trimming stale sections (rejected approaches, resolved open questions) to keep the document focused.
 
 ## Eval Criteria
 
@@ -150,10 +153,10 @@ EVAL 1: Both partials written
 EVAL 2: Plan section completeness
   Question: Does the final `.plans/plan-{feature}.md` contain all nine
             headings in the Phase A Step 3 template (Goal, Approach,
-            Reference Implementations, File Changes, Code Snippets,
-            Dependencies & Ordering, Risk Assessment, Open Questions,
-            Todo)?
-  Pass: All nine headings present.
+            Acceptance Criteria, Reference Implementations, File Changes,
+            Code Snippets, Dependencies & Ordering, Risk Assessment,
+            Open Questions, Todo)?
+  Pass: All ten headings present.
   Fail: Any heading missing.
 
 EVAL 3: Baseline and counter initialized
@@ -164,8 +167,8 @@ EVAL 3: Baseline and counter initialized
   Fail: Either missing, or cycle file does not contain `0`.
 
 EVAL 4: Annotation round-trip
-  Question: After a Phase B cycle, is the cycle counter incremented by
-            exactly 1 and is `.prev` identical to the post-cycle plan?
-  Pass: Counter +1, `.prev` byte-matches the current plan.
-  Fail: Counter off, or `.prev` still shows pre-cycle state.
+  Question: After a Phase B cycle, is the counter incremented by exactly 1,
+            does `.prev` match the plan, and does an immediate no-diff rerun do nothing?
+  Pass: Counter +1, `.prev` byte-matches, no annotation is reprocessed.
+  Fail: Counter/baseline mismatch, or an unchanged annotation is processed again.
 ```

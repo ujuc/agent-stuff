@@ -97,7 +97,7 @@ Written by the Generator on full acceptance. Final, stable form.
 
 Rules:
 
-- `contract.md` is immutable for the sprint once written. Mid-sprint changes require a new round in a new draft file.
+- `contract.md` is immutable once written. A changed scope requires preserving the current workspace and starting a new sprint workspace; never rewrite the existing contract in place.
 - Negotiation History is the audit trail: every round's counts are reported, even if zero criteria changed.
 
 ## `escalation.md`
@@ -123,4 +123,4 @@ Written by either role when an early-escalation trigger fires.
 Rules:
 
 - The escalation file blocks further auto-negotiation. The skill returns control to the user and waits.
-- Once the user resolves the ambiguity, the next round restarts from `contract-draft-{n+1}.md` referencing the escalation resolution.
+- If escalation occurs before review 3, resume at `contract-draft-{n+1}.md` and cite the user's resolution. If review 3 triggered escalation, preserve/archive the workspace and start a fresh workspace at draft 1; draft 4 is forbidden.
