@@ -8,13 +8,12 @@ scoreable without human judgment.
 ```
 EVAL 1: Mode routing
   Question: Does the run pick the correct branch per the Stage 0 routing
-            precedence — keyword OR an existing CLAUDE.md routes to update
-            (refine), no keyword + no CLAUDE.md routes to generate after
-            the /init recommendation — and identify the right target files?
-  Pass: Chosen branch matches the precedence table (file existence overrides
-        the keyword default); generated/modified file list matches targets.
-  Fail: An existing CLAUDE.md was regenerated from scratch, wrong branch,
-        or target file list drifts from stated intent.
+            precedence — keyword OR any existing managed target routes to
+            update, while no keyword + no managed target routes to generate
+            after the /init recommendation — and identify the right files?
+  Pass: Chosen branch matches the precedence table; the file list matches targets.
+  Fail: Any existing managed file was regenerated from scratch, the branch is
+        wrong, or the file list drifts from stated intent.
 
 EVAL 2: Discoverability & placement discipline
   Question: Every line in the generated/modified output passes the
@@ -54,12 +53,10 @@ EVAL 4: Reference integrity
   Fail: Any reference is broken or a glob targets non-existent paths.
 
 EVAL 5: Blind reviewer
-  Question: When output is more than a single root CLAUDE.md, does the
-            Phase 3 Reviewer return PASS on every criterion listed in
-            its prompt (or were all FAILs resolved in later iterations)?
-  Pass: Final Reviewer run returns PASS, or initial FAILs were resolved
-        before the final output.
-  Fail: Unresolved Reviewer FAILs at skill completion.
+  Question: When output is more than a single root CLAUDE.md, were all
+            grounded Phase 3 Reviewer FAILs resolved before final output?
+  Pass: Reviewer reports no FAIL, or every reported FAIL was fixed.
+  Fail: A grounded Reviewer FAIL remains at skill completion.
 
 EVAL 6: Instruction-authoring constraints
   Question: Is every produced/retained line free of the patterns

@@ -1,7 +1,7 @@
 ---
 name: generate-agent-docs
 description: 프로젝트용 CLAUDE.md(Claude 전용 레이어), AGENTS.md(Codex·Amp 겸용 크로스하네스 주 문서), contributing-docs/, .claude/rules/ 파일을 발견 불가능 정보 원칙에 따라 생성하거나 업데이트한다. 파일명을 특정하지 않은 포괄적인 '문서 업데이트' 요청도 대상을 한 줄로 확인한 뒤 여기서 처리한다. (구 명칭 generate-claude-md)
-when_to_use: "문서 생성/갱신 요청일 때. 트리거: '/generate-agent-docs', '문서 업데이트해줘', '문서 갱신해줘', '문서 최신화', 'CLAUDE.md 업데이트', 'AGENTS.md 갱신', 'rules 생성', 'contributing-docs 추가', 'update the docs', 'update CLAUDE.md', 'refresh AGENTS.md'. 파일명이 없는 포괄 요청은 Stage 0-3의 대상 확인을 먼저 거친다. README·API 문서·CHANGELOG처럼 에이전트 문서가 아닌 대상이거나 단일 파일 편집이면 Edit 도구를 직접 쓰고 이 스킬을 호출하지 않는다."
+when_to_use: "문서 생성/갱신 요청일 때. 트리거: '/generate-agent-docs', '문서 업데이트해줘', '문서 갱신해줘', '문서 최신화', 'CLAUDE.md 업데이트', 'AGENTS.md 갱신', 'rules 생성', 'contributing-docs 추가', 'update the docs', 'update CLAUDE.md', 'refresh AGENTS.md'. 파일명이 없는 포괄 요청은 Stage 0-3의 대상 확인을 먼저 거친다. CLAUDE.md·AGENTS.md 등 에이전트 문서의 단일 파일 요청도 지원하며, README·API 문서·CHANGELOG는 이 스킬을 호출하지 않는다."
 group: docs
 model: opus
 allowed-tools: Read Write Edit Glob Grep Agent AskUserQuestion ToolSearch WebFetch TaskOutput advisor
@@ -68,7 +68,7 @@ run:
    *"best-practices 라이브 로드 실패, 캐시 사용 (last check: <date>)."*
    Never fall back silently.
 
-**Staleness-gated sources, different cadence**: three reference files carry
+**Staleness-gated sources, different cadence**: four reference files carry
 their own `source_url(s)` + `check_interval_days` in frontmatter and re-fetch
 only when `today - last_upstream_check > check_interval_days` — fetching them
 every run is real cost and they move more slowly than the Claude Code docs.
@@ -83,14 +83,13 @@ Same loud-fallback rule on failure.
 
 ### Step 0-2 — Route generate vs update
 
-Two signals: keyword and whether a target CLAUDE.md exists.
-**File existence overrides the keyword default.**
+Two signals: update keywords and whether any selected target already exists. **Existing selected content always routes to update mode.** Selected targets include root or nested CLAUDE.md, AGENTS.md, contributing-docs/, and `.claude/rules/`.
 
 | Signal | Branch |
 |--------|--------|
 | `$ARGUMENTS` contains `업데이트` / `수정` / `갱신` / `update` / `refresh` | **Update mode** (U1→U3 refine path) |
-| No keyword + target CLAUDE.md exists | **Update mode** — the existing file is the `/init` baseline; never regenerate |
-| No keyword + no CLAUDE.md | **Generate mode** (full Stage 1→4), after the recommendation below |
+| No keyword + any selected target exists | **Update mode** — preserve existing structure; never regenerate it |
+| No keyword + none of the selected targets exists | **Generate mode** (full Stage 1→4), after the recommendation below |
 
 - **No-baseline recommendation**: state in one line that no baseline was found
   and that running `/init` first (the official "/init then refine" workflow)
@@ -108,17 +107,18 @@ Two signals: keyword and whether a target CLAUDE.md exists.
 | Keyword in `$ARGUMENTS` | Target |
 |-------------------------|--------|
 | `CLAUDE.md` alone | Root CLAUDE.md only |
-| `AGENTS.md` | AGENTS.md + contributing-docs/ |
+| `AGENTS.md` alone | AGENTS.md only |
+| `contributing-docs` | contributing-docs/ plus an AGENTS.md index update only when needed |
 | `rules` | `.claude/rules/` only |
 | `업데이트` with no specific file name | All 5 file types |
 | Generic `문서` / `docs` with no file named | All 5 file types — after the confirmation below |
 
-Empty `$ARGUMENTS` → apply Step 0-2 against the current working directory.
+Empty `$ARGUMENTS` → ask which of the five managed target types to handle, then apply Step 0-2 to that selected set. Never infer all targets from bare `/generate-agent-docs`.
 
 **Generic-request confirmation.** "문서 업데이트해줘" / "update the docs" does
 not say *which* docs, and this skill is expensive to aim at the wrong target.
-Before Stage 1, state in one line what it covers — CLAUDE.md, AGENTS.md,
-contributing-docs/, `.claude/rules/` — and ask whether that is the target. If
+Before Stage 1, state in one line what it covers — root CLAUDE.md, AGENTS.md,
+contributing-docs/, nested CLAUDE.md, and `.claude/rules/` — and ask whether that is the target. If
 the user meant README, API docs, a CHANGELOG, or any other project document,
 hand the task back rather than generating agent docs they did not ask for.
 Skip this confirmation when `$ARGUMENTS` already names a file or target type.
@@ -257,18 +257,17 @@ ceiling from Step 0-1.
 1. **Verifier** (`model: sonnet`): apply the verification checklist line by
    line via the dispatch template.
 2. **Fix loop**: the orchestrator fixes FAIL items, then re-verifies.
-   Maximum **3 verification runs total** (initial + up to 2 fix rounds);
-   after that, report remaining FAILs to the user and proceed.
+   Maximum **3 verification runs total** (initial + up to 2 fix rounds).
+   If FAILs remain, call advisor once, then report them and proceed.
 3. **Blind Reviewer** (`model: sonnet`, consults advisor): spawn when output
    exceeds a single root CLAUDE.md. Pass generated file contents **only** —
-   no Stage 1/2 results, no verifier output (Gotcha 3). The Reviewer calls
-   advisor() for an opus cross-model second opinion on low-confidence
-   findings.
+   no Stage 1/2 results, no verifier output (Gotcha 3). Apply its grounded
+   FAIL fixes once before final output.
 
 Report verification results to the user; for each FAIL, quote the line and
 the reason.
 
-**advisor() gate ③**: Reviewer FAIL persists after the 2 fix rounds.
+**advisor() gate ③**: Verifier FAIL persists after the 2 fix rounds.
 
 ## Advisor Escalation Summary
 
@@ -276,7 +275,7 @@ the reason.
 |---|------|---------|
 | ① | After Stage 1 | Monorepo 5+ packages, 3+ submodules, or complex existing CLAUDE.md |
 | ② | During Stage 2 | User answer ↔ detection mismatch, or 10+ drift items in update mode |
-| ③ | During Stage 4 | Reviewer FAIL persists after 2 fix rounds |
+| ③ | During Stage 4 | Verifier FAIL persists after 2 fix rounds |
 
 **When not to call advisor()**: simple project generation, 1–2 target files,
 verification passes on the first run, or the user gave unambiguous
@@ -286,7 +285,7 @@ instructions.
 
 | You are about to… | Do instead |
 |-------------------|------------|
-| Regenerate an existing CLAUDE.md from scratch | Route to update mode — the existing file is the `/init` baseline |
+| Regenerate any existing managed agent-doc target from scratch | Route to update mode and preserve its structure |
 | Put project-general content in CLAUDE.md, or Claude-only content in AGENTS.md | Apply the placement test (stage3-generator.md Common Writing Rules) — AGENTS.md is cross-harness, CLAUDE.md is `@AGENTS.md` + Claude-only |
 | Call WebFetch before loading its schema | `ToolSearch` `select:WebFetch` first (Step 0-1) |
 | Use the cached best-practices without saying so | Announce the fallback in one line |
@@ -324,7 +323,7 @@ case is discovered.
    inherited from the session, never pinned in frontmatter.
 5. **`disable-model-invocation` is intentionally unset.** The skill is
    invasive (writes/edits several project files); auto-invocation can still
-   fire from vague phrasing via the Skills-table triggers. If false positives
+   fire from vague phrasing in `description` and `when_to_use`. If false positives
    become a problem, flip the flag on and rely on `/generate-agent-docs`.
 6. **Update mode may misread hand-crafted files as drift.** Unusual
    structures can be intentional. Confirm with the user before removing

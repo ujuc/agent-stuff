@@ -59,7 +59,7 @@ carries its own freshness metadata in YAML frontmatter.
    - `last_upstream_check` — YYYY-MM-DD of the last verified check
    - `check_interval_days` — cadence threshold (defaults to 14 when missing)
 2. Compute `today - last_upstream_check`:
-   - **Within interval** → proceed to Step 1 without fetching.
+   - **Within interval** → continue with Step 1 in create mode or Step U1 in update mode without fetching.
    - **Beyond interval** → continue to step 3.
 3. WebFetch `source_url` and extract the Frontmatter reference section, **and**
    WebFetch `spec_url` for the standard's own field rules. Checking only
@@ -80,8 +80,7 @@ carries its own freshness metadata in YAML frontmatter.
 
 - If WebFetch fails (network error, rate limit, page layout change), keep the
   existing `references/frontmatter-spec.md` **and** `last_upstream_check`
-  untouched, then proceed to Step 1 with a short notice to the user that the
-  local spec may be stale.
+  untouched, then continue with the selected mode's next step and a short notice that the local spec may be stale.
 - If the upstream change set is large, summarize it for the user and confirm
   before rewriting the local copy.
 
@@ -95,6 +94,7 @@ Use AskUserQuestion to collect:
 2. **Target tools**: which tools does it call (built-in tools, MCP servers, external CLIs)?
 3. **Expected output**: what does running the skill produce (files, messages, code, ...)?
 4. **Trigger phrases**: what does the user actually say when they want this skill?
+5. **Catalog group**: choose one of `planning`, `analysis`, `build`, `verify`, `docs`, `writing`, `llm`, or `meta`.
 
 Use the answers to first identify the **domain type** in `references/skill-types.md`, then pick a **structural pattern** from `references/patterns.md`:
 
@@ -106,7 +106,7 @@ Use the answers to first identify the **domain type** in `references/skill-types
 | Template fill | Produces a fixed-shape artifact | Low |
 | Validation / review | Quality-checking existing artifacts | Medium |
 
-Confirm the picked pattern (and the reason) with the user.
+Confirm the picked pattern, reason, and group with the user before scaffolding.
 
 ### Parallel exploration (optional)
 
@@ -140,6 +140,8 @@ Requires `cargo` (install via <https://rustup.rs>). First invocation compiles th
 
 ### Manual scaffold (when cargo / init-skill is unavailable)
 
+This creates a draft only. Completion and registration remain blocked until `cargo` is available for Step 5 validation.
+
 **Required:**
 
 1. Create the skill folder (kebab-case).
@@ -165,8 +167,8 @@ Use `references/frontmatter-spec.md` together with `references/description-examp
 
 ### Procedure
 
-1. Set `name` (recommended): same as folder, kebab-case. If omitted, the directory name is used.
-2. Write `description` (recommended) using the **WHAT + WHEN** formula:
+1. Set `name` (**required**): same as folder, kebab-case.
+2. Write `description` (**required**) using the **WHAT + WHEN** formula:
    - WHAT: what the skill does (from Step 1's problem / scenario).
    - WHEN: when it should trigger (from Step 1's trigger phrases).
    - If omitted, the first paragraph of the markdown body is used.
@@ -214,7 +216,6 @@ If the skill's body needs live shell output injected at load time (e.g. current 
 
 - **Be specific**: include runnable commands, exact paths, concrete acceptance criteria.
 - **Handle errors**: list failure modes and how to recover.
-- **Show examples**: input/output samples per step.
 - **Name the tools**: state which tools are used (Read, Write, Bash, AskUserQuestion, ...).
 - **Build a Gotchas section**: known failure points are the highest-value content in any skill. See `references/design-principles.md` principle 4.
 
@@ -259,7 +260,7 @@ If the target cannot be identified, ask via AskUserQuestion.
 
 Using the freshly verified `references/frontmatter-spec.md` from Step 0:
 
-1. **Missing recommended fields**: warn when `name` or `description` is absent.
+1. **Missing required fields**: add non-empty `name` and `description`; update cannot complete without them.
 2. **Removed fields**: detect fields no longer in the official doc (e.g., `license`, `metadata`).
 3. **New fields worth adopting**: suggest `context`, `agent`, `effort`, `allowed-tools` etc. when they would help.
 4. **`description` quality**: WHAT + WHEN coverage, trigger phrasing.
@@ -287,7 +288,7 @@ When done, proceed to Step 5 (validation).
 
 ### Automated checks
 
-Run `scripts/validate-skill` (thin bash launcher over the Rust workspace in `tools/`):
+Before the validator, fail the workflow if `name`, `description`, or `group` is missing/empty; validator warnings do not override these local requirements. If `cargo` is unavailable, stop and report the draft as unvalidated; do not register or claim completion. Otherwise run `scripts/validate-skill` (thin bash launcher over the Rust workspace in `tools/`):
 
 ```bash
 DOTRCDIR="${DOTRCDIR:-${XDG_CONFIG_HOME:-$HOME/.config}/dotrc}"
@@ -410,8 +411,8 @@ EVAL 4: Body size budget
         this eval still counts it as a failure.)
 
 EVAL 5: Validator pass
-  Question: Does `bash scripts/validate-skill <skill-dir>` exit with
-            status 0 and no `✗` findings?
+  Question: Does the `$DOTRCDIR`-anchored `scripts/validate-skill`
+            command from Step 5 exit with status 0 and no `✗` findings?
   Pass: Exit 0, no error-severity lines.
   Fail: Exit non-zero, or any `✗` finding.
 ```

@@ -100,7 +100,7 @@ items ends the loop and proceeds to Phase 3.
 - Address only specific FAIL items from the Verification Report
 - Do not introduce new content; only remove or restructure existing content
 - Track which FAIL items have been resolved across iterations
-- After iteration 3: if FAIL items remain, surface them to the user with explanation and proceed
+- After iteration 3: if FAIL items remain, call advisor once, then surface them to the user with explanation and proceed
 
 ---
 
@@ -164,7 +164,7 @@ Do NOT fix issues — only report them.
 
 ### After Reviewer
 
-The orchestrator reads the Reviewer report and applies fixes for all FAIL items before producing the final output.
+The orchestrator applies the Reviewer's grounded FAIL fixes once before producing the final output. The Reviewer's own low-confidence advisor call is the blind second opinion; do not create another reviewer loop.
 
 ---
 

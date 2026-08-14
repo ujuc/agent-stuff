@@ -320,13 +320,13 @@ Inherit principles from Section A, with the following additions:
 (Only if there are rules different from the parent. Omit if none)
 
 ## References
-- **[../CLAUDE.md](../CLAUDE.md)** — Project-wide common rules
+- **[{relative-path-to-root-CLAUDE.md}]({relative-path-to-root-CLAUDE.md})** — Project-wide common rules
 (Import local AGENTS.md via `@AGENTS.md` if present; omit otherwise)
 ```
 
 ### Reference Path Rules
 
-- Parent CLAUDE.md: Always use relative path (`../CLAUDE.md`)
+- Root CLAUDE.md: compute the depth-correct relative path from the nested file (for example, `../../CLAUDE.md` from `packages/core/CLAUDE.md`); replace the template placeholder before writing and never hardcode one `../`.
 - Submodule: Reference parent repository CLAUDE.md via URL or relative path
 - Sibling directories: Do not reference directly (route through parent)
 

@@ -117,7 +117,7 @@ skills (the "one caller per agent" rule applies to pipeline workers only).
 
 | Agent             | Calling skills                | Model  | Tools                    | Writes code | Output                                                         | Advisor |
 |-------------------|-------------------------------|--------|--------------------------|-------------|----------------------------------------------------------------|---------|
-| `waza-runner`     | `generate-skills`, `skill-improver` | sonnet | Bash, Read               | no          | stdout (Korean summary) + `~/.claude/data/waza/results/*.json` | no      |
+| `waza-runner`     | `generate-skills`, explicit eval requests | sonnet | Bash, Read               | no          | stdout + optional `claude/evals/<skill>/` scaffold + result JSON | no      |
 | `skill-engineer`  | `skill-improver` (optional)   | sonnet | Read, Glob, Grep, advisor | no          | stdout (Korean report — trigger / overlap / model fitness)     | ≤1      |
 
 `waza-runner` is the single entry point for all waza operations. Callers
@@ -130,10 +130,7 @@ route through this agent.** On a host without `waza` installed it prints
 the install guide at `references/waza-install.md` and exits cleanly so the
 calling skill can degrade gracefully without a score.
 
-Workspace: `~/.claude/data/waza-workspace/` (gitignored). The workspace's
-`.waza.yaml` keeps `paths.skills: skills/` with `skills/` symlinked to
-`~/.config/dotrc/agents/claude/skills/`, so any SKILL.md is reachable
-without copying.
+When provisioned, `~/.claude/data/waza-workspace/` is gitignored and uses relative skill/eval paths with symlinks to `~/.claude/skills/` and `~/.claude/evals/`. This repository does not synthesize the evolving `.waza.yaml`; an absent workspace yields an advisory no-score exit.
 
 `skill-engineer` is a read-only design analyst dispatched by
 `skill-improver` (or directly by the user) for the analysis dimensions
@@ -146,7 +143,7 @@ trigger|overlap|model|all]")`.
 ## Adding a New Agent — Checklist
 
 1. `name` in frontmatter matches the filename (kebab-case).
-2. `description` is one sentence, ending with "Used by {skill} skill."
+2. `description` is one sentence in the definition's established language and names its caller or use case.
 3. `tools:` contains the minimum set. Do not copy `implementer`'s tool list
    by default.
 4. `model:` — `haiku` only if the work is mechanical and cost-sensitive;

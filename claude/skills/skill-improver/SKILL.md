@@ -1,9 +1,9 @@
 ---
 name: skill-improver
-description: "스킬/에이전트 정의를 테스트 시나리오 기반으로 자동 개선한다. 7일 주기로 세션 시작 시 비차단 알림이 뜨고, 구조 검증 후 심층 최적화가 필요하면 autoresearch로 위임한다. /skill-improver, skill-improver, 스킬 개선해줘, 스킬 최적화, 스킬 테스트해줘, test skills 요청 시 사용한다."
+description: "스킬/에이전트 정의를 테스트 시나리오 기반으로 자동 개선한다. 7일 주기로 세션 시작 시 비차단 알림이 뜨고, 심층 최적화가 필요하면 별도 autoresearch 실행을 안내한다. /skill-improver, skill-improver, 스킬 개선해줘, 스킬 최적화, 스킬 테스트해줘, test skills 요청 시 사용한다."
 group: meta
 model: sonnet
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(bash:*), Bash(git:*), Bash(date:*), Agent, Skill, advisor
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(bash:*), Bash(git:*), Bash(date:*), Agent, advisor
 argument-hint: "[skill-name ...]"
 ---
 
@@ -25,11 +25,11 @@ To force an immediate run regardless of cadence: invoke `Skill("skill-improver")
 
 When auto-editing skill or agent metadata in Phase 4, preserve the user's language conventions:
 
-- **`description` field is Korean.** Korean trigger phrases (`업데이트`, `수정`, `테스트해줘`, etc.) are matched against user utterances. Never translate the WHEN clause; never replace Korean keywords with English equivalents.
-- **SKILL.md body is English.** Auto-fixes that touch body content keep English. Do not introduce Korean prose into bodies.
-- **Trigger keywords are functional identifiers.** Treat them like code — they cannot be paraphrased.
+- **Skills:** `description` / `when_to_use` are Korean and SKILL.md bodies are English, except functional examples and user-visible strings.
+- **Agents:** preserve the existing definition's language; do not blanket-translate English or Korean bodies.
+- **Trigger keywords are functional identifiers.** Never paraphrase or translate them.
 
-If a target violates the policy (Korean prose in body, English-only description with Korean triggers expected), record as finding **B.7 — language policy drift** and ask the user before translating.
+Record a target-type policy mismatch as **B.7 — language policy drift** and ask before translating.
 
 ## Phase 0 — Pre-flight Checks
 
@@ -37,17 +37,17 @@ If a target violates the policy (Korean prose in body, English-only description 
    ```bash
    command -v cargo &>/dev/null || { echo "cargo required: https://rustup.rs"; exit 1; }
    ```
-2. **Validator path**: confirm `<repo-root>/agents/claude/skills/generate-skills/scripts/validate-skill` (no `.sh` suffix) exists. If not found, report and stop.
-3. **Repo guard**: verify CWD is the agent-stuff repository (`CLAUDE.md` and `claude/skills/` present).
-4. **Spec freshness**: read the YAML frontmatter at the top of generate-skills' `frontmatter-spec.md` reference doc (under `agents/claude/skills/generate-skills/`). Compute `today - last_upstream_check`. If beyond `check_interval_days` (default 14), log a warning suggesting `/generate-skills` to refresh upstream spec — do not block, but findings about new frontmatter fields may be stale.
+2. **Repository resolution**: resolve `repo_root` as `${DOTRCDIR:-${XDG_CONFIG_HOME:-$HOME/.config}/dotrc}/agents`; verify its `AGENTS.md` and `claude/skills/`. Invocation CWD may be any project.
+3. **Validator path**: confirm `<repo_root>/claude/skills/generate-skills/scripts/validate-skill` exists. Use `repo_root` for every scan and command; do not require or mutate the caller's CWD.
+4. **Spec freshness**: under `repo_root`, find sibling `generate-skills` and read `frontmatter-spec.md` from its reference directory. Compute `today - last_upstream_check`. If beyond `check_interval_days` (default 14), warn without blocking.
 
 If any toolchain/path/repo check fails, report the issue with an actionable fix and stop — do not proceed to Phase 1.
 
 ## Phase 1 — Inventory & Intent Extraction
 
-1. **Argument parsing**: if arguments specify skill or agent names, target those; otherwise sweep all skills in `claude/skills/` and `.claude/skills/`, plus all agent definitions in `agents/claude/agents/` (and equivalents for other hosts).
-2. **Mode classification**: tag each target as `skill` (has `SKILL.md`) or `agent` (`.md` file under `agents/<host>/agents/`). Mode determines which Phase 2 dimensions apply.
-3. **Cross-skill map**: collect ALL skills' descriptions across both `claude/skills/` and `.claude/skills/` in a single pass (needed for B.6 group consistency and cross-skill trigger-overlap checks). Store as name→description map.
+1. **Argument parsing**: if arguments specify skill or agent names, target those; otherwise sweep all skills in `claude/skills/` and `.claude/skills/`, plus agent definitions in `claude/agents/` and `.claude/agents/` (and actual equivalents for other hosts).
+2. **Mode classification**: tag each target as `skill` (has `SKILL.md`) or `agent` (a definition under `claude/agents/` or `.claude/agents/`, excluding README and references). Mode determines which Phase 2 dimensions apply.
+3. **Catalog map**: collect `name` and `group` from user-scope `claude/skills/` for B.6. Validate project-scope `.claude/skills/` structurally but never add them to the user catalog. Trigger overlap remains exclusive to `skill-engineer`.
 4. **Per-target read**: for each target, parse:
    - Frontmatter: `name`, `description`, `model`, `allowed-tools`, plus optional fields per `frontmatter-spec.md`.
    - Body: core procedure steps, constraints, prohibited actions.
@@ -69,14 +69,14 @@ Run `validate-skill <path>` (Rust binary, not the legacy `.sh`). This single exe
 |------|----------------|-----|
 | **B.1 Description-body alignment** | Description's WHAT clause matches actual procedure steps | Read procedure, compare with description. Flag if description claims capabilities not present in the body, or misses major capabilities |
 | **B.5 Reference integrity** | All file paths in the body point to existing files | Glob/Read each referenced path. Flag broken references. **Skip for agent files** unless body explicitly mentions external paths |
-| **B.6 group classification** | Frontmatter has a valid `group:` (one of planning/analysis/build/verify/docs/writing/llm/meta) and `README.md`'s group map lists the skill under that same group | `group:` is the single source of truth the `README.md` catalog table mirrors; there is **no** per-skill triggers/model table in `claude/CLAUDE.md` to sync. Flag a missing/invalid `group:`, or a README group map that disagrees with the frontmatter. |
-| **B.7 Language policy** | Description Korean, body English, trigger keywords intact | Parse frontmatter description for Korean characters; scan body for non-trivial Korean prose |
+| **B.6 catalog sync** | A structurally valid **user-scope** `claude/skills/` skill is listed under its group in `<repo_root>/claude/skills/README.md` | Dimension A owns group validity. Project-scope `.claude/skills/` targets are SKIP. |
+| **B.7 Language policy** | Skill metadata/body follows the skill policy; agent language is preserved; triggers stay intact | Apply the target-type rules above and compare edits with the original trigger tokens |
 
 > **Scope boundary**: trigger completeness, trigger uniqueness, and model fitness checks belong to the `skill-engineer` agent. Do not duplicate them here. To run those checks, dispatch `Agent("skill-engineer", "<target> [--check trigger|overlap|model|all]")` either inline (after Phase 5 passes) or as a standalone follow-up.
 
 ### Dimension C — Type-specific (skills)
 
-- **Skills with scripts** (`scripts/` directory exists): execute scripts with no args or `--help` to verify usage output and non-zero exit code.
+- **Skills with scripts** (`scripts/` directory exists): run `--help` and expect exit 0; when arguments are required, also run with no args and expect a clear usage error rather than a crash.
 - **Pipeline skills** (skills that reference other skill names): verify referenced skill names exist as actual skill directories.
 
 ### Dimension D — Agent-specific (agent mode only)
@@ -86,17 +86,6 @@ See "Agent Definition Mode" section below for the full check list. Quick summary
 For complex skills (multi-agent-orchestrator, autoresearch, etc.), call `advisor()` after generating semantic tests to review whether scenarios capture the skill's intent adequately.
 
 Each test is a concrete check with expected outcome (PASS criteria).
-
-## Phase 2.5 — waza Baseline (optional, before changes)
-
-If `waza` is on PATH, record a baseline score before any auto-fix runs by dispatching `waza-runner`. The runner auto-scaffolds a placeholder suite when the target has no eval yet, so this phase **does not pre-check eval suite existence** — just delegate. Skip cleanly only when waza itself is missing.
-
-1. For each target:
-   ```
-   Agent("waza-runner", "eval <target> --label before")
-   ```
-2. Save the JSON path printed by the agent. It becomes the baseline reference for Phase 5.5.
-3. If `waza` is not installed, the runner exits cleanly with an install guide. Skip the phase entirely.
 
 ## Agent Definition Mode
 
@@ -143,9 +132,9 @@ For each FAIL result:
 
 | Category | Trigger | Fix |
 |----------|---------|-----|
-| Frontmatter corrections | Missing fields, typos, invalid format | Add/correct frontmatter fields |
+| Frontmatter corrections | Missing fields, typos, invalid format other than `group` | Add/correct fields; group presence/slug remains manual |
 | Description WHAT enrichment | B.1 fails | Generate accurate WHAT clause from procedure steps. **Never modify the WHEN clause (trigger phrases) without user approval** |
-| group classification | B.6 fails | Add/fix the `group:` frontmatter to a valid value and align `README.md`'s group map (frontmatter is source of truth; the README table mirrors it) |
+| Catalog sync | B.6 fails for a user-scope skill with valid frontmatter | Align the user README group map; never register project-scope skills |
 | Reference path repair | B.5 fails | Fix the path if a similarly-named file exists nearby; otherwise report as manual |
 | Language policy hint | B.7 fails | Report only — never auto-translate without user approval |
 
@@ -162,23 +151,11 @@ When fixability classification is ambiguous, call `advisor()` to decide. Misclas
 
 ## Phase 5 — Re-verification (max 3 iterations)
 
-1. After applying fixes, re-run only the tests that previously FAILED.
-2. **Regression guard**: if a fix introduces a NEW failure not present in the original run, immediately revert the fix and reclassify as manual.
+1. After applying fixes, rerun the target's full original test matrix, including previously passing checks.
+2. **Regression guard**: if a fix introduces a NEW failure, immediately revert the fix and reclassify it as manual.
 3. If all re-run tests PASS → proceed to Phase 6.
 4. If failures remain and iteration count < 3 → return to Phase 4.
 5. If iteration count reaches 3 → call `advisor()` to decide whether to continue, stop, or reconsider whether the test scenario itself is wrong.
-
-## Phase 5.5 — waza Regression Check (optional, after changes)
-
-For each target that produced a baseline JSON in Phase 2.5, re-run the same eval before Phase 6 commits anything. Skip silently for targets without a baseline.
-
-1. Dispatch the runner in comparison mode:
-   ```
-   Agent("waza-runner", "eval <target> --label after --baseline_json <Phase 2.5 path>")
-   ```
-2. The runner emits a before/after comparison table (`weighted_score`, `success_rate`, failed task count).
-3. **Regression rule**: if `weighted_score` drops more than 0.05 versus the baseline, mark the target as `⚠️ regression` in Phase 6's changelog and require explicit user confirmation before committing the change set. Recommend rolling back the fix or re-running waza with `--keep-workspace` to inspect intermediate artifacts.
-4. A score increase is reported in Phase 6 as `Δ +0.07` etc., no extra confirmation needed beyond the standard diff review.
 
 ## Phase 6 — Summary & Commit
 
@@ -216,15 +193,9 @@ This skill runs on sonnet by default. Call `advisor()` (no parameters — full c
 2. **Phase 4 — fixability classification ambiguity**: when a failure sits on the boundary between auto-fixable and manual.
 3. **Phase 5 — failures remain after 3 iterations**: to decide whether to keep auto-fixing, stop and escalate, or reconsider the test scenario.
 
-## Phase 7 — Deep Optimization via Autoresearch (Optional)
+## Deep Optimization Handoff
 
-After Phase 6, if the user requested "스킬 최적화" or deeper improvement beyond structural fixes:
-
-1. Ask the user whether to proceed with eval-based optimization.
-2. If confirmed, invoke `Skill("autoresearch", args: "<target-skill-path>")` to delegate.
-3. Autoresearch handles the eval → mutate → score → keep/discard loop on the skill's content.
-
-This phase is skipped for structural-only runs ("스킬 테스트해줘", "test skills").
+If deeper eval-based optimization is warranted, finish this run first and recommend a separate `/autoresearch <target>` invocation. Do not launch autoresearch inside skill-improver's commit/timestamp transaction; it has its own confirmation, artifacts, validation, and commit cycle.
 
 ## Constraints
 
@@ -232,11 +203,10 @@ This phase is skipped for structural-only runs ("스킬 테스트해줘", "test 
 - Auto-fixes are limited to metadata, descriptions, and structural issues.
 - Always show diffs before committing.
 - Do not run the target skill itself (only validate its structure and content).
-- Validator path is `agents/claude/skills/generate-skills/scripts/validate-skill` (no `.sh` suffix).
+- Validator path is `claude/skills/generate-skills/scripts/validate-skill` from the agent-stuff repository root (no `.sh` suffix).
 - When run via the `maintain` skill in `full` mode, check for existing skill-engineer output before running redundant checks.
 - Trigger overlap, completeness, and model fitness checks belong to skill-engineer — do not duplicate.
-- Phase 6 timestamp write is the only side effect outside of skill files and the `README.md` group map.
-- All waza interactions go through `waza-runner` — never invoke the `waza` CLI directly from this skill, including for scaffold, version checks, or anything else.
+- Outside target files and the README catalog, the only side effects are a user-confirmed commit and the Phase 6 timestamp.
 
 ## Gotchas
 
@@ -252,7 +222,6 @@ This phase is skipped for structural-only runs ("스킬 테스트해줘", "test 
 
 6. **Spec staleness ≠ blocker**: Phase 0's spec freshness check is informational. Stale `frontmatter-spec.md` only means new fields might be unknown; it does not invalidate existing checks. Warn the user but continue.
 
-7. **Placeholder eval.yaml score interpretation**: when a skill has no `eval.yaml`, `waza-runner` auto-scaffolds a placeholder suite and baseline is measured against it. Scores may sit in the 0.0–0.4 range, but the regression guard (Δ ≥ 0.05) still works correctly. If precise absolute values are needed, refine the task via `generate-skills` and re-measure.
 
 ## Eval Criteria
 
@@ -309,15 +278,4 @@ EVAL 7: Single-entry-point compliance
   Fail: Any caller (skill, script, other agent) reaches the `waza` CLI
         directly.
 
-EVAL 8: Auto-scaffold delegation
-  Question: When the target has no eval.yaml, does Phase 2.5 simply
-            dispatch waza-runner without any pre-check, and does the
-            runner auto-scaffold + measure baseline as a single atomic
-            step from the caller's perspective?
-  Pass: Phase 2.5 contains no `test -f eval.yaml` or equivalent guard;
-        runner output shows the scaffold notice once and a baseline
-        JSON is written.
-  Fail: skill-improver re-implements the scaffold call, OR runner skips
-        measurement on missing eval.yaml, OR scaffold notice is missing
-        or duplicated.
 ```

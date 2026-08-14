@@ -102,8 +102,8 @@ Run the target AS-IS before changing anything. This is experiment #0.
 **results.tsv format (tab-separated):**
 
 ```
-experiment	score	max_score	pass_rate	status	description
-0	14	20	70.0%	baseline	original target — no changes
+experiment	score	max_score	pass_rate	status	stop_reason	description
+0	14	20	70.0%	baseline	-	original target — no changes
 ```
 
 **After baseline:** Report the baseline summary to the user. If baseline is 90%+, confirm with the user via AskUserQuestion whether optimization is worthwhile (diminishing returns near the ceiling).
@@ -168,7 +168,10 @@ Run the target `{runs}` times with the same `{inputs}`. Score every output again
 Compare against the **current baseline** (the last KEEP, or experiment 0 initially):
 
 - **Score improved** → KEEP. The mutation is now the new baseline.
-- **Score unchanged or worse** → DISCARD. Revert the file fully (no partial reverts — see Gotcha 3).
+- **Score unchanged** → KEEP only when every eval outcome is unchanged and the target is smaller; otherwise DISCARD.
+- **Score worse** → DISCARD.
+
+On DISCARD, revert the file fully. This makes score-neutral simplification the only tie that can win.
 
 ### 4-6. Log and Report
 
@@ -185,7 +188,9 @@ Go back to 4-1. Continue until any of:
 - `{budget}` experiment cap reached.
 - 95%+ pass rate for 3 consecutive experiments (diminishing returns).
 
-**If out of ideas:** Re-read failing outputs. Combine two near-miss mutations. Try removal instead of addition. Simplification that maintains score is a win.
+When stopping, set the final row's `stop_reason` to exactly `user_stop`, `budget_exhausted`, or `ceiling_3x`; leave it `-` on other rows.
+
+**If out of ideas:** Re-read failing outputs. Try removal instead of addition; do not bundle multiple mutations.
 
 ---
 
@@ -256,9 +261,10 @@ A real meta-optimization run on this very SKILL.md (recorded session, not synthe
 | 2 | 3/5 (60%) | +20% | replace Step 4-1 prose with named failure pattern table | KEEP |
 | 3 | 4/5 (80%) | +20% | add runs/budget tradeoff guidance below context table | KEEP |
 | 4 | 5/5 (100%) | +20% | add this Worked Example section | KEEP |
-| 5 | 5/5 (100%) | 0% | simplify wording — "to average out stochastic variance" → "to reduce noise" | KEEP (no regression, size-creep guard) |
+| 5 | 5/5 (100%) | 0% | shorten "to average out stochastic variance" to "to reduce noise" | KEEP (score-neutral size reduction) |
+| 6 | 5/5 (100%) | 0% | remove a duplicated baseline reminder | KEEP (score-neutral size reduction) |
 
-Stopped at experiment 5 (3 budget remaining) — rubric ceiling reached, simplification confirmed methodology, further mutations would test only the rubric's own resolution. Stop reason: pre-authorized early stop on diminishing returns near ceiling.
+Stopped at experiment 6 after three consecutive 100% experiments; the final results row records `stop_reason=ceiling_3x`.
 
 ---
 
@@ -271,7 +277,7 @@ Stopped at experiment 5 (3 budget remaining) — rubric ceiling reached, simplif
 5. **Overfitting to test inputs.** If the target improves on test inputs but degrades on novel inputs, the test inputs lack variety — go back to context gathering.
 6. **Size creep.** Each kept mutation adds complexity. Periodically check if the target has grown significantly and consolidate if needed.
 7. **Sequential by construction.** This skill implements hill-climbing — each mutation is evaluated against the last KEEP. Do not parallelize candidate mutations; that is beam search and changes the algorithm. If the user wants beam search, treat it as a different skill.
-8. **Triggers come from `description` + `/autoresearch`.** This skill has no `disable-model-invocation` flag, so Claude may auto-trigger it from `description` matches, and it can also be run explicitly via `/autoresearch`. There is no separate per-skill "CLAUDE.md Skills table" — skill classification is driven by the `group:` frontmatter field, mirrored in the `skills/README.md` catalog table. To adjust triggers, edit this skill's `description` / `when_to_use`.
+8. **Triggers come from `description` + `/autoresearch`.** This skill has no `disable-model-invocation` flag, so Claude may auto-trigger it from `description` matches, and it can also be run explicitly via `/autoresearch`. There is no separate per-skill "CLAUDE.md Skills table" — skill classification is driven by the `group:` frontmatter field, mirrored in the sibling [`../README.md`](../README.md) catalog table. To adjust triggers, edit this skill's `description` / `when_to_use`.
 
 9. **Meta-recursion: target == this skill itself.** When the target file is autoresearch's own `SKILL.md`, the execution method must NOT be `Skill("autoresearch")` — that would invoke this skill within itself and either deadlock or create unbounded recursion. Pick one instead:
    - **Text-based static rubric** — score the SKILL.md content against new evals (clarity, structure, coverage). `runs=1` is sufficient; static text yields deterministic scores.
@@ -320,6 +326,7 @@ EVAL 5: Stop condition honored
   Question: Did the loop stop on exactly one of: (a) explicit user
             stop, (b) {budget} cap reached, (c) 95%+ for 3
             consecutive experiments?
-  Pass: Final experiment row's status reflects one of the three.
-  Fail: Loop ran past budget or stopped without a documented reason.
+  Pass: Final row's `stop_reason` is `user_stop`, `budget_exhausted`,
+        or `ceiling_3x`, matching the observed condition.
+  Fail: Loop ran past budget or stopped without the matching reason.
 ```

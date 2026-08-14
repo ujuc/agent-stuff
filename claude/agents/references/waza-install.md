@@ -1,6 +1,6 @@
 # waza 설치 가이드
 
-`waza`는 Microsoft가 만든 AI 에이전트 스킬 평가 CLI다. dotrc 스킬 카탈로그의 `generate-skills`/`skill-improver` 워크플로우가 평가를 위해 호출하지만, 미설치 시에는 평가 단계만 skip되고 나머지 워크플로우는 정상 진행된다.
+`waza`는 Microsoft가 만든 AI 에이전트 스킬 평가 CLI다. dotrc의 `generate-skills` 또는 명시적 평가 요청이 호출하며, 미설치 시 평가만 skip된다.
 
 ## 빠른 설치 (macOS / Linux)
 
@@ -44,6 +44,12 @@ make install
 
 `make install` 후 `$(go env GOPATH)/bin`이 PATH에 있는지 확인할 것.
 
+## dotrc runner 준비 조건
+
+바이너리 설치만으로 `~/.claude/data/waza-workspace/`가 만들어지지는 않는다. runner는 유효한 `.waza.yaml`과 `skills/`·`evals/` 상대 경로 및 대응 symlink가 이미 있을 때만 평가를 실행한다. 없으면 점수 없이 안전하게 종료한다.
+
+워크스페이스를 만들 때는 현재 [upstream README](https://github.com/microsoft/waza/blob/main/README.md)의 초기화 절차와 스키마를 따른다. 빠르게 변하는 `.waza.yaml` 형식을 이 저장소가 임의로 생성하지는 않는다.
+
 ## 트러블슈팅
 
 **`waza: command not found` (셸에서는 보이는데 Claude Code 내부 Bash에서만 안 보임)**
@@ -70,4 +76,4 @@ rm -rf "$HOME/.claude/data/waza-workspace" "$HOME/.claude/data/waza"
 - workspace 설정: `~/.claude/data/waza-workspace/.waza.yaml`
 - 평가 결과 JSON: `~/.claude/data/waza/results/`
 - waza-runner 에이전트: `~/.claude/agents/waza-runner.md`
-- eval.yaml 위치: 각 스킬 디렉토리 내부 `evals/eval.yaml` (예: `~/.claude/skills/commit/evals/eval.yaml`)
+- eval.yaml 위치: `~/.claude/evals/<skill>/eval.yaml` (예: `~/.claude/evals/commit/eval.yaml`)

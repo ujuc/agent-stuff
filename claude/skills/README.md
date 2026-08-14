@@ -30,7 +30,7 @@
 
 ## Harness Pipeline
 
-4개 컴포넌트 스킬과 Generator 단계가 단일 파이프라인을 구성한다 (`build` / `verify` / `planning`에 분포):
+Planner·Contract·Generator가 기본 파이프라인을 이루고 QA·Design Evaluator는 필요할 때 추가된다 (`build` / `verify` / `planning`에 분포):
 
 ```
 [User Prompt]
@@ -48,7 +48,7 @@
     └── [frontend-design-evaluator] ── Design QA
     │
     ▼
-[multi-agent-orchestrator] orchestrates the full pipeline
+[multi-agent-orchestrator] orchestrates the selected stages
 ```
 
 Chrome 의존 스킬(`qa-evaluator`, `frontend-design-evaluator`)은 `--chrome` 플래그 또는 `/chrome` 명령으로 활성화한다.
