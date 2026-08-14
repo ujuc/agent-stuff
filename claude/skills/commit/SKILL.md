@@ -30,7 +30,7 @@ rules without editing this user-level skill.
      it as authoritative — its `description`, `allowed-tools`, and body
      override the user-level rules. Do **not** also run the user-level
      `Format`, `Procedure`, `Doc updates`, `Push`, `Summary`, `Maintenance`,
-     `Gemma delegation`, or `Humanizer audit` sections; the project skill
+     `Gemma delegation`, or `Humanizer pass` sections; the project skill
      is intentionally taking over the entire workflow.
    - The user's original arguments (file paths, push hint, humanizer
      hint, ...) remain in conversation context, so the project skill
@@ -56,7 +56,7 @@ rules without editing this user-level skill.
 
 `<type>(<scope>): <한국어 제목 -다>`
 
-- **scope**: follow the scopes defined in the project's CLAUDE.md.
+- **scope**: follow the scopes defined in the project's AGENTS.md or imported project instructions.
 - **Subject ≤ 50 characters** (including `<type>(<scope>):` prefix).
 - **Body wrapped at 72 characters**, blank line separating subject and body.
 - **Verb declarative `-다` ending** on the subject — any verb stem, no trailing period.
@@ -71,7 +71,7 @@ rules without editing this user-level skill.
 1. Run `git status` and check whether any submodule is reported as modified (modified content, new commits).
 2. If a submodule has changes, **process the submodule first**:
    - Inspect with `git -C <submodule> status` and `git -C <submodule> diff`.
-   - Stage and commit inside the submodule (apply the same rules as Steps 1–7 below).
+   - Stage and commit inside the submodule using Steps 1–5, 7, and 8 below; skip parent documentation updates.
    - If the user asked for a push, push the submodule first.
 3. Once the submodule is done, return to the parent repo and proceed including the updated submodule pointer.
 
@@ -87,7 +87,7 @@ rules without editing this user-level skill.
 
    1. **Subject length ≤ 50 characters** (including `<type>(<scope>):` prefix). Verify with `printf '%s' '<subject>' | wc -m` — Unicode character count, not bytes. `echo -n` is unreliable across shells; always use `printf '%s'`.
    2. **Body required?** Follow the policy below. If the change requires a body and the draft has none, add a Why / How block. If the change is trivial and the draft has a body, consider removing it.
-   3. **Imperative test**: read `이 커밋이 적용되면 [제목]` out loud. If it does not read as a natural command, rewrite the subject.
+   3. **Completion test**: read `이 커밋이 적용되면 [제목]` aloud. If it does not describe the resulting change naturally, rewrite the subject.
 
    **Body requirement policy:**
 
@@ -99,7 +99,7 @@ rules without editing this user-level skill.
    | `chore(agents)` (submodule pointer)    | **One-line summary** of what changed in the submodule and why — no "업데이트하다"만 |
    | Other `chore`                          | Optional                                                                    |
 
-   **After the three-check pass, if the user hinted `humanize` / `휴머나이저` / `AI 흔적` / `다듬어서`, run the "Humanizer audit (optional)" section before Step 8.**
+   **After the three-check pass, if the user hinted `humanize` / `휴머나이저` / `AI 흔적` / `다듬어서`, run the "Humanizer pass (optional)" section before Step 8.**
 
 8. Commit using a heredoc:
 
@@ -114,47 +114,12 @@ EOF
 
 ## Doc updates
 
-After staging, conditionally apply incremental edits to project documentation.
+After staging, inspect documentation only for structural changes or new external dependencies. Skip content-only edits, submodule pointer updates, and internal `style` or `refactor` changes.
 
-### Triggers (apply if any holds)
-
-1. File or directory added/removed.
-2. New scope candidate (a new top-level directory).
-3. External tool dependency added.
-
-### Skip conditions
-
-- Content-only changes to existing files (no structural change).
-- Submodule pointer updates.
-- `style` or `refactor` type internal changes.
-- The project root has no AGENTS.md or CLAUDE.md.
-
-### Procedure
-
-1. Use Glob to confirm AGENTS.md / CLAUDE.md exists at project root.
-2. If absent, skip doc updates.
-3. Read the relevant section (see section mapping below).
-4. If a change is needed, describe the edit to the user and get approval.
-5. Use Edit to apply the incremental change to that section only.
-6. Stage the modified doc with `git add`.
-
-### Section mapping
-
-**AGENTS.md**:
-
-| Trigger | Section to edit |
-| ------- | --------------- |
-| File / directory add or remove | Repository Structure (tree diagram) |
-| Significant file added | Key Files table |
-| New top-level directory | Scopes table |
-
-**CLAUDE.md**: Scopes list — only when a new scope candidate appears and CLAUDE.md needs to stay in sync with AGENTS.md.
-
-**README.md**: Installation / Dependencies section — only when an external tool dependency is added.
-
-### Discoverability principle
-
-Don't put information that can be derived by reading code or files into the docs. Docs hold **purpose, deployment target, and relationships** only.
+- Update `AGENTS.md` only when an undiscoverable workflow, scope policy, deployment target, or cross-repository relationship changed. Do not add directory trees or file tables that the repository exposes directly.
+- Update `README.md` when installation steps, symlink targets, or external dependencies changed.
+- Keep `CLAUDE.md` as an import plus harness-specific rules; do not duplicate `AGENTS.md` content there.
+- Show any proposed documentation edit to the user, apply only the approved change, and stage it with the intended commit.
 
 ## Push (optional)
 
@@ -210,26 +175,16 @@ Stage both files together in the same commit so the two views never diverge.
 
 ## Gemma delegation (optional)
 
-For very large changes (`git diff --cached --shortstat` ≥ 500 lines, ≥ 10 files changed, or the user gives a hint like `큰 diff` / `요약해서 커밋` / `gemma로 정리`), the body draft can be pre-summarized via local Gemma. The subject and the final body are still authored and reviewed by Claude.
+For very large changes (`git diff --cached --shortstat` ≥ 500 lines, ≥ 10 files changed, or the user gives a hint like `큰 diff` / `요약해서 커밋` / `gemma로 정리`), the body draft can be pre-summarized by Gemma in forced-local mode. The subject and final body remain Claude-authored and reviewed.
 
 Call pattern, fallback rules, and result usage follow `references/gemma-delegation.md`.
 
-## Humanizer audit (optional)
+## Humanizer pass (optional)
 
-Opt-in audit pass over the commit body to strip AI writing patterns. Trigger when the user includes `humanize`, `휴머나이저`, `AI 흔적`, or `다듬어서` in the commit arguments. Never run automatically.
+Run only when the user asks to humanize the commit text. Skip empty bodies, structured bodies whose lines are mostly bullets or code, `revert`, and `chore(agents)` pointer summaries.
 
-### Procedure
+1. Rewrite the body inline with the smallest wording changes that remove AI-like prose; never include the subject.
+2. Show the rewritten body and ask whether to apply it, keep the original, or cancel.
+3. Recheck factual fidelity, the 72-character wrap, and the body requirement before committing.
 
-1. Extract the body portion of the draft (everything after the blank line following the subject). Skip if the body is empty, or if ≥ 50% of body lines are bullets, numbered lists, or inside code fences — structured bodies are format, not prose.
-2. Invoke `Skill("humanizer")` with the body text in `audit` mode at `P1` threshold. Pass the body as-is; do not include the subject.
-3. If humanizer returns zero findings, proceed to Step 8 unchanged.
-4. If findings exist, render them as a compact table and ask the user to pick one:
-   - **a) 제안 적용** — invoke `Skill("humanizer")` again in `rewrite` mode at `P1` threshold, then use the rewritten body in Step 8.
-   - **s) 그대로 커밋** — keep the original body.
-   - **c) 취소** — abort before running `git commit`.
-
-### Scope
-
-- **Body only.** The subject follows a strict format (`<type>(<scope>): 한국어 제목 -다`) and a 50-char budget; humanizer's prose rules do not apply, and edits risk breaking the budget.
-- **P1 only.** Commit bodies are short technical summaries. P2 patterns like `K16 한자어 남용` misfire on natural technical writing (e.g., "캐시를 활용하다" is idiomatic, not AI-ish). P1 is the minimum false-positive threshold.
-- **Skip for `revert` and `chore(agents)` submodule pointer bodies** — those are factual one-liners that should not be paraphrased.
+The subject is never humanized because its `-다` ending and 50-character limit are format constraints.

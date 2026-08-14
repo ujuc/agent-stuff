@@ -15,15 +15,11 @@ and the availability of the local runtime.
 | `pro`   | Gemini API      | Skip Gemma, go straight to `gemini-pro-latest` |
 | `flash` | Gemini API      | Skip Gemma, go straight to `gemini-flash-latest` |
 
-Manual override: `--local` / `--cloud` flag on `query.sh`, or
-`GEMMA_BACKEND=lmstudio|gemini`.
+Manual override: `--local` / `--cloud` on `query.sh`, or `GEMMA_BACKEND=lmstudio|gemini`. Forcing `lmstudio` disables remote fallback.
 
 ## Automatic Fallback
 
-If LM Studio is unreachable or no matching Gemma model is loaded, `query.sh`
-silently falls back to the Gemini API. Set `GEMMA_NO_FALLBACK=1` or pass
-`--local` to disable — useful when privacy-sensitive prompts must never leave
-the machine.
+LM Studio prefers a Gemma model matching the requested variant, then any loaded Gemma model. Unless disabled, any failed local attempt falls back to the Gemini API. Set `GEMMA_NO_FALLBACK=1` or pass `--local` when prompts must never leave the machine.
 
 When a fallback happens, stderr logs:
 

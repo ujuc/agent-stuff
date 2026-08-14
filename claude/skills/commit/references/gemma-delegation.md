@@ -37,10 +37,11 @@ PROMPT="다음 git diff를 5개 이하의 글머리 기호로 요약해줘. 각 
 $DIFF"
 
 # call + quiet fallback
-gemma_summary=$(GEMMA_TIMEOUT=300 bash ~/.claude/skills/gemma/scripts/query.sh "$PROMPT" 2>"$LOG") || gemma_summary=""
+gemma_summary=$(GEMMA_TIMEOUT=300 GEMMA_NO_FALLBACK=1 bash ~/.claude/skills/gemma/scripts/query.sh --local "$PROMPT" 2>"$LOG") || gemma_summary=""
 ```
 
 - stdout captured to `$gemma_summary`, stderr split to the log file.
+- `--local` plus `GEMMA_NO_FALLBACK=1` prevents staged diff content from leaving the machine.
 - `|| gemma_summary=""` is the fallback trigger — empty string when query.sh exits non-zero.
 - Large diffs can exceed the default 120s. Bump with `GEMMA_TIMEOUT=300` or similar.
 

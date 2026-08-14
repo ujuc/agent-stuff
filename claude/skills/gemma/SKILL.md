@@ -58,45 +58,26 @@ See `references/models.md` for the model ID matrix and resolution regex.
 
 ## Fallback behavior
 
-If a request targets LM Studio but `GET /v1/models` fails within 3 seconds,
-or no loaded model matches the variant, the script silently falls back to
-Gemini API. The switch is logged to stderr:
+If a request targets LM Studio, the script prefers a loaded Gemma model matching the variant and otherwise uses any loaded Gemma model. Unless fallback is disabled, any failed local attempt—including reachability, request, or response errors—switches to Gemini. The switch is logged to stderr:
 
 ```
 warn: LM Studio unreachable at http://localhost:1234
 info: backend=gemini model=gemini-flash-latest (Gemma not available on API), fallback from LM Studio
 ```
 
-To **disable** fallback (e.g., for privacy-sensitive prompts that must not
-leave the machine): set `GEMMA_NO_FALLBACK=1` or pass `--local`. The script
-then exits with code 3 and prints setup hints.
+To **disable** fallback (e.g., for privacy-sensitive prompts that must not leave the machine), set `GEMMA_NO_FALLBACK=1`, pass `--local`, or set `GEMMA_BACKEND=lmstudio`. The script then exits with code 3 and prints setup hints.
 
 ## Remote model auto-discovery
 
-Google AI Studio publishes new Gemma variants on their own schedule, so IDs
-are resolved at runtime via `scripts/list-gemini-models.sh` (5-min cached).
-The script picks the **highest-version Gemma** matching the requested
-variant, falling back to `gemini-flash-latest` or `gemini-pro-latest` aliases
-if no Gemma match exists. No code change needed when Gemma 4 ships on the
-API — it will be picked up automatically.
+Google AI Studio publishes new Gemma variants on its own schedule, so IDs are resolved at runtime. Queries reuse a fresh 5-minute cache when one exists and otherwise fetch the model list live; `scripts/list-gemini-models.sh` refreshes the cache. The script picks the **highest-version Gemma** matching the requested variant, falling back to `gemini-flash-latest` or `gemini-pro-latest` aliases if no Gemma match exists.
 
 Override with `GEMMA_GEMINI_MODEL=<id>` for a specific model.
 
 ## Setup (first run)
 
-**Rust toolchain is required.** Launchers defer to `cargo run`; install via
-<https://rustup.rs>. The first invocation compiles the `gemma` binary
-(release profile, ~6–30s); subsequent runs are instant via Cargo's
-incremental cache. `curl`/`jq` are no longer needed — the Rust build links
-its own TLS stack (rustls) and JSON handling.
+**Rust toolchain is required.** Launchers defer to `cargo run`; install via <https://rustup.rs>. The first invocation compiles the `gemma` binary (release profile, ~6–30s); later runs reuse Cargo's cache. The query path uses Rust TLS and JSON handling directly.
 
-On first invocation, `scripts/query.sh` still calls `ensure-deps.sh` if a
-backend dependency is missing:
-
-- `lm-studio` cask (for local path — `lms` CLI ships inside the cask)
-- `1password-cli` cask (for remote path — API key lives in 1Password)
-
-Prompt-less install: `GEMMA_AUTO_INSTALL=1`.
+Before first use, run `bash scripts/ensure-deps.sh --lmstudio`, `--gemini`, or `--all` for the selected backends. That command checks `curl`, `jq`, Homebrew, LM Studio, and 1Password CLI and can install missing dependencies. Set `GEMMA_AUTO_INSTALL=1` only when invoking this dependency command without prompts. `scripts/query.sh` does not run it automatically.
 
 After install, you still need to:
 
@@ -123,7 +104,7 @@ After install, you still need to:
 
 | Variable             | Default                              | Purpose |
 |----------------------|--------------------------------------|---------|
-| `GEMMA_BACKEND`      | *(auto by variant)*                  | `lmstudio` or `gemini` |
+| `GEMMA_BACKEND`      | *(auto by variant)*                  | Force `lmstudio` (no remote fallback) or `gemini` |
 | `GEMMA_LMSTUDIO_HOST`| `http://localhost:1234`              | LM Studio OpenAI base URL |
 | `GEMMA_GEMINI_MODEL` | *(auto: Gemma-first, Gemini fallback)* | Remote model ID override |
 | `GEMMA_OP_REFERENCE` | `op://key/gemini-key/credential`     | 1Password secret reference |
@@ -157,13 +138,13 @@ Better left to Claude:
 
 | Exit | Cause | Hint |
 |------|-------|------|
-| 2    | `brew` missing, or `ensure-deps` install declined | Install Homebrew from <https://brew.sh> or re-run with `GEMMA_AUTO_INSTALL=1` |
+| 2    | Dependency command failure, or `op` missing for remote access | Run the appropriate `ensure-deps.sh` mode and verify Homebrew/1Password CLI |
 | 3    | LM Studio unavailable and fallback disabled | `lms server start && lms load <model>` |
-| 3    | 1Password not signed in / no account registered | `op account add`, or `eval "$(op signin)"` |
-| 4    | 1Password item not readable | Check `GEMMA_OP_REFERENCE`, vault/item/field |
+| 3    | No 1Password account registered | `op account add` |
+| 4    | 1Password not signed in or item not readable | Run `eval "$(op signin)"`, then check `GEMMA_OP_REFERENCE` |
 | 5    | Gemini HTTP failure | Check key validity / rate limits / network |
-| 6    | Malformed Gemini response | Stderr prints raw body; usually a 401/429 text error |
-| 64   | Usage error | Empty prompt or unknown flag |
+| 6    | Malformed or unexpected Gemini JSON response | Stderr prints the parse error or raw body |
+| 64   | Missing or empty prompt | Supply prompt text |
 | 127  | `cargo` not found | Install Rust via <https://rustup.rs> |
 
 ## References

@@ -55,10 +55,10 @@ Systematically explore the application:
 
 - **Main workflows first**: Navigate the primary user journeys end-to-end (`navigate`, `read_page`).
 - **Inputs**: Fill forms with valid data, then invalid data, then edge cases — empty, extremely long, special characters (`form_input`, `find`).
-- **Navigation**: Click every link, button, and interactive element. Verify routing.
-- **State transitions**: Log in/out, create/edit/delete entities, test undo behavior.
+- **Navigation**: Click links and non-destructive controls. Verify routing.
+- **State transitions**: Before creating, editing, deleting, purchasing, sending, or changing authenticated data, confirm the app is a disposable test environment or get explicit user approval. Otherwise keep the evaluation read-only.
 - **Error states**: Trigger 404s, submit malformed data, disconnect network scenarios.
-- **Responsive**: Resize viewport to 375px / 768px / 1440px (`resize_window`).
+- **Responsive**: Resize viewport to 320px / 768px / 1440px (`resize_window`).
 - **Runtime signals**: Collect `read_console_messages` and `read_network_requests` during every key action — these drive the Code Quality score.
 - **Evidence**: Capture a screenshot or `gif_creator` clip per issue. Use GIF for multi-step, animation, or race-condition bugs; screenshot otherwise.
 
@@ -93,7 +93,7 @@ These rules are non-negotiable:
 
 1. **Focus on what DOESN'T work.** The "what works" section must be brief (3 items max). The bulk of the report is failures and issues.
 2. **No vague evaluations.** Never write "generally works well" or "mostly functional." Every statement must reference a specific behavior.
-3. **When in doubt, FAIL.** A false negative (marking something as broken when it marginally works) is better than a false positive (marking something as working when it has issues).
+3. **When in doubt, FAIL.** Rejecting marginal behavior is safer than accepting behavior that still has user-visible defects.
 4. **Stub detection = automatic FAIL.** If a feature displays data but has no interactive depth (cannot create, edit, delete, or trigger real state changes), it is a stub. Stubs score 1 on Product Depth.
 5. **No grading on a curve.** Do not adjust scores based on "how far along" the project is. Evaluate against what a user would expect.
 
@@ -102,12 +102,15 @@ These rules are non-negotiable:
 Write the report to stdout by default. When invoked through `multi-agent-orchestrator`, also write it to `.harness/evaluation-report.md` using the orchestrator's standard header (Agent, Timestamp, Phase, Round):
 
 ```
+---
+agent: qa-evaluator
+timestamp: <ISO 8601>
+phase: evaluating
+round: <N>
+---
+
 # QA Evaluation Report
 
-**Agent**: qa-evaluator
-**Timestamp**: <ISO 8601>
-**Phase**: evaluating
-**Round**: <N>
 **App URL**: <url>
 **Sprint/Spec**: <reference or "none">
 
@@ -128,7 +131,7 @@ Write the report to stdout by default. When invoked through `multi-agent-orchest
 ## Issues Found
 
 ### [FAIL] <Criterion> — <Short description>
-**Severity**: Critical / Major / Minor
+**Severity**: Critical / Major / Minor / Cosmetic
 **Steps to reproduce**: ...
 **Expected**: ...
 **Actual**: ...
@@ -154,12 +157,11 @@ How to call: invoke `advisor()` with no parameters. The full current conversatio
 
 ## Gotchas
 
-- **Chrome session state**: Chrome shares the user's login state. If the app requires auth, you may already be logged in. Verify by checking session cookies.
+- **Chrome session state**: Chrome shares the user's login state. Treat authenticated data as real unless the user confirms a disposable environment; do not perform state-changing actions without approval.
 - **Port conflicts**: The app URL may not be localhost:3000. Always confirm with the user or check running processes.
 - **SPA routing**: Single-page apps may return 200 for all routes. Check that the actual content renders, not just that the HTTP response succeeds.
 - **API-only endpoints**: Use `curl` directly for API testing. Chrome is for UI evaluation.
 - **Flaky state**: If a test fails intermittently, reproduce it 3 times before reporting. Note flakiness in the report.
 - **Dialog trap**: `alert()`, `confirm()`, `prompt()` block the extension. Avoid clicking elements that trigger them; if unavoidable, use `javascript_tool` to auto-dismiss or warn the user first. A stuck session requires manual dismissal in the browser.
 - **Tab reuse**: Never reuse tab IDs from a previous session. Call `tabs_context_mcp` at the start; create a new tab unless the user explicitly points at an existing one.
-- **Bail-out rule**: If Chrome tool calls fail or the extension is unresponsive after 2–3 attempts, stop and ask the user. Do not retry the same failing action.
-- **Do not fix anything.** The evaluator's job is to report. If tempted to suggest a one-line fix, include it in recommendations but do not apply it.
+- **Bail-out rule**: If Chrome tool calls fail or the extension is unresponsive twice in a row, stop and ask the user. Do not retry the same failing action.

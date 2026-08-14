@@ -36,8 +36,8 @@ Commits ending in a Korean verb declarative `-다`:
 Each rule is a hard check. Fail any one → rewrite the subject.
 
 1. **50 characters or fewer**, including the `<type>(<scope>):` prefix.
-2. **End with a Korean verb declarative `-다`** (equivalent of the English
-   imperative mood): `추가하다`, `수정하다`, `걷어내다`, `지우다`. Any verb stem is
+2. **End with a Korean verb declarative `-다`**: `추가하다`, `수정하다`,
+   `걷어내다`, `지우다`. Any verb stem is
    fine — the hook checks the literal `다` only. Noun endings (`업데이트`,
    `정리함`) and English subjects fail.
 3. **No trailing period.**
@@ -46,8 +46,7 @@ Each rule is a hard check. Fail any one → rewrite the subject.
    subject by stacking clauses with `·`, `및`, `그리고`, or `~해`.
 6. **Do not list multiple changes in one subject** — split into separate
    commits.
-7. **Subject test**: read `이 커밋이 적용되면 [제목]` out loud. If it does not
-   sound like a natural command (명령), rewrite.
+7. **Subject test**: read `이 커밋이 적용되면 [제목]` aloud. If the subject does not naturally describe the resulting change, rewrite it.
 
 ## Body
 
@@ -157,7 +156,7 @@ Why:
 - 서브모듈 커밋이 이유 없는 관용어로 반복되고 있다
 
 How:
-- Procedure에 제목 길이·body 유무·명령형 테스트 3단 검증을 삽입
+- Procedure에 제목 길이·body 유무·결과 서술 테스트 3단 검증을 삽입
 - Anti-patterns 섹션으로 실패 사례를 명시화
 ```
 

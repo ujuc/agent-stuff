@@ -3,7 +3,7 @@ name: prompting-assist
 description: "사용자가 LLM에 보낼 프롬프트를 개선·리뷰·피드백받고 싶어할 때 사용. Anthropic 공식 프롬프팅 모범 사례에 근거한 체크리스트로 진단하고 개선안을 제시한다. '프롬프트 개선해줘', '이 프롬프트 리뷰해줘', '프롬프팅 팁', '/prompting' 등 명시적 어구에만 발동하며, 일반 대화 속 '프롬프트'라는 단어만으로는 발동하지 않는다."
 group: writing
 model: sonnet
-allowed-tools: Read, Edit, AskUserQuestion, WebFetch
+allowed-tools: Read, Edit, AskUserQuestion, ToolSearch, WebFetch
 ---
 
 # Prompting Assist

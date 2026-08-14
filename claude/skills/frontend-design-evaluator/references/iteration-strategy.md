@@ -20,7 +20,7 @@ Pick one per round based on the score trend vs. the prior round.
 | Up    | At least one criterion improved, none regressed | "Refine current direction. Focus on [weak areas]." |
 | Stagnant | All criteria within ±0.5 of last round | "Pivot. Current direction plateaued. Try [alternative aesthetic]." |
 | Declining | Any criterion dropped ≥ 1.0 | "Revert to round N snapshot or pivot completely." |
-| All > 7 | Weighted avg ≥ 7 and no criterion below 7 | "Polish phase. Address micro-details: [list]." |
+| Polish threshold | Weighted avg ≥ 7 and no criterion below 7 | "Polish phase. Address micro-details: [list]." |
 
 ## Stop conditions
 

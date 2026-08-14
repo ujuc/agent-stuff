@@ -1,6 +1,6 @@
 ---
 name: frontend-design-evaluator
-description: "프론트엔드 결과물을 Design Quality, Originality, Craft, Functionality 4가지 기준으로 점수 매기고 Generator-Evaluator 루프에 넣을 개선 지시를 생성한다."
+description: "Chrome에서 실행 중인 프론트엔드 결과물을 Design Quality, Originality, Craft, Functionality 4가지 기준으로 평가하고 Generator-Evaluator 루프용 개선 지시를 생성한다."
 when_to_use: "디자인 평가, UI 리뷰, frontend-design-evaluator, 디자인 검수해줘, evaluate this design, rate my frontend, AI slop check 요청 시 사용한다. 루프의 판별자(evaluator)로도 호출된다."
 group: verify
 model: sonnet
@@ -60,9 +60,10 @@ weighted_score = (design_quality * 2 + originality * 2 + craft + functionality) 
 Every report ends with a directive for the next round, picked from the score trend. See [references/iteration-strategy.md](references/iteration-strategy.md) for the full decision matrix and stop conditions.
 
 Quick reference:
+- First round → use `Baseline`; do not infer a trend without a prior round.
 - Trend **up** → "Refine. Focus on [weak areas]."
 - Trend **stagnant / declining** → "Pivot. Current direction plateaued. Try [alternative]."
-- All criteria **> 7** → "Polish phase. Address: [micro-details]."
+- Weighted average **≥ 7** with no criterion below 7 → "Polish phase. Address: [micro-details]."
 
 Replace every bracketed placeholder with concrete content before emitting the directive (e.g., "Originality and Craft", "brutalist editorial layout", "hero h1 leading"). Emitting literal `[weak areas]` or `[alternative]` is a failure mode.
 
@@ -74,7 +75,7 @@ Replace every bracketed placeholder with concrete content before emitting the di
 **URL**: <url>
 **Iteration**: <round> of <planned>
 **Viewports tested**: <e.g., 375px, 1280px / light, dark>
-**Trend**: Improving / Stagnant / Declining
+**Trend**: Baseline / Improving / Stagnant / Declining
 
 ### Scores
 
@@ -123,9 +124,7 @@ Treat advisor as an inflation guard, not a default — it is expensive.
 
 ## Gotchas
 
-- **Never evaluate from code.** Runtime styles decide the outcome.
 - **Mobile viewport is not optional.** Evaluate at 375px unless the app declares desktop-only. Broken mobile caps Design Quality at 5.
 - **Loading states matter.** A blank white flash on navigation is a Craft deduction.
 - **Originality ≠ novelty.** A well-executed classic design scores high if choices are intentional. Score "a designer made deliberate choices," not "I have never seen this before."
 - **Don't let the Generator see this rubric verbatim.** If the Generator optimizes to the rubric's language, it will reward-hack the vocabulary instead of the design.
-- **Dark mode**: score the worse of light/dark.

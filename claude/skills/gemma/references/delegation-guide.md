@@ -186,21 +186,19 @@ precisely. The full list mirrors the Error handling table in
 | Code | Meaning                                                | Caller action                                          |
 |------|--------------------------------------------------------|--------------------------------------------------------|
 | 0    | Success. stdout contains the response.                 | Use stdout.                                            |
-| 2    | `brew` missing, or dependency install declined.        | Fall back. Inform user once (install Homebrew / re-run with `GEMMA_AUTO_INSTALL=1`). |
-| 3    | LM Studio unavailable and fallback disabled, **or** 1Password not signed in. | Fall back silently (see Fallback Policy).      |
-| 4    | 1Password item not readable.                           | Fall back. Check `GEMMA_OP_REFERENCE` vault/item/field.|
+| 2    | Dependency command failure, or `op` missing for remote access. | Fall back. Run the relevant `ensure-deps.sh` mode. |
+| 3    | LM Studio unavailable with fallback disabled, or no 1Password account registered. | Fall back silently or register an account. |
+| 4    | 1Password not signed in or item not readable.          | Sign in, then check `GEMMA_OP_REFERENCE`. |
 | 5    | Gemini HTTP failure (network, rate limit, bad key).    | Fall back. Mention shortening input / checking the key.|
-| 6    | Malformed Gemini response (usually a 401/429 text).    | Fall back. This is a bug — log the raw body from stderr.|
-| 64   | Usage error (empty prompt or unknown flag).            | Fix the call. This is a caller bug.                    |
+| 6    | Malformed or unexpected Gemini JSON response.         | Fall back and log the parse error or raw body. |
+| 64   | Missing or empty prompt.                              | Supply prompt text.                                    |
 | 127  | `cargo` not found (Rust toolchain missing).            | Fall back. Suggest installing Rust from <https://rustup.rs>. |
 
 The practical rule for most skills is:
 
 > **exit 0 → use stdout. Any other code → fall back and continue.**
 
-Only more sophisticated skills need to distinguish exit 3 (backend down /
-not signed in, expected in many environments) from exit 4/5/6 (config or
-remote-API issues).
+Only more sophisticated skills need to distinguish exit 3 (backend down or no registered account) from exit 4/5/6 (sign-in, configuration, or remote-API issues).
 
 ### Stdout vs Stderr
 
