@@ -3,8 +3,7 @@
   "skillListingBudgetFraction": 0.05,
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
-    "CLAUDISH_MODEL": "google/gemma-4-26b-a4b-qat",
-    "CLAUDISH_OLLAMA": "http://127.0.0.1:1234"
+    "CLAUDISH_MD_MODE": "sibling"
   },
   "permissions": {
     "allow": [
