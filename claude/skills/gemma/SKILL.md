@@ -1,169 +1,95 @@
 ---
 name: gemma
-description: "로컬 LM Studio와 Google AI Studio(Gemini API)를 통해 Gemma 모델에 프롬프트를 전달한다. variant별 자동 라우팅(e2b/e4b→로컬, 26b/31b→원격)과 LM Studio 미가용 시 Gemini 폴백을 지원한다. gemma, gemma4, gemma로 요약해줘, gemma로 번역해, lm studio로 돌려줘, gemini api로 보내줘, 로컬 LLM, 오프라인 AI, 로컬로 처리해, 클라우드로 돌려줘, Gemma 호출 요청 시 사용한다. 민감 정보 오프라인 처리, 긴 컨텍스트 요약, 다국어 번역, 초안 생성 등에 적합."
+description: "로컬 Ollama의 Gemma 모델에 프롬프트를 전달한다. gemma, gemma4, ollama로 요약해줘, gemma로 번역해, 로컬 LLM, 오프라인 AI, 로컬로 처리해, Gemma 호출 요청 시 사용한다. 민감 정보 처리, 긴 문서 요약, 번역, 분류, 초안 생성에 적합하다."
 group: llm
 model: sonnet
-allowed-tools: Bash(bash:*), Bash(lms:*), Bash(op:*), Bash(brew:*)
-argument-hint: "[--local|--cloud] [variant] prompt"
+allowed-tools: Bash(bash:*), Bash(ollama:*)
+argument-hint: "[prompt]"
 ---
 
-# Gemma (LM Studio + Google AI Studio)
+# Gemma (Ollama)
 
-Dispatch a prompt to Gemma via local LM Studio (OpenAI-compatible API) or
-Google AI Studio / Gemini API. Variant selects the backend by default, with
-automatic fallback to the remote API when LM Studio is unavailable.
-
-The routing, HTTP calls, and 1Password integration are implemented in Rust
-under `tools/gemma/` (Cargo workspace). The `scripts/*.sh` files are thin
-launchers that `cargo run` the `gemma` binary — same CLI surface, same stderr
-`info:`/`warn:`/`error:` format, same exit codes as the previous bash
-scripts.
+Send text prompts to a local Gemma model through Ollama. This skill has one
+backend, no routing, and no remote API fallback.
 
 ## How to invoke
 
-All invocations go through `scripts/query.sh`. Use the `Bash` tool:
+All requests go through `scripts/query.sh`:
 
 ```bash
-# Default: variant e4b on LM Studio, auto-fallback to Gemini if LM Studio down.
 bash ~/.claude/skills/gemma/scripts/query.sh "이 문단을 3줄로 요약해줘: ..."
 
-# Explicit variant.
-bash ~/.claude/skills/gemma/scripts/query.sh e4b "hello"
-
-# Force remote (Gemini API).
-bash ~/.claude/skills/gemma/scripts/query.sh --cloud 31b "복잡한 추론 문제: ..."
-
-# Force local; fail if LM Studio unavailable (privacy-strict mode).
-GEMMA_NO_FALLBACK=1 bash ~/.claude/skills/gemma/scripts/query.sh --local e4b "민감 데이터: ..."
+# Use another installed Ollama model for one call.
+GEMMA_MODEL=gemma4:4b bash ~/.claude/skills/gemma/scripts/query.sh "hello"
 ```
 
-stdout contains only the model response. stderr has a single `info:` line
-with `backend=lmstudio|gemini model=<id>` so you can surface the real model
-to the user (e.g., prefix `Gemma (gemma-3n-e4b-it via LM Studio) 응답:`).
-
-## Variant → Backend Routing
-
-| variant | Default backend | Intent |
-|---------|-----------------|--------|
-| `e2b`   | LM Studio       | 8GB RAM, fastest |
-| **`e4b`** | **LM Studio** (skill default) | 16GB RAM, balanced |
-| `26b`   | Gemini API      | High-quality, too big for most laptops |
-| `31b`   | Gemini API      | Top-tier reasoning |
-| `pro`   | Gemini API      | Bypass Gemma, use `gemini-pro-latest` |
-| `flash` | Gemini API      | Bypass Gemma, use `gemini-flash-latest` |
-
-Override with `--local` / `--cloud` or `GEMMA_BACKEND=lmstudio|gemini`.
-
-See `references/models.md` for the model ID matrix and resolution regex.
-
-## Fallback behavior
-
-If a request targets LM Studio, the script prefers a loaded Gemma model matching the variant and otherwise uses any loaded Gemma model. Unless fallback is disabled, any failed local attempt—including reachability, request, or response errors—switches to Gemini. The switch is logged to stderr:
-
-```
-warn: LM Studio unreachable at http://localhost:1234
-info: backend=gemini model=gemini-flash-latest (Gemma not available on API), fallback from LM Studio
-```
-
-To **disable** fallback (e.g., for privacy-sensitive prompts that must not leave the machine), set `GEMMA_NO_FALLBACK=1`, pass `--local`, or set `GEMMA_BACKEND=lmstudio`. The script then exits with code 3 and prints setup hints.
-
-## Remote model auto-discovery
-
-Google AI Studio publishes new Gemma variants on its own schedule, so IDs are resolved at runtime. Queries reuse a fresh 5-minute cache when one exists and otherwise fetch the model list live; `scripts/list-gemini-models.sh` refreshes the cache. The script picks the **highest-version Gemma** matching the requested variant, falling back to `gemini-flash-latest` or `gemini-pro-latest` aliases if no Gemma match exists.
-
-Override with `GEMMA_GEMINI_MODEL=<id>` for a specific model.
+stdout contains only the model response. stderr starts with
+`info: backend=ollama model=<id>`. Label user-visible output with the reported
+model, for example `Gemma (gemma4:26b-mlx via Ollama):`.
 
 ## Setup (first run)
 
-**Rust toolchain is required.** Launchers defer to `cargo run`; install via <https://rustup.rs>. The first invocation compiles the `gemma` binary (release profile, ~6–30s); later runs reuse Cargo's cache. The query path uses Rust TLS and JSON handling directly.
+```bash
+brew install ollama
+ollama pull gemma4:26b-mlx
+ollama list
+```
 
-Before first use, run `bash scripts/ensure-deps.sh --lmstudio`, `--gemini`, or `--all` for the selected backends. That command checks `curl`, `jq`, Homebrew, LM Studio, and 1Password CLI and can install missing dependencies. Set `GEMMA_AUTO_INSTALL=1` only when invoking this dependency command without prompts. `scripts/query.sh` does not run it automatically.
-
-After install, you still need to:
-
-1. **LM Studio**: open GUI once, download `lmstudio-community/gemma-3n-E4B-it-MLX-4bit`,
-   run `lms server start` and `lms load <model>`. Details in
-   `references/backends.md`.
-2. **1Password**: store the API key at `op://key/gemini-key/credential`
-   (override via `GEMMA_OP_REFERENCE`), ensure `op account list` returns
-   your account (Touch ID integration auto-signs).
+Start the Ollama app or run `ollama serve` before querying. The launcher does
+not install dependencies or pull models automatically.
 
 ## Procedure
 
-1. Identify the prompt body and (optional) variant from the user's request.
+1. Identify the prompt body from the user's request.
 2. For long inputs, build the prompt with a clear instruction on top and the
    body in a single string (heredoc or quoted).
-3. Call `query.sh` via `bash` with the chosen flags.
+3. Call `query.sh` via `bash` without backend or variant flags.
 4. Surface the stdout response to the user with a header that names the
    actual backend and model (read from the stderr `info:` line). Never
-   present Gemma/Gemini output as if it were Claude's own reply.
-5. On script failure, relay the hint printed to stderr (install, server
-   start, 1Password signin, etc.) to the user verbatim.
+   present Gemma output as if it were Claude's own reply.
+5. On failure, relay Ollama's error and continue through the primary
+   Claude-only path when this skill is used as optional delegation.
 
 ## Environment variables
 
-| Variable             | Default                              | Purpose |
-|----------------------|--------------------------------------|---------|
-| `GEMMA_BACKEND`      | *(auto by variant)*                  | Force `lmstudio` (no remote fallback) or `gemini` |
-| `GEMMA_LMSTUDIO_HOST`| `http://localhost:1234`              | LM Studio OpenAI base URL |
-| `GEMMA_GEMINI_MODEL` | *(auto: Gemma-first, Gemini fallback)* | Remote model ID override |
-| `GEMMA_OP_REFERENCE` | `op://key/gemini-key/credential`     | 1Password secret reference |
-| `GOOGLE_AI_API_KEY`  | *(not set)*                          | Skip 1Password; use key directly |
-| `GEMMA_TIMEOUT`      | `120`                                | HTTP timeout (seconds) |
-| `GEMMA_NO_FALLBACK`  | `0`                                  | `1` = disable LM Studio → Gemini fallback |
-| `GEMMA_AUTO_INSTALL` | `0`                                  | `1` = install deps without prompting |
-| `GEMMA_MODELS_TTL`   | `300`                                | Gemini model-list cache TTL |
-| `GEMMA_MODELS_FORCE` | `0`                                  | `1` = bypass model-list cache |
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `GEMMA_MODEL` | `gemma4:26b-mlx` | Ollama model name |
 
-Full walkthrough in `references/backends.md`.
+Standard Ollama variables such as `OLLAMA_HOST` continue to work unchanged.
 
 ## When to use Gemma vs Claude
 
 Appropriate for:
 
-- Summarizing or classifying sensitive data offline (use `--local` +
-  `GEMMA_NO_FALLBACK=1`)
-- Multilingual translation (140+ languages supported natively)
-- Long-document summarization (128K+ context)
-- Drafting notes, obsidian pages, initial outlines
-- Structured JSON output or function-call style tool use
+- Summarizing or classifying sensitive data locally
+- Multilingual translation
+- Long-document summarization within the selected model's context limit
+- Drafting notes, initial outlines, or structured JSON
 
 Better left to Claude:
 
-- High-difficulty math/reasoning (AIME, GPQA Hard) — Claude wins decisively
-- Large-codebase navigation — Claude Code's Agent/Explore is purpose-built
-- Music/non-speech audio understanding — Gemma does not support it
+- High-difficulty math or reasoning
+- Large-codebase navigation
+- Tasks requiring the current conversation or tool context
 
 ## Error handling
 
-| Exit | Cause | Hint |
-|------|-------|------|
-| 2    | Dependency command failure, or `op` missing for remote access | Run the appropriate `ensure-deps.sh` mode and verify Homebrew/1Password CLI |
-| 3    | LM Studio unavailable and fallback disabled | `lms server start && lms load <model>` |
-| 3    | No 1Password account registered | `op account add` |
-| 4    | 1Password not signed in or item not readable | Run `eval "$(op signin)"`, then check `GEMMA_OP_REFERENCE` |
-| 5    | Gemini HTTP failure | Check key validity / rate limits / network |
-| 6    | Malformed or unexpected Gemini JSON response | Stderr prints the parse error or raw body |
-| 64   | Missing or empty prompt | Supply prompt text |
-| 127  | `cargo` not found | Install Rust via <https://rustup.rs> |
+| Exit | Cause | Action |
+|------|-------|--------|
+| 64 | Missing or empty prompt | Supply prompt text |
+| 127 | `ollama` not found | `brew install ollama` |
+| other | Ollama command failure | Check `ollama serve`, `ollama list`, and stderr |
 
 ## References
 
-- `references/models.md` — variant table, MLX model IDs, Gemma 4 benchmarks.
-- `references/backends.md` — LM Studio install, Google AI Studio key flow.
 - `references/delegation-guide.md` — when to delegate to Gemma from Claude.
 
 ## Eval Criteria
 
 Binary checks the skill must pass when invoked in realistic conditions:
 
-1. With LM Studio running and Gemma loaded, a default `e4b` call returns a
-   non-empty response and logs `backend=lmstudio` on stderr.
-2. With LM Studio stopped and `GEMMA_NO_FALLBACK` unset, the same call
-   silently falls back to Gemini and returns a non-empty response.
-3. `GEMMA_NO_FALLBACK=1` with LM Studio stopped exits non-zero without
-   contacting Google.
-4. `--cloud 31b` resolves to a `gemini-pro-latest` (or newer Gemma 31b if
-   the API exposes one) model and returns a response.
-5. `GEMMA_OP_REFERENCE` pointing to a non-existent item produces a clear
-   error (exit 4) rather than a Google 401.
+1. A default call uses `gemma4:26b-mlx` and logs `backend=ollama` on stderr.
+2. `GEMMA_MODEL=<id>` passes that exact model ID to Ollama.
+3. Missing or whitespace-only prompts exit 64 without invoking Ollama.
+4. No LM Studio, Gemini API, 1Password, or Rust dependency is required.

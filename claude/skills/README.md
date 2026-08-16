@@ -15,6 +15,8 @@
 | `llm` | 🤖 외부 LLM | `gemma`, `codex:codex-cli-runtime`, `codex:codex-result-handling`, `codex:gpt-5-4-prompting` |
 | `meta` | 🧪 메타·관리 | `generate-skills`, `skill-improver`, `autoresearch` |
 
+`gemma`는 로컬 Ollama의 `gemma4:26b-mlx` 모델만 기본 실행 경로로 사용한다.
+
 ## 워크플로우 색인
 
 ```

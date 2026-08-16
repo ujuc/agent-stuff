@@ -36,21 +36,20 @@ PROMPT="다음 git diff를 5개 이하의 글머리 기호로 요약해줘. 각 
 ---
 $DIFF"
 
-# call + quiet fallback
-gemma_summary=$(GEMMA_TIMEOUT=300 GEMMA_NO_FALLBACK=1 bash ~/.claude/skills/gemma/scripts/query.sh --local "$PROMPT" 2>"$LOG") || gemma_summary=""
+# call local Ollama + quiet fallback
+gemma_summary=$(bash ~/.claude/skills/gemma/scripts/query.sh "$PROMPT" 2>"$LOG") || gemma_summary=""
 ```
 
 - stdout captured to `$gemma_summary`, stderr split to the log file.
-- `--local` plus `GEMMA_NO_FALLBACK=1` prevents staged diff content from leaving the machine.
+- The gemma skill uses Ollama only and has no remote inference fallback.
 - `|| gemma_summary=""` is the fallback trigger — empty string when query.sh exits non-zero.
-- Large diffs can exceed the default 120s. Bump with `GEMMA_TIMEOUT=300` or similar.
 
 ## Fallback rules
 
-**Gemma availability is not assumed.** If LM Studio is off / the gemma model isn't loaded (and the remote Gemini fallback is disabled or unavailable), or the call times out, the commit procedure must continue normally:
+**Gemma availability is not assumed.** If Ollama is stopped or the configured model is unavailable, the commit procedure must continue normally:
 
 1. Empty `$gemma_summary` → skip the gemma step, Claude writes the body directly.
-2. Notify the user once per session, briefly (e.g., `note: gemma 사전 요약을 건너뛰었습니다 — LM Studio 미가동/모델 미로드`).
+2. Notify the user once per session, briefly (e.g., `note: gemma 사전 요약을 건너뛰었습니다 — Ollama 미가동/모델 없음`).
 3. The commit must not fail because of this — gemma failure is a **normal path**, not an error.
 
 ## Using the result

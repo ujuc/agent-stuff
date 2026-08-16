@@ -175,7 +175,7 @@ Stage both files together in the same commit so the two views never diverge.
 
 ## Gemma delegation (optional)
 
-For very large changes (`git diff --cached --shortstat` ≥ 500 lines, ≥ 10 files changed, or the user gives a hint like `큰 diff` / `요약해서 커밋` / `gemma로 정리`), the body draft can be pre-summarized by Gemma in forced-local mode. The subject and final body remain Claude-authored and reviewed.
+For very large changes (`git diff --cached --shortstat` ≥ 500 lines, ≥ 10 files changed, or the user gives a hint like `큰 diff` / `요약해서 커밋` / `gemma로 정리`), the body draft can be pre-summarized by Gemma through local Ollama. The subject and final body remain Claude-authored and reviewed.
 
 Call pattern, fallback rules, and result usage follow `references/gemma-delegation.md`.
 

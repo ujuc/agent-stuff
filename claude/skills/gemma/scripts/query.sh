@@ -1,20 +1,26 @@
 #!/usr/bin/env bash
-# query.sh — Thin launcher over the Rust workspace in tools/.
-# See tools/gemma/src/query.rs for argument handling.
+# query.sh — Send one prompt to a local Ollama model.
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TOOLS_DIR="${SCRIPT_DIR}/../tools"
+MODEL="${GEMMA_MODEL:-gemma4:26b-mlx}"
+PROMPT="$*"
 
-if ! command -v cargo >/dev/null 2>&1; then
-  echo "error: cargo not found. Install Rust via rustup: https://rustup.rs" >&2
+if [[ "${1:-}" == "--help" ]]; then
+  echo "Usage: query.sh <prompt>"
+  echo "Environment: GEMMA_MODEL (default: gemma4:26b-mlx)"
+  exit 0
+fi
+
+if [[ -z "${PROMPT//[[:space:]]/}" ]]; then
+  echo "error: usage: query.sh <prompt>" >&2
+  exit 64
+fi
+
+if ! command -v ollama >/dev/null 2>&1; then
+  echo "error: ollama not found. Install it with: brew install ollama" >&2
   exit 127
 fi
 
-exec cargo run \
-  --manifest-path "${TOOLS_DIR}/Cargo.toml" \
-  --bin gemma \
-  --release \
-  --quiet \
-  -- query "$@"
+echo "info: backend=ollama model=${MODEL}" >&2
+exec ollama run "$MODEL" --hidethinking --nowordwrap "$PROMPT"
