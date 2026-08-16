@@ -29,6 +29,10 @@ eval <skill-name|/absolute/eval.yaml> [--label X] [--baseline_json /absolute/res
 
 ```bash
 export WAZA_NO_UPDATE_CHECK=1
+export COPILOT_PROVIDER_BASE_URL="${COPILOT_PROVIDER_BASE_URL:-http://localhost:11434/v1}"
+export COPILOT_PROVIDER_TYPE="${COPILOT_PROVIDER_TYPE:-openai}"
+export COPILOT_MODEL="${COPILOT_MODEL:-gemma4:26b-mlx}"
+export COPILOT_OFFLINE="${COPILOT_OFFLINE:-true}"
 
 waza_bin=""
 for cand in "$(command -v waza 2>/dev/null)" "$HOME/bin/waza" "/usr/local/bin/waza" "/opt/homebrew/bin/waza" "$(go env GOPATH 2>/dev/null)/bin/waza"; do
@@ -57,7 +61,7 @@ fi
 cd "$workspace" || exit 0
 ```
 
-The workspace uses relative `paths.skills: skills/` and `paths.evals: evals/`; those entries are symlinks to the dotrc trees. Do not pass absolute paths in `.waza.yaml`.
+The workspace uses relative `paths.skills: skills/` and `paths.evals: evals/`; those entries are symlinks to the dotrc trees. Do not pass absolute paths in `.waza.yaml`. Real evaluations default to the local Ollama model `gemma4:26b-mlx` through Waza's Copilot SDK BYOK provider. Existing `COPILOT_PROVIDER_*`, `COPILOT_MODEL`, and `COPILOT_OFFLINE` values override these defaults.
 
 ## Auto-scaffold
 
@@ -138,7 +142,7 @@ ts="$(date +%Y%m%d-%H%M%S)"
 result_json="$results_dir/${prefix}-${label}-${ts}.json"
 run_log="$(mktemp)"
 
-if "$waza_bin" run "$eval_yaml" --no-update-check --output "$result_json" >"$run_log" 2>&1; then
+if "$waza_bin" run "$eval_yaml" --model "$COPILOT_MODEL" --no-update-check --output "$result_json" >|"$run_log" 2>&1; then
   waza_rc=0
 else
   waza_rc=$?
